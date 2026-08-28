@@ -12,6 +12,7 @@ mkdir -p work results/tables results/figures results/chimerax
 rm -rf work/prev_tables
 if [ -d results/tables ]; then cp -r results/tables work/prev_tables; fi
 rm -f results/tables/*.csv results/tables/flags_*.txt
+rm -f results/chimerax/* results/figures/*
 
 echo "### stages 1-5, plus pocket composition"
 python3 scripts/mexb_analysis.py all
@@ -37,8 +38,18 @@ echo "### stage 8 - report"
 python3 scripts/report.py
 
 echo
+echo "### figures"
+python3 scripts/figures.py
+
+echo
+echo "### viewer exports (ChimeraX sessions, painted PDBs, 3D viewer)"
+python3 scripts/viewer_exports.py
+python3 scripts/build_viewer.py
+
+echo
 echo "### combined workbook"
 python3 scripts/make_workbook.py
 
 echo
-echo "done. see results/REPORT.md and results/MexB_analysis_results.xlsx"
+echo "done. see results/REPORT.md, results/MexB_analysis_results.xlsx,"
+echo "          results/figures/, results/chimerax/, results/viewer/"

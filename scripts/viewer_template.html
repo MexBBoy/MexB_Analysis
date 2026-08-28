@@ -1,0 +1,555 @@
+<title>MexB Efflux Tunnels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --ground:#f4f5f3; --surface:#ffffff; --surface-2:#eceeeb;
+  --ink:#14171a; --ink-2:#4d565c; --ink-3:#7d868c;
+  --line:#dfe2df; --line-2:#c9cdc9;
+  --accent:#2a78d6;
+  --viewport:#0b0e13;
+  --chainD:#8a8984; --chainE:#2a78d6; --chainF:#eb6834;
+  --dbp:#e34948; --pbp:#1baf7a; --switch:#eda100; --lig:#7a6ce0;
+  --shadow:0 1px 2px rgba(20,23,26,.06),0 8px 24px rgba(20,23,26,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --ground:#0f1216; --surface:#171b21; --surface-2:#1e242b;
+    --ink:#e9ecee; --ink-2:#a6b0b7; --ink-3:#78838a;
+    --line:#262d35; --line-2:#333c46;
+    --accent:#4b93e8;
+    --chainD:#9aa0a4; --chainE:#4b93e8; --chainF:#f07a4a;
+    --dbp:#ef6463; --pbp:#2fc691; --switch:#f0b52c; --lig:#9287ea;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.32);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --ground:#0f1216; --surface:#171b21; --surface-2:#1e242b;
+  --ink:#e9ecee; --ink-2:#a6b0b7; --ink-3:#78838a;
+  --line:#262d35; --line-2:#333c46;
+  --accent:#4b93e8;
+  --chainD:#9aa0a4; --chainE:#4b93e8; --chainF:#f07a4a;
+  --dbp:#ef6463; --pbp:#2fc691; --switch:#f0b52c; --lig:#9287ea;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.32);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-variant-numeric:tabular-nums}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+}
+
+/* ---------- shell ---------- */
+.wrap{max-width:1420px; margin:0 auto; padding:22px 20px 40px}
+header{display:flex; flex-wrap:wrap; align-items:flex-end; gap:18px 26px;
+  padding-bottom:16px; border-bottom:1px solid var(--line); margin-bottom:18px}
+h1{margin:0; font-size:25px; font-weight:600; letter-spacing:-.022em;
+  text-wrap:balance; line-height:1.15}
+.sub{margin:5px 0 0; color:var(--ink-2); max-width:60ch; font-size:13.5px}
+.switcher{display:flex; gap:0; margin-left:auto; background:var(--surface-2);
+  border:1px solid var(--line); border-radius:9px; padding:3px}
+.switcher button{
+  font:inherit; font-size:13px; font-weight:500; border:0; cursor:pointer;
+  background:transparent; color:var(--ink-2); padding:7px 15px;
+  border-radius:6px; transition:background .14s,color .14s; white-space:nowrap;
+}
+.switcher button[aria-pressed="true"]{background:var(--surface); color:var(--ink);
+  box-shadow:var(--shadow); font-weight:600}
+.switcher button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+/* ---------- main grid ---------- */
+.panel{display:grid; grid-template-columns:minmax(0,1fr) 322px; gap:16px}
+@media (max-width:940px){.panel{grid-template-columns:minmax(0,1fr)}}
+
+.stage{position:relative; background:var(--viewport); border-radius:12px;
+  border:1px solid var(--line); overflow:hidden; min-height:520px;
+  box-shadow:var(--shadow)}
+#viewport{position:absolute; inset:0}
+.stage-tag{position:absolute; left:14px; top:12px; z-index:3; pointer-events:none;
+  display:flex; flex-direction:column; gap:3px}
+.stage-tag .t{font-family:"IBM Plex Mono",monospace; font-size:11px;
+  letter-spacing:.1em; text-transform:uppercase; color:#7f8b96}
+.stage-tag .v{font-size:15px; font-weight:600; color:#e9ecee; letter-spacing:-.01em}
+.legend{position:absolute; right:12px; top:12px; z-index:3; display:flex;
+  flex-direction:column; gap:6px; background:rgba(11,14,19,.72);
+  border:1px solid #232b34; border-radius:9px; padding:10px 12px;
+  backdrop-filter:blur(6px)}
+.legend .row{display:flex; align-items:center; gap:8px; font-size:11.5px;
+  color:#c3cbd2; font-family:"IBM Plex Mono",monospace; white-space:nowrap}
+.legend .sw{width:10px; height:10px; border-radius:3px; flex:none}
+.ramp{position:absolute; left:14px; bottom:12px; z-index:3;
+  background:rgba(11,14,19,.72); border:1px solid #232b34; border-radius:9px;
+  padding:9px 12px 8px; backdrop-filter:blur(6px)}
+.ramp .bar{width:172px; height:8px; border-radius:4px; margin:5px 0 3px;
+  background:linear-gradient(90deg,#e34948 0%,#eda100 32%,#1baf7a 60%,#2a78d6 100%)}
+.ramp .sc{display:flex; justify-content:space-between; font-size:10px;
+  color:#8f9aa3; font-family:"IBM Plex Mono",monospace}
+.ramp .cap{font-size:10px; letter-spacing:.11em; text-transform:uppercase;
+  color:#7f8b96; font-family:"IBM Plex Mono",monospace}
+.spinner{position:absolute; inset:0; display:grid; place-items:center; z-index:5;
+  color:#7f8b96; font-family:"IBM Plex Mono",monospace; font-size:12px;
+  letter-spacing:.1em; text-transform:uppercase; background:var(--viewport)}
+.spinner[hidden]{display:none!important}
+
+/* ---------- rail ---------- */
+.rail{display:flex; flex-direction:column; gap:12px; min-width:0}
+.card{background:var(--surface); border:1px solid var(--line);
+  border-radius:11px; padding:13px 14px; box-shadow:var(--shadow)}
+.card h2{margin:0 0 9px; font-size:12px; font-weight:600; letter-spacing:.02em;
+  color:var(--ink); display:flex; align-items:center; justify-content:space-between; gap:8px}
+.toggles{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font:inherit; font-size:11.5px; cursor:pointer; border-radius:999px;
+  border:1px solid var(--line-2); background:var(--surface); color:var(--ink-2);
+  padding:5px 11px; display:inline-flex; align-items:center; gap:6px;
+  transition:background .14s,color .14s,border-color .14s;
+  font-family:"IBM Plex Mono",monospace; letter-spacing:.01em}
+.chip .dot{width:8px; height:8px; border-radius:50%; flex:none; opacity:.35}
+.chip[aria-pressed="true"]{background:var(--surface-2); color:var(--ink);
+  border-color:var(--line-2); font-weight:500}
+.chip[aria-pressed="true"] .dot{opacity:1}
+.chip:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+.tunnel-list{display:flex; flex-direction:column; gap:5px; max-height:264px;
+  overflow-y:auto; margin:0 -3px; padding:0 3px}
+.tn{display:grid; grid-template-columns:auto 1fr auto; gap:3px 9px;
+  align-items:center; text-align:left; width:100%; cursor:pointer;
+  background:var(--surface); border:1px solid var(--line); border-radius:8px;
+  padding:8px 10px; font:inherit; color:inherit; transition:border-color .14s,background .14s}
+.tn:hover{border-color:var(--line-2); background:var(--surface-2)}
+.tn[aria-pressed="true"]{border-color:var(--accent); background:var(--surface-2)}
+.tn:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+.tn .rank{font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600;
+  color:var(--ink-3); border:1px solid var(--line-2); border-radius:4px;
+  padding:1px 4px; line-height:1.35}
+.tn .who{font-size:12.5px; font-weight:500}
+.tn .bn{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+  letter-spacing:-.01em}
+.tn .meta{grid-column:2/4; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  color:var(--ink-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+.kv{display:flex; flex-direction:column; gap:7px}
+.kv .r{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.kv .k{font-size:12px; color:var(--ink-2)}
+.kv .v{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:500;
+  letter-spacing:-.01em; text-align:right}
+.state-pill{font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600;
+  letter-spacing:.07em; text-transform:uppercase; border-radius:4px;
+  padding:2px 6px; border:1px solid currentColor}
+.warn{color:var(--switch)}
+
+.bar-wrap{margin-top:3px}
+.bar-track{height:7px; border-radius:4px; background:var(--surface-2);
+  overflow:hidden; display:flex}
+.bar-fill{height:100%; background:var(--chainF)}
+.bar-lab{display:flex; justify-content:space-between; margin-top:4px;
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--ink-3)}
+
+/* ---------- readout strip ---------- */
+.strip{display:grid; grid-template-columns:repeat(auto-fit,minmax(178px,1fr));
+  gap:12px; margin-top:16px}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:11px;
+  padding:13px 14px; box-shadow:var(--shadow)}
+.tile .n{font-family:"IBM Plex Mono",monospace; font-size:23px; font-weight:600;
+  letter-spacing:-.028em; margin:5px 0 2px; line-height:1.1}
+.tile .d{font-size:12px; color:var(--ink-2); line-height:1.45}
+.tile .u{font-size:13px; color:var(--ink-3); font-weight:500}
+
+.note{margin-top:18px; padding:13px 15px; border-radius:11px;
+  background:var(--surface); border:1px solid var(--line);
+  border-left:3px solid var(--switch); color:var(--ink-2); font-size:12.5px;
+  max-width:96ch}
+.note strong{color:var(--ink); font-weight:600}
+footer{margin-top:20px; color:var(--ink-3); font-size:11.5px;
+  border-top:1px solid var(--line); padding-top:12px}
+a{color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow" style="margin:0 0 6px">Pseudomonas aeruginosa &middot; cryo-EM &middot; RND efflux</p>
+      <h1>MexB substrate tunnels and pockets</h1>
+      <p class="sub">Two substrate-bound reconstructions of the MexB trimer. Tunnels are traced on the
+        trimer from the substrate site to bulk solvent, with and without the bound ligand in place.</p>
+    </div>
+    <div class="switcher" role="group" aria-label="Structure">
+      <button id="btn-amp" aria-pressed="true">Ampicillin</button>
+      <button id="btn-ddm" aria-pressed="false">DDM &times;3</button>
+    </div>
+  </header>
+
+  <div class="panel">
+    <div class="stage">
+      <div id="viewport"></div>
+      <div class="spinner" id="spinner">Building model&hellip;</div>
+      <div class="stage-tag">
+        <span class="t">Showing</span>
+        <span class="v" id="stage-label">Ampicillin &middot; ligands stripped</span>
+      </div>
+      <div class="legend" id="legend">
+        <div class="row"><span class="sw" style="background:#aeb4b8"></span>chain D</div>
+        <div class="row"><span class="sw" style="background:#2a78d6"></span>chain E</div>
+        <div class="row"><span class="sw" style="background:#eb6834"></span>chain F</div>
+        <div class="row"><span class="sw" style="background:#e34948"></span>distal DBP</div>
+        <div class="row"><span class="sw" style="background:#1baf7a"></span>proximal PBP</div>
+        <div class="row"><span class="sw" style="background:#eda100"></span>switch loop</div>
+        <div class="row"><span class="sw" style="background:#7a6ce0"></span>ligand</div>
+      </div>
+      <div class="ramp">
+        <div class="cap">Tunnel radius</div>
+        <div class="bar"></div>
+        <div class="sc"><span>1.0 &Aring;</span><span>2.0</span><span>3.0</span><span>4.5 &Aring;</span></div>
+      </div>
+    </div>
+
+    <div class="rail">
+      <div class="card">
+        <h2>Ligand</h2>
+        <div class="toggles" role="group" aria-label="Ligand mode">
+          <button class="chip" id="mode-protein" aria-pressed="true">
+            <span class="dot" style="background:var(--chainE)"></span>stripped</button>
+          <button class="chip" id="mode-withlig" aria-pressed="false">
+            <span class="dot" style="background:var(--lig)"></span>in place</button>
+        </div>
+        <p style="margin:9px 0 0; font-size:11.5px; color:var(--ink-3); line-height:1.45">
+          Stripping the ligand gives the site geometry; putting it back measures how much
+          of the route it blocks.</p>
+      </div>
+
+      <div class="card">
+        <h2>Layers</h2>
+        <div class="toggles" role="group" aria-label="Layers">
+          <button class="chip" data-layer="cartoon" aria-pressed="true">
+            <span class="dot" style="background:var(--chainE)"></span>protein</button>
+          <button class="chip" data-layer="pockets" aria-pressed="true">
+            <span class="dot" style="background:var(--dbp)"></span>pockets</button>
+          <button class="chip" data-layer="switch" aria-pressed="true">
+            <span class="dot" style="background:var(--switch)"></span>switch loop</button>
+          <button class="chip" data-layer="ligand" aria-pressed="true">
+            <span class="dot" style="background:var(--lig)"></span>ligand</button>
+          <button class="chip" data-layer="tunnels" aria-pressed="true">
+            <span class="dot" style="background:var(--pbp)"></span>tunnels</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Tunnels <span class="eyebrow" style="letter-spacing:.1em">ranked by width</span></h2>
+        <div class="tunnel-list" id="tunnel-list"></div>
+        <p style="margin:9px 0 0; font-size:11.5px; color:var(--ink-3); line-height:1.45">
+          Select one to isolate it and frame the view on its constriction.</p>
+      </div>
+
+      <div class="card">
+        <h2>Protomer states</h2>
+        <div class="kv" id="state-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="strip" id="strip"></div>
+
+  <div class="note">
+    <strong>Read the tunnel radii as provisional.</strong> Two of the 51 checks against the
+    project protocol fail, both in the tunnel stage: this implementation puts the ampicillin
+    chain-E constriction at N676/N718/L827 at 2.21&nbsp;&Aring;, where the protocol expects
+    2.01&nbsp;&Aring; at F615. Grid resolution and hydrogen handling were both ruled out, and
+    CAVER was unavailable to cross-check. Everything else &mdash; states, contacts, pockets,
+    volumes &mdash; reproduces exactly. Channel assignments (CH1/CH2/CH3) rest on lining
+    composition and are tentative throughout.
+  </div>
+
+  <footer>
+    Drag to rotate &middot; scroll to zoom &middot; right-drag to pan. Structures shown with
+    backbone plus full side chains for the pocket and switch-loop residues.
+    Generated by <span class="mono">run.sh</span> from the MexB analysis pipeline.
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.4.2/3Dmol-min.js"></script>
+<script>/*__DATA__*/</script>
+<script>
+(function(){
+  "use strict";
+  var DBP=[136,139,178,277,279,327,573,610,612,615,617,626,628,630];
+  var PBP=[79,128,151,152,176,180,273,274,276,668,672,674,676,717,819,825,828];
+  var SWL=[613,614,615,616,617,618,619,620,621,622];
+  // viewport colours: chain D is lightened so it reads against the
+  // near-black viewport, where the rail's #8a8984 would disappear.
+  var CH={D:"#aeb4b8",E:"#2a78d6",F:"#eb6834"};
+  var C_DBP="#e34948",C_PBP="#1baf7a",C_SW="#eda100",C_LIG="#7a6ce0";
+
+  var state={key:"amp",mode:"protein",sel:null,
+             layers:{cartoon:true,pockets:true,switch:true,ligand:true,tunnels:true}};
+  var viewer=null,model=null;
+
+  function ramp(r){
+    var stops=[[1.0,[227,73,72]],[2.0,[237,161,0]],[3.0,[27,175,122]],[4.5,[42,120,214]]];
+    if(r<=stops[0][0])return rgb(stops[0][1]);
+    if(r>=stops[3][0])return rgb(stops[3][1]);
+    for(var i=0;i<stops.length-1;i++){
+      if(r>=stops[i][0]&&r<=stops[i+1][0]){
+        var t=(r-stops[i][0])/(stops[i+1][0]-stops[i][0]);
+        return rgb(stops[i][1].map(function(v,k){
+          return Math.round(v+t*(stops[i+1][1][k]-v));}));
+      }
+    }
+    return rgb(stops[3][1]);
+  }
+  function rgb(a){return "rgb("+a[0]+","+a[1]+","+a[2]+")";}
+  function num(v){var f=parseFloat(v);return isFinite(f)?f:null;}
+
+  function tunnelsFor(d,mode){
+    var out=[],by=d.tunnels[mode]||{};
+    Object.keys(by).sort().forEach(function(ch){
+      by[ch].forEach(function(t){out.push(t);});
+    });
+    var rows=d.tunnelRows.filter(function(r){return r.mode===mode;});
+    out.forEach(function(t){
+      t.row=rows.find(function(r){
+        return r.chain===t.chain&&r.seed===t.seed&&r.tunnel_rank===t.rank;})||{};
+    });
+    out.sort(function(a,b){
+      return (num(b.row.bottleneck_radius_A)||0)-(num(a.row.bottleneck_radius_A)||0);});
+    return out;
+  }
+
+  var loadedKey=null;
+
+  function ensureModel(){
+    // Parsing 13k atoms is the expensive step, so do it only when the
+    // structure actually changes - not on every layer toggle.
+    if(loadedKey===state.key)return false;
+    viewer.removeAllModels();
+    model=viewer.addModel(DATA[state.key].pdb,"pdb");
+    loadedKey=state.key;
+    return true;
+  }
+
+  function build(reframe){
+    if(!viewer)return;
+    var fresh=ensureModel();
+    viewer.removeAllShapes(); viewer.removeAllLabels();
+    viewer.setStyle({},{});
+    if(state.layers.cartoon){
+      ["D","E","F"].forEach(function(ch){
+        viewer.setStyle({chain:ch,hetflag:false},
+          {cartoon:{color:CH[ch],opacity:ch==="E"?1:0.68,thickness:0.28,arrows:true}});
+      });
+    }
+    function sticks(resi,color){
+      viewer.addStyle({chain:"E",resi:resi,hetflag:false},
+        {stick:{radius:0.14,color:color}});
+    }
+    if(state.layers.pockets){sticks(DBP,C_DBP);sticks(PBP,C_PBP);}
+    if(state.layers.switch){sticks(SWL,C_SW);}
+    if(state.layers.ligand&&state.mode==="withlig"){
+      viewer.addStyle({hetflag:true},
+        {stick:{radius:0.2,color:C_LIG},sphere:{radius:0.34,color:C_LIG}});
+    }
+    if(state.layers.tunnels){
+      var list=tunnelsFor(d0(),state.mode);
+      list.forEach(function(t,i){
+        // with nothing selected show only the widest route per chain,
+        // so the view stays readable and cheap to draw
+        var on=(state.sel===i)||(state.sel===null&&t.rank==="1");
+        if(!on)return;
+        var focused=(state.sel===i);
+        var step=Math.max(1,Math.round(t.pts.length/(focused?150:95)));
+        for(var k=0;k<t.pts.length;k+=step){
+          var p=t.pts[k];
+          viewer.addSphere({center:{x:p[0],y:p[1],z:p[2]},
+            radius:Math.max(0.22,p[3]*(focused?0.92:0.55)),
+            color:ramp(p[3]),
+            opacity:focused?0.95:0.66});
+        }
+      });
+    }
+    if(fresh||reframe){viewer.zoomTo();viewer.zoom(1.04);}
+    viewer.render();
+  }
+
+  function d0(){return DATA[state.key];}
+
+  function focusTunnel(i){
+    if(!viewer)return;
+    var d=DATA[state.key],list=tunnelsFor(d,state.mode),t=list[i];
+    build(false);
+    if(!t)return;
+    // Frame on the constriction's lining residues. 3Dmol's center/zoomTo
+    // take an atom selection, not a bare coordinate - passing {x,y,z} here
+    // silently throws the camera off the model.
+    var resi=[],chain=t.chain;
+    (t.row.constriction_lining_clearance_A||"").split(";").forEach(function(e){
+      var m=/^[A-Z]{2,3}(\d+)([A-Za-z])/.exec(e.trim());
+      if(m){resi.push(parseInt(m[1],10)); chain=m[2];}
+    });
+    if(resi.length){
+      viewer.zoomTo({chain:chain,resi:resi},600);
+      viewer.zoom(0.7,600);
+    }else{
+      viewer.zoomTo(); viewer.zoom(1.04);
+    }
+    viewer.render();
+  }
+
+  function renderTunnelList(){
+    var d=DATA[state.key],list=tunnelsFor(d,state.mode),el=document.getElementById("tunnel-list");
+    el.innerHTML="";
+    list.forEach(function(t,i){
+      var b=document.createElement("button");
+      b.className="tn"; b.setAttribute("aria-pressed",state.sel===i?"true":"false");
+      var bn=num(t.row.bottleneck_radius_A);
+      var cons=(t.row.constriction_lining_clearance_A||"").split(";")
+                 .slice(0,2).map(function(x){return x.split(":")[0];}).join(", ");
+      b.innerHTML='<span class="rank">'+t.rank.toUpperCase()+'</span>'+
+        '<span class="who">chain '+t.chain+' <span style="color:var(--ink-3)">&middot; '+
+        (t.row.channel_call||"").split(" ")[0]+'</span></span>'+
+        '<span class="bn" style="color:'+ramp(bn||1)+'">'+(bn?bn.toFixed(2):"&mdash;")+' &Aring;</span>'+
+        '<span class="meta">'+(cons||"&mdash;")+'</span>';
+      b.addEventListener("click",function(){
+        state.sel=(state.sel===i)?null:i;
+        renderTunnelList();
+        if(state.sel===null){build(true);}else{focusTunnel(i);}
+      });
+      el.appendChild(b);
+    });
+  }
+
+  function renderStates(){
+    var d=DATA[state.key],el=document.getElementById("state-list");
+    el.innerHTML="";
+    ["D","E","F"].forEach(function(ch){
+      var s=d.states[ch]; if(!s)return;
+      var conflict=s.agree==="no";
+      var r=document.createElement("div"); r.className="r";
+      r.innerHTML='<span class="k"><span class="mono" style="color:'+CH[ch]+
+        '; font-weight:600">'+ch+'</span> &nbsp;'+
+        '<span class="mono" style="font-size:11px; color:var(--ink-3)">'+
+        (+s.pn).toFixed(1)+' / '+(+s.pc).toFixed(1)+' &Aring;</span></span>'+
+        '<span class="v"><span class="state-pill'+(conflict?' warn':'')+'" style="color:'+
+        (conflict?'var(--switch)':'var(--ink-2)')+'">'+
+        (conflict?'conflict':s.call)+'</span></span>';
+      el.appendChild(r);
+    });
+    var p=document.createElement("p");
+    p.style.cssText="margin:2px 0 0; font-size:11px; color:var(--ink-3); line-height:1.45";
+    p.innerHTML="PN1&ndash;PN2 / PC1&ndash;PC2 centroid separation. "+
+      "&lsquo;Conflict&rsquo; means the two diagnostics point at different states.";
+    el.appendChild(p);
+  }
+
+  function renderStrip(){
+    var d=DATA[state.key],el=document.getElementById("strip");
+    var vE=d.volumes.E||{},list=tunnelsFor(d,state.mode);
+    // Restrict to chain E: it is the protomer carrying the ligand in both
+    // structures, and comparing the global widest across modes would
+    // silently switch chain when the ligand blocks chain E's route.
+    function widestE(mode){
+      var e=tunnelsFor(d,mode).filter(function(t){return t.chain==="E";});
+      return e.length?num(e[0].row.bottleneck_radius_A):null;
+    }
+    var widest=widestE(state.mode);
+    var wFree=widestE("protein"),wWith=widestE("withlig");
+    var lig=d.ligandRows[0]||{};
+    var occ=num(vE.pct);
+    var tiles=[
+      {n:widest?widest.toFixed(2):"&mdash;",u:"&Aring;",
+       d:"Widest route out of the chain E site, "+
+         (state.mode==="protein"?"ligand stripped":"ligand in place")},
+      {n:(wFree&&wWith)?("&minus;"+(wFree-wWith).toFixed(2)):"&mdash;",u:"&Aring;",
+       d:"Narrowing of that route when the ligand is left in place"},
+      {n:occ!==null?occ.toFixed(1):"&mdash;",u:"%",
+       d:"Of the chain E site volume occluded by the ligand ("+
+         (vE.free||"&mdash;")+" &rarr; "+(vE.occ||"&mdash;")+" &Aring;&sup3;)"},
+      {n:d.ligandRows.length,u:"",
+       d:"Bound "+(d.ligands[0]==="LMT"?"detergent molecules &mdash; occupancy, not recognition"
+                                        :"substrate molecule, spanning both pockets")}
+    ];
+    el.innerHTML="";
+    tiles.forEach(function(t){
+      var c=document.createElement("div"); c.className="tile";
+      c.innerHTML='<div class="eyebrow">'+
+        (t===tiles[0]?"Bottleneck":t===tiles[1]?"Occlusion of the route":
+         t===tiles[2]?"Site volume lost":"Ligands")+'</div>'+
+        '<div class="n">'+t.n+' <span class="u">'+t.u+'</span></div>'+
+        '<div class="d">'+t.d+'</div>';
+      el.appendChild(c);
+    });
+  }
+
+  function label(){
+    var d=DATA[state.key];
+    document.getElementById("stage-label").innerHTML=
+      (state.key==="amp"?"Ampicillin":"DDM &times;3")+" &middot; "+
+      (state.mode==="protein"?"ligands stripped":"ligand in place");
+  }
+
+  function refresh(){
+    state.sel=null;
+    label(); renderTunnelList(); renderStates(); renderStrip();
+    if(viewer){build(true);}
+  }
+
+  function initUI(){
+    // The rail and readouts are plain DOM and must render whether or not
+    // the 3D library is available.
+    label(); renderTunnelList(); renderStates(); renderStrip();
+    document.getElementById("btn-amp").addEventListener("click",function(){
+      state.key="amp"; this.setAttribute("aria-pressed","true");
+      document.getElementById("btn-ddm").setAttribute("aria-pressed","false"); refresh();});
+    document.getElementById("btn-ddm").addEventListener("click",function(){
+      state.key="ddm"; this.setAttribute("aria-pressed","true");
+      document.getElementById("btn-amp").setAttribute("aria-pressed","false"); refresh();});
+    document.getElementById("mode-protein").addEventListener("click",function(){
+      state.mode="protein"; this.setAttribute("aria-pressed","true");
+      document.getElementById("mode-withlig").setAttribute("aria-pressed","false"); refresh();});
+    document.getElementById("mode-withlig").addEventListener("click",function(){
+      state.mode="withlig"; this.setAttribute("aria-pressed","true");
+      document.getElementById("mode-protein").setAttribute("aria-pressed","false"); refresh();});
+    Array.prototype.forEach.call(document.querySelectorAll("[data-layer]"),function(b){
+      b.addEventListener("click",function(){
+        var k=b.getAttribute("data-layer");
+        state.layers[k]=!state.layers[k];
+        b.setAttribute("aria-pressed",state.layers[k]?"true":"false");
+        build(false);
+      });
+    });
+    window.addEventListener("resize",function(){
+      if(viewer){viewer.resize();viewer.render();}});
+  }
+
+  function initViewer(){
+    try{
+      viewer=$3Dmol.createViewer(document.getElementById("viewport"),
+        {backgroundColor:"#0b0e13",antialias:true});
+    }catch(e){
+      document.getElementById("spinner").textContent=
+        "3D view unavailable in this browser";
+      return;
+    }
+    document.getElementById("spinner").hidden=true;
+    build(true);
+  }
+
+  initUI();
+  if(window.$3Dmol){initViewer();}
+  else{window.addEventListener("load",function(){
+    if(window.$3Dmol){initViewer();}
+    else{document.getElementById("spinner").textContent=
+      "3D view could not load \u2014 the tables on the right still apply";}
+  });}
+})();
+</script>

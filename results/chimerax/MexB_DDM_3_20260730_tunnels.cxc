@@ -1,0 +1,46 @@
+# ChimeraX session for MexB_DDM_3_20260730
+# run with:  chimerax MexB_DDM_3_20260730_tunnels.cxc
+#   or from inside ChimeraX:  open <this file>
+# Tunnel traces carry the local tunnel radius in the B-factor column.
+
+set bgColor white
+open ../../structures/MexB_DDM_3_20260730.pdb
+hide atoms
+show cartoon
+cartoon style protein modeHelix tube sides 12
+color /D #8a8984 cartoons
+color /E #2a78d6 cartoons
+color /F #eb6834 cartoons
+transparency /D,F 55 cartoons
+
+# substrate site: distal pocket (red) and proximal pocket (teal)
+show /E:136,139,178,277,279,327,573,610,612,615,617,626,628,630 atoms
+color /E:136,139,178,277,279,327,573,610,612,615,617,626,628,630 #e34948 atoms
+show /E:79,128,151,152,176,180,273,274,276,668,672,674,676,717,819,825,828 atoms
+color /E:79,128,151,152,176,180,273,274,276,668,672,674,676,717,819,825,828 #1baf7a atoms
+show /E:613,614,615,616,617,618,619,620,621,622 atoms
+color /E:613,614,615,616,617,618,619,620,621,622 #eda100 atoms
+style /E sidechain stick
+hide H
+
+# bound ligands
+show :LMT atoms
+style :LMT ball
+color :LMT #4a3aa7 atoms
+
+# tunnel traces, coloured by local radius
+open MexB_DDM_3_20260730_protein_D_site_t1_tunnel.pdb
+open MexB_DDM_3_20260730_protein_E_LMT2001_t1_tunnel.pdb
+open MexB_DDM_3_20260730_protein_E_LMT2001_t2_tunnel.pdb
+open MexB_DDM_3_20260730_protein_E_LMT2001_t3_tunnel.pdb
+open MexB_DDM_3_20260730_protein_E_LMT2002_t1_tunnel.pdb
+open MexB_DDM_3_20260730_protein_E_LMT2003_t1_tunnel.pdb
+open MexB_DDM_3_20260730_protein_F_site_t1_tunnel.pdb
+style #2-8 sphere
+size #2-8 atomRadius 0.35
+color byattribute bfactor #2-8 palette 1.0,#e34948:2.0,#eda100:3.0,#1baf7a:4.5,#2a78d6
+# key: red ~1 A (impassable) -> blue ~4.5 A (open)
+
+view
+lighting soft
+graphics silhouettes true width 1.5

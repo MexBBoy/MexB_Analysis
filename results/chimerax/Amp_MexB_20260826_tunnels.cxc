@@ -1,0 +1,51 @@
+# ChimeraX session for Amp_MexB_20260826
+# run with:  chimerax Amp_MexB_20260826_tunnels.cxc
+#   or from inside ChimeraX:  open <this file>
+# Tunnel traces carry the local tunnel radius in the B-factor column.
+
+set bgColor white
+open ../../structures/Amp_MexB_20260826.pdb
+hide atoms
+show cartoon
+cartoon style protein modeHelix tube sides 12
+color /D #8a8984 cartoons
+color /E #2a78d6 cartoons
+color /F #eb6834 cartoons
+transparency /D,F 55 cartoons
+
+# substrate site: distal pocket (red) and proximal pocket (teal)
+show /E:136,139,178,277,279,327,573,610,612,615,617,626,628,630 atoms
+color /E:136,139,178,277,279,327,573,610,612,615,617,626,628,630 #e34948 atoms
+show /E:79,128,151,152,176,180,273,274,276,668,672,674,676,717,819,825,828 atoms
+color /E:79,128,151,152,176,180,273,274,276,668,672,674,676,717,819,825,828 #1baf7a atoms
+show /E:613,614,615,616,617,618,619,620,621,622 atoms
+color /E:613,614,615,616,617,618,619,620,621,622 #eda100 atoms
+style /E sidechain stick
+hide H
+
+# bound ligands
+show :ZZ7 atoms
+style :ZZ7 ball
+color :ZZ7 #4a3aa7 atoms
+
+# tunnel traces, coloured by local radius
+open Amp_MexB_20260826_protein_D_site_t1_tunnel.pdb
+open Amp_MexB_20260826_protein_D_site_t2_tunnel.pdb
+open Amp_MexB_20260826_protein_D_site_t3_tunnel.pdb
+open Amp_MexB_20260826_protein_D_site_tunnel.pdb
+open Amp_MexB_20260826_protein_E_ZZ72000_t1_tunnel.pdb
+open Amp_MexB_20260826_protein_E_ZZ72000_t2_tunnel.pdb
+open Amp_MexB_20260826_protein_E_ZZ72000_t3_tunnel.pdb
+open Amp_MexB_20260826_protein_E_ZZ72000_tunnel.pdb
+open Amp_MexB_20260826_protein_F_site_t1_tunnel.pdb
+open Amp_MexB_20260826_protein_F_site_t2_tunnel.pdb
+open Amp_MexB_20260826_protein_F_site_t3_tunnel.pdb
+open Amp_MexB_20260826_protein_F_site_tunnel.pdb
+style #2-13 sphere
+size #2-13 atomRadius 0.35
+color byattribute bfactor #2-13 palette 1.0,#e34948:2.0,#eda100:3.0,#1baf7a:4.5,#2a78d6
+# key: red ~1 A (impassable) -> blue ~4.5 A (open)
+
+view
+lighting soft
+graphics silhouettes true width 1.5
