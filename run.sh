@@ -37,4 +37,8 @@ echo "### stage 8 - report"
 python3 scripts/report.py
 
 echo
-echo "done. see results/REPORT.md"
+echo "### combined workbook"
+python3 scripts/make_workbook.py
+
+echo
+echo "done. see results/REPORT.md and results/MexB_analysis_results.xlsx"
