@@ -1,0 +1,13 @@
+structure,fit_frame,chain_A,chain_B,n_fit,fit_rmsd_A,whole_protomer_rmsd_A,porter_rmsd_A,docking_rmsd_A,TM_rmsd_A
+Amp_MexB_20260826,TM_trimmed,D,E,389,1.20,4.02,4.20,6.41,1.20
+Amp_MexB_20260826,TM_trimmed,D,F,390,1.97,5.50,6.74,7.60,1.97
+Amp_MexB_20260826,TM_trimmed,E,F,389,2.17,4.25,6.00,3.41,2.17
+Amp_MexB_20260826,porter,D,E,363,2.03,3.64,2.03,2.50,4.43
+Amp_MexB_20260826,porter,D,F,362,3.19,6.31,3.19,4.28,8.43
+Amp_MexB_20260826,porter,E,F,362,3.32,4.87,3.32,5.24,5.86
+MexB_DDM_3_20260730,TM_trimmed,D,E,389,1.70,4.27,4.83,6.12,1.70
+MexB_DDM_3_20260730,TM_trimmed,D,F,390,1.54,5.19,6.25,7.56,1.54
+MexB_DDM_3_20260730,TM_trimmed,E,F,389,1.54,4.28,6.35,3.18,1.54
+MexB_DDM_3_20260730,porter,D,E,363,2.20,3.66,2.20,2.20,4.57
+MexB_DDM_3_20260730,porter,D,F,362,2.32,6.33,2.32,4.55,8.68
+MexB_DDM_3_20260730,porter,E,F,362,3.03,5.07,3.03,5.51,6.30

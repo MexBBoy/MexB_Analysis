@@ -1,0 +1,7 @@
+lig_atom,chain,resname,resseq,prot_atom,dist_A
+O3B,E,PHE,617,O,2.68
+O1',E,LYS,134,NZ,3.02
+O5',E,LYS,134,NZ,3.05
+O2',E,GLN,46,NE2,3.20
+O2B,E,ASN,616,O,3.30
+O2B,E,PHE,617,O,3.35

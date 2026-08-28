@@ -1,0 +1,7 @@
+structure,chain,first_res,last_res,n_res,gaps,seq_mismatches_P52002,numbering_offset
+Amp_MexB_20260826,D,1,1032,1032,none,0,0
+Amp_MexB_20260826,E,1,1030,1028,229;360,0,0
+Amp_MexB_20260826,F,1,1033,1032,663,0,0
+MexB_DDM_3_20260730,D,1,1032,1032,none,0,0
+MexB_DDM_3_20260730,E,1,1030,1028,229;360,0,0
+MexB_DDM_3_20260730,F,1,1033,1032,663,0,0

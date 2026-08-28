@@ -1,0 +1,5 @@
+structure,ligand,lig_id,n_heavy,n_contact_residues,centroid_to_DBP_A,centroid_to_PBP_A,atoms_nearer_DBP_centroid,atoms_nearer_PBP_centroid,atoms_nearer_DBP_lining_atom,pocket_call,n_DBP_sidechain_contacts,n_hbond_cands,n_close_contacts_2.6A,n_true_steric_overlaps,class
+Amp_MexB_20260826,ZZ7,E2000,25,12,7.09,7.30,11,14,17,spans DBP and PBP,70,3,0,0,substrate
+MexB_DDM_3_20260730,LMT,E2001,35,20,13.08,9.45,6,29,14,proximal (PBP),33,8,1,0,detergent
+MexB_DDM_3_20260730,LMT,E2002,35,19,10.70,9.17,7,28,21,proximal (PBP),51,7,0,0,detergent
+MexB_DDM_3_20260730,LMT,E2003,35,15,10.95,1.51,0,35,22,proximal (PBP),25,6,0,0,detergent

@@ -1,0 +1,5 @@
+structure,ligand,chain,resseq,n_heavy,n_atoms,b_min,b_median,b_max,b_mode,class
+Amp_MexB_20260826,ZZ7,E,2000,25,44,55.37,55.37,55.37,group,substrate
+MexB_DDM_3_20260730,LMT,E,2001,35,81,55.87,55.87,55.87,group,detergent
+MexB_DDM_3_20260730,LMT,E,2002,35,81,69.32,69.32,69.32,group,detergent
+MexB_DDM_3_20260730,LMT,E,2003,35,81,57.88,57.88,57.88,group,detergent

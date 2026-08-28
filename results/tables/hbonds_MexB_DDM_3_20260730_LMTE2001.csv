@@ -1,0 +1,9 @@
+lig_atom,chain,resname,resseq,prot_atom,dist_A
+O6',E,ASP,274,OD1,2.60
+O4',E,GLY,126,O,2.61
+O2B,E,ASP,274,OD2,2.81
+O2',E,GLY,179,O,3.06
+O5',E,GLY,179,O,3.07
+O3B,E,SER,48,N,3.08
+O3B,E,SER,48,O,3.48
+O2B,E,GLN,273,OE1,3.48

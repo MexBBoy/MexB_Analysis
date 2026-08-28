@@ -1,0 +1,4 @@
+structure_A,structure_B,chain,n_fit,whole_protomer_rmsd_allCA_fit_A,whole_protomer_rmsd_TM_fit_A,porter_dev_after_TM_fit_A,TM_dev_after_porter_fit_A,switch_loop_rmsd_A,interpretation
+Amp_MexB_20260826,MexB_DDM_3_20260730,D,1032,1.32,2.42,2.63,1.91,0.49,differs
+Amp_MexB_20260826,MexB_DDM_3_20260730,E,1028,0.86,1.13,0.96,1.04,0.30,same state (<1.0 A)
+Amp_MexB_20260826,MexB_DDM_3_20260730,F,1032,1.53,1.92,2.12,2.57,1.43,differs

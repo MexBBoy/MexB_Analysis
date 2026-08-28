@@ -1,0 +1,4 @@
+lig_atom,chain,resname,resseq,prot_atom,dist_A
+O1,E,LYS,151,NZ,2.81
+O2,E,LYS,151,NZ,2.84
+O2,E,PHE,178,O,3.34
