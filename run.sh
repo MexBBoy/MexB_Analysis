@@ -25,6 +25,10 @@ echo "### stage 7 - tunnels (trimer, grid step ${STEP} A)"
 python3 scripts/tunnels.py --step "${STEP}"
 
 echo
+echo "### switch-loop gate diagnostic"
+python3 scripts/switch_gate.py
+
+echo
 echo "### section 6 validation"
 python3 scripts/validate.py || echo "(validation reported failures - see results/tables/validation.csv)"
 

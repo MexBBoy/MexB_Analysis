@@ -1,4 +1,4 @@
-structure,mode,chain,seed,seed_origin,seed_clearance_A,bottleneck_radius_A,bottleneck_radius_grid_only_A,geodesic_path_length_A,narrowest_point_xyz,constriction_lining_clearance_A,channel_call,assignment_confidence,exit_height_along_axis_A,frac_PC_lining,note
+structure,mode,chain,seed,tunnel_rank,seed_origin,seed_clearance_A,bottleneck_radius_A,bottleneck_radius_grid_only_A,geodesic_path_length_A,narrowest_point_xyz,constriction_lining_clearance_A,channel_call,assignment_confidence,exit_height_along_axis_A,chains_lining_path,note
 Amp_MexB_20260826,protein,D,site,1,transferred DBP/PBP midpoint,1.22,1.22,1.22,114.0,"189.91,155.74,154.20",PHE617D:1.22;PHE136D:1.25;PHE615D:1.64,CH1 (PC1/PC2 periplasmic cleft),tentative,65.7,D/E,
 Amp_MexB_20260826,protein,E,ZZ72000,1,ligand centroid,2.64,2.21,1.93,62.8,"145.52,142.74,155.38",ASN676E:2.21;ASN718E:2.21;LEU827E:2.25;ALA677E:2.83;PHE617E:3.38,CH1 (PC1/PC2 periplasmic cleft),tentative,4.3,E,
 Amp_MexB_20260826,protein,E,ZZ72000,2,ligand centroid,2.64,1.72,1.48,71.0,"144.57,137.03,159.68",THR678E:1.72;ARG716E:1.72;GLU829E:1.76;ALA677E:2.15;GLY828E:2.51;LEU827E:2.97,CH1 (PC1/PC2 periplasmic cleft),tentative,2.4,E,

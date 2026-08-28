@@ -120,6 +120,47 @@ def main():
       f"Every table under `results/` is reproducible from a clean `work/`; "
       f"nothing here is hand-edited.\n")
 
+    A("## Summary\n")
+    A("- **Both structures are the same trimer in the same three "
+      "conformational states.** Chain E is Binding, chain F is Extrusion, "
+      "and chain D is Access in the DDM model. In the ampicillin model "
+      "chain D is the one genuinely ambiguous case: PN1-PN2 (26.30 A) reads "
+      "Access while PC1-PC2 (28.94 A) reads Binding, so it is reported as a "
+      "conflict rather than forced into a state.")
+    A("- **Chain E replicates across the two independent reconstructions** "
+      "(0.86 A whole-protomer, 0.30 A switch loop), which is below the "
+      "~1.0 A noise threshold. Chains D and F differ by 1.32 and 1.53 A and "
+      "are not the same state between the two models.")
+    A("- **Ampicillin spans the distal and proximal pockets** rather than "
+      "sitting in either: its centroid is 7.09 A from the DBP centroid and "
+      "7.30 A from the PBP centroid. It is anchored by a K151 salt bridge "
+      "(NZ-O1 2.81 A, NZ-O2 2.84 A) and packs against F178, F615 and F610. "
+      "No heavy-atom pair is under 2.6 A, so the pose is clean.")
+    A("- **The three DDM molecules are detergent, not substrate.** All "
+      "three sit closer to the PBP centroid than the DBP, and together they "
+      "occlude 98.2% of the chain E substrate-site volume "
+      "(2018 -> 36 A^3). Ampicillin occludes 21.0% of the same site in the "
+      "other model. This is an occupancy observation about a purification "
+      "detergent at high concentration and carries no substrate-recognition "
+      "weight.")
+    A("- **The distal pocket is the hydrophobic one**, confirming the "
+      "standard AcrB picture and contradicting the earlier surface-rendering "
+      "reading (known issue 4): DBP 96.1% apolar side-chain atoms, mean "
+      "Kyte-Doolittle +2.63, 8 aromatics; PBP 67.2% apolar, mean KD -1.84, "
+      "0 aromatics. This is identical in every chain of both structures.")
+    A("- **R971 remains 12-17 A from D407 and D408 in all six protomers** "
+      "(known issue 1). It has not moved between models, so it is a "
+      "systematic modelling problem, not a per-map fluctuation.")
+    A("- **Bound ligand narrows the exit route in both structures.** "
+      "Seeded on chain E and run on the trimer, the widest route to bulk "
+      "drops from 2.21 to 1.26 A when ampicillin is left in place, and from "
+      "2.43 to 1.42 A when the three DDM molecules are left in place. Both "
+      "widest routes exit through the PC1/PC2 periplasmic cleft (CH1, "
+      "tentative).")
+    A("- **Two of the 51 validation checks fail, both in the tunnel "
+      "stage** - see the tunnel section below. Every other number in "
+      "PROTOCOL section 6 reproduces exactly.\n")
+
     A("## Tools\n")
     A("| tool | status | used for |")
     A("|---|---|---|")
@@ -215,6 +256,40 @@ def main():
              "bottleneck_radius_A", "geodesic_path_length_A",
              "constriction_lining_clearance_A", "channel_call",
              "assignment_confidence"]))
+
+    A("### The switch-loop (F615) gate\n")
+    A("PROTOCOL section 6 expects the ampicillin chain-E tunnel to "
+      "bottleneck at **2.01 A with the constriction at F615**. This "
+      "implementation instead finds **2.21 A constricted at N676/N718/L827** "
+      "in the PC2/DC region, with F615 sitting 3.4 A clear of the path. "
+      "Both validation checks therefore fail.\n")
+    A("The table below measures the F615 gate on its own terms. In every "
+      "protomer of both structures the switch-loop region is a *local "
+      "widening* (3.1-4.6 A of clearance) that is not a through-route: a "
+      "path forced to pass through it bottlenecks at 0.5-1.2 A, far below "
+      "2.01 A. So under this implementation the reference value cannot be "
+      "recovered by routing through F615 either - it is not a matter of the "
+      "search picking the wrong path.\n")
+    A(table("switch_gate.csv"))
+    A("Two things are worth separating here. The **protein geometry is "
+      "consistent**: the gate is widest in the two chain-E (Binding) "
+      "protomers, 4.18 A and 4.60 A, and narrower in the Access and "
+      "Extrusion protomers - the same ordering in both reconstructions, so "
+      "it replicates. What does **not** reproduce is the reference tunnel "
+      "number itself.\n")
+    A("The honest reading is that this is an unresolved implementation "
+      "difference, not a settled result. The `tunnels.py` that PROTOCOL "
+      "section 2 says ships with the protocol was not present in this "
+      "repository, so a rewrite was unavoidable and there is no original "
+      "implementation to diff against. Ruled out so far: grid resolution "
+      "(the value converges upward from 1.79 A at 1.0 A spacing to 2.21 A "
+      "with continuous refinement) and hydrogen handling (including "
+      "hydrogens as obstructions gives 1.92 A and still does not move the "
+      "constriction to F615). **Until the original script is available to "
+      "compare against, treat every bottleneck radius in this report as "
+      "provisional.** The channel assignments, which rest on lining "
+      "composition rather than on the radius, are less affected but are "
+      "still labelled tentative throughout.\n")
 
     A("## Changes since the previous run\n")
     if diffs is None:

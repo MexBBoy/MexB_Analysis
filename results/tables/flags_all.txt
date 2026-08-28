@@ -1,3 +1,8 @@
+Amp_MexB_20260826 ZZ7 E2000: B-factors are group-refined (single value 55.37) - known issue 5
+MexB_DDM_3_20260730 LMT E2001: B-factors are group-refined (single value 55.87) - known issue 5
+MexB_DDM_3_20260730 LMT E2002: B-factors are group-refined (single value 69.32) - known issue 5
+MexB_DDM_3_20260730 LMT E2003: B-factors are group-refined (single value 57.88) - known issue 5
+Amp_MexB_20260826 chain D: cleft diagnostics conflict - PN1-PN2 nearest Access, PC1-PC2 nearest Binding; reporting conflict rather than forcing a call
 Amp_MexB_20260826 chain D: ASP407-ARG971 = 12.58 A (known issue 1, R971 rotamer) - still unresolved
 Amp_MexB_20260826 chain D: ASP408-ARG971 = 17.37 A (known issue 1, R971 rotamer) - still unresolved
 Amp_MexB_20260826 chain E: ASP407-ARG971 = 12.75 A (known issue 1, R971 rotamer) - still unresolved
@@ -10,3 +15,4 @@ MexB_DDM_3_20260730 chain E: ASP407-ARG971 = 12.81 A (known issue 1, R971 rotame
 MexB_DDM_3_20260730 chain E: ASP408-ARG971 = 16.09 A (known issue 1, R971 rotamer) - still unresolved
 MexB_DDM_3_20260730 chain F: ASP407-ARG971 = 13.99 A (known issue 1, R971 rotamer) - still unresolved
 MexB_DDM_3_20260730 chain F: ASP408-ARG971 = 16.74 A (known issue 1, R971 rotamer) - still unresolved
+MexB_DDM_3_20260730:LMTE2001: CLOSE CONTACT O6'-ASP274E.OD1 = 2.60 A (<2.6) [short H-bond (both N/O)] - pose or rotamer must be revisited before figures

@@ -83,13 +83,14 @@ def site_volume(atoms, centre, radius=SITE_RADIUS, step=GRID_STEP,
               for i in range(3))
     sid = lab[c]
     if sid == 0:
-        # centre itself is occluded: take the largest component touching it
-        near = lab[max(0, c[0]-6):c[0]+7, max(0, c[1]-6):c[1]+7,
-                   max(0, c[2]-6):c[2]+7]
-        ids, cnt = np.unique(near[near > 0], return_counts=True)
-        if len(ids) == 0:
-            return 0.0, float(free.sum() * step ** 3)
-        sid = ids[int(np.argmax(cnt))]
+        # The exact midpoint can sit inside an atom. Take the free voxel
+        # nearest to it instead of reporting a zero that would look like a
+        # measured collapse of the site.
+        cand = np.argwhere(free)
+        if len(cand) == 0:
+            return None, 0.0
+        d = np.linalg.norm(cand - np.array(c), axis=1)
+        sid = lab[tuple(cand[int(np.argmin(d))])]
     vox = step ** 3
     return float((lab == sid).sum() * vox), float(free.sum() * vox)
 
@@ -206,19 +207,32 @@ def main():
             for ch in s.chains:
                 dbp_keys = {(ch, r) for r in DBP}
                 pbp_keys = {(ch, r) for r in PBP}
-                best, bestov = None, 0
+                # most DBP residues wins; ties broken by cavity volume
+                best, bestov, bestvol = None, 0, -1.0
                 for cid, reslist in kv["residues"].items():
                     rs = res_set(reslist)
                     ov = len(rs & dbp_keys)
-                    if ov > bestov:
-                        best, bestov = cid, ov
+                    vol = kv["volume"].get(cid, 0.0)
+                    if ov > bestov or (ov == bestov and ov > 0
+                                       and vol > bestvol):
+                        best, bestov, bestvol = cid, ov, vol
                 if best is None:
                     print(f"      chain {ch}: no cavity overlaps the DBP")
                     continue
                 rs = res_set(kv["residues"][best])
                 n_pbp = len(rs & pbp_keys)
-                cont = ("one continuous cavity" if n_pbp >= 3
-                        else "PBP not in the same cavity")
+                # Both pockets genuinely in one cavity, or two separate ones.
+                # Requires a real share of each lining set, not a token
+                # overlap; a cavity that is tiny or barely touches the DBP is
+                # reported as an unreliable detection rather than a result.
+                vol = kv["volume"][best]
+                if vol < 300 or bestov < 5:
+                    cont = ("unreliable - best DBP-overlapping cavity is "
+                            "small or barely overlaps; not interpreted")
+                elif n_pbp >= 7:
+                    cont = "one continuous cavity (PBP and DBP)"
+                else:
+                    cont = "DBP cavity; PBP not continuous with it"
                 site_cav[ch] = best
                 print(f"      chain {ch}: cavity {best} vol "
                       f"{kv['volume'][best]:.0f} A^3, area "
@@ -270,14 +284,22 @@ def main():
             cen = 0.5 * (centroid(ca, DBP) + centroid(ca, PBP))
             v_free, _ = site_volume(prot, cen)
             v_occ, _ = site_volume(prot + lig_all, cen)
+            if v_free is None or v_occ is None:
+                print(f"    chain {ch} site volume: NOT MEASURED (no free "
+                      f"grid point within the site sphere)")
+                vol_rows.append([s.name, ch, fmt(SITE_RADIUS, 0),
+                                 fmt(GRID_STEP, 2), "", "", "", "",
+                                 "not measured - no free grid point"])
+                continue
             occl = v_free - v_occ
             pct = 100.0 * occl / v_free if v_free else float("nan")
             print(f"    chain {ch} site volume (grid, r={SITE_RADIUS} A): "
                   f"stripped {v_free:.0f} A^3, with ligands {v_occ:.0f} "
                   f"A^3, occluded {occl:.0f} A^3 ({pct:.1f}%)")
-            vol_rows.append([s.name, ch, fmt(SITE_RADIUS, 0), fmt(GRID_STEP, 2),
+            vol_rows.append([s.name, ch, fmt(SITE_RADIUS, 0),
+                             fmt(GRID_STEP, 2),
                              fmt(v_free, 0), fmt(v_occ, 0), fmt(occl, 0),
-                             fmt(pct, 1)])
+                             fmt(pct, 1), ""])
 
         # ---- hydropathy of the PBP-lining and DBP-lining subsets
         for ch in s.chains:
@@ -330,7 +352,7 @@ def main():
     write_csv(os.path.join(TABLES, "pocket_volumes.csv"),
               ["structure", "chain", "site_sphere_radius_A", "grid_step_A",
                "volume_ligands_stripped_A3", "volume_with_ligands_A3",
-               "occluded_volume_A3", "occluded_pct"], vol_rows)
+               "occluded_volume_A3", "occluded_pct", "note"], vol_rows)
     write_csv(os.path.join(TABLES, "pocket_hydropathy.csv"),
               ["structure", "chain", "pocket", "n_res", "mean_KD"], hyd_rows)
     if fp_rows:

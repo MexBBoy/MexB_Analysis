@@ -1,0 +1,7 @@
+structure,chain,site_sphere_radius_A,grid_step_A,volume_ligands_stripped_A3,volume_with_ligands_A3,occluded_volume_A3,occluded_pct,note
+Amp_MexB_20260826,D,16,0.50,1476,1476,0,0.0,
+Amp_MexB_20260826,E,16,0.50,1843,1456,387,21.0,
+Amp_MexB_20260826,F,16,0.50,1402,1402,0,0.0,
+MexB_DDM_3_20260730,D,16,0.50,964,964,0,0.0,
+MexB_DDM_3_20260730,E,16,0.50,2018,36,1982,98.2,
+MexB_DDM_3_20260730,F,16,0.50,1543,1543,0,0.0,

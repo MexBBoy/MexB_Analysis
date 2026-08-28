@@ -1,1 +1,0 @@
-MexB_DDM_3_20260730:LMTE2001: CLOSE CONTACT O6'-ASP274E.OD1 = 2.60 A (<2.6) [short H-bond (both N/O)] - pose or rotamer must be revisited before figures

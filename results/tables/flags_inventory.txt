@@ -1,4 +1,0 @@
-Amp_MexB_20260826 ZZ7 E2000: B-factors are group-refined (single value 55.37) - known issue 5
-MexB_DDM_3_20260730 LMT E2001: B-factors are group-refined (single value 55.87) - known issue 5
-MexB_DDM_3_20260730 LMT E2002: B-factors are group-refined (single value 69.32) - known issue 5
-MexB_DDM_3_20260730 LMT E2003: B-factors are group-refined (single value 57.88) - known issue 5

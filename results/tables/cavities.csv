@@ -1,0 +1,11 @@
+structure,chain,detection,cavity_id,volume_A3,area_A2,max_depth_A,avg_depth_A,avg_hydropathy,DBP_overlap,PBP_overlap,continuity,n_lining_res
+Amp_MexB_20260826,D,unguided_ligands_stripped,KCF,8220,5975,19.8,6.89,0.18,7,14,one continuous cavity (PBP and DBP),315
+Amp_MexB_20260826,E,unguided_ligands_stripped,KAD,5632,4395,21.7,6.12,0.06,13,14,one continuous cavity (PBP and DBP),231
+Amp_MexB_20260826,F,unguided_ligands_stripped,KCP,6832,5357,17.4,4.85,0.32,8,12,one continuous cavity (PBP and DBP),298
+Amp_MexB_20260826,E,ligand_guided_ZZ72000,KAA,1064,481,8.7,2.45,-0.14,12,8,,34
+MexB_DDM_3_20260730,D,unguided_ligands_stripped,KAD,7345,5779,16.6,6.86,0.20,6,13,one continuous cavity (PBP and DBP),326
+MexB_DDM_3_20260730,E,unguided_ligands_stripped,KDU,5341,4251,20.9,5.69,0.05,13,14,one continuous cavity (PBP and DBP),235
+MexB_DDM_3_20260730,F,unguided_ligands_stripped,KDL,54,85,0.0,0.00,-0.52,5,3,unreliable - best DBP-overlapping cavity is small or barely overlaps; not interpreted,11
+MexB_DDM_3_20260730,E,ligand_guided_LMT2001,KAA,1622,789,6.3,2.24,0.02,13,8,,50
+MexB_DDM_3_20260730,E,ligand_guided_LMT2002,KAA,710,482,5.0,1.43,-0.47,10,4,,40
+MexB_DDM_3_20260730,E,ligand_guided_LMT2003,KAA,1015,468,4.7,1.37,0.55,7,7,,37
