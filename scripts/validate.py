@@ -134,6 +134,20 @@ def run():
           (t.get("constriction_lining_clearance_A") or "").startswith(
               "PHE615E"))
 
+    # Independent cross-check: CAVER 3.0.3 against our own tunnel code.
+    cav = load("caver.csv") or []
+    for r in cav:
+        if not r["caver_bottleneck_A"] or not r["our_bottleneck_A"]:
+            continue
+        # CAVER discards most ligand atoms, so its ligand-in-place runs are
+        # not a valid comparison and are not checked here.
+        if r.get("valid_comparison", "yes") != "yes":
+            continue
+        lab = (f"CAVER agrees with ours: {r['structure']} {r['mode']} "
+               f"chain {r['chain']}")
+        check(lab, r["caver_bottleneck_A"], r["our_bottleneck_A"],
+              close(r["caver_bottleneck_A"], r["our_bottleneck_A"], 0.05))
+
     npass = sum(1 for c in CHECKS if c[3])
     print(f"PROTOCOL section 6 validation: {npass}/{len(CHECKS)} pass\n")
     for label, got, want, ok in CHECKS:

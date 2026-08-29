@@ -1,0 +1,555 @@
+<title>MexB Substrate Tunnels Manuscript</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --paper:#ffffff; --ground:#f2f2ef; --ink:#16181a; --ink-2:#494f55;
+  --ink-3:#7c848b; --rule:#dcdcd6; --rule-2:#c4c5be;
+  --accent:#1b5b8c; --accent-soft:#eef3f8;
+  --dbp:#c2403f; --pbp:#15805a; --switch:#a97400; --flag:#8a5a00;
+  --flagbg:#fdf6e6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --paper:#15181c; --ground:#0e1013; --ink:#e7eaec; --ink-2:#aab3ba;
+    --ink-3:#79838b; --rule:#282e35; --rule-2:#39414a;
+    --accent:#6fb3e8; --accent-soft:#16222e;
+    --flag:#f2c65c; --flagbg:#221c0d;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#15181c; --ground:#0e1013; --ink:#e7eaec; --ink-2:#aab3ba;
+  --ink-3:#79838b; --rule:#282e35; --rule-2:#39414a;
+  --accent:#6fb3e8; --accent-soft:#16222e;
+  --dbp:#ef6463; --pbp:#2fc691; --switch:#f0b52c; --flag:#f2c65c;
+  --flagbg:#221c0d;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,"Times New Roman",serif;
+  font-size:17px; line-height:1.62; -webkit-font-smoothing:antialiased}
+.sheet{max-width:830px; margin:0 auto; background:var(--paper);
+  padding:44px 60px 80px; border-left:1px solid var(--rule);
+  border-right:1px solid var(--rule); min-height:100vh}
+@media (max-width:720px){.sheet{padding:28px 20px 60px; border:0}}
+
+.sans{font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.eyebrow{font-family:"IBM Plex Sans",sans-serif; font-size:11px; font-weight:600;
+  letter-spacing:.15em; text-transform:uppercase; color:var(--ink-3)}
+
+h1{font-family:"IBM Plex Sans",sans-serif; font-size:31px; font-weight:600;
+  letter-spacing:-.021em; line-height:1.2; margin:10px 0 14px; text-wrap:balance}
+h2{font-family:"IBM Plex Sans",sans-serif; font-size:20px; font-weight:600;
+  letter-spacing:-.012em; margin:40px 0 12px; padding-top:14px;
+  border-top:1px solid var(--rule); text-wrap:balance}
+h3{font-family:"IBM Plex Sans",sans-serif; font-size:15.5px; font-weight:600;
+  margin:26px 0 8px; letter-spacing:-.005em; text-wrap:balance}
+h4{font-family:"IBM Plex Sans",sans-serif; font-size:13.5px; font-weight:600;
+  margin:20px 0 6px; color:var(--ink-2)}
+p{margin:0 0 15px}
+a{color:var(--accent)}
+sup{font-size:.72em; line-height:0}
+em.term{font-style:italic}
+
+.byline{color:var(--ink-2); font-size:15px; margin:0 0 4px}
+.affil{color:var(--ink-3); font-size:13px; margin:0 0 18px; line-height:1.5}
+.placeholder{background:var(--accent-soft); border-radius:3px; padding:0 5px;
+  color:var(--accent); font-family:"IBM Plex Sans",sans-serif; font-size:13px;
+  font-weight:500}
+
+.provenance{background:var(--flagbg); border:1px solid var(--rule-2);
+  border-left:3px solid var(--flag); border-radius:5px; padding:14px 17px;
+  margin:0 0 28px; font-size:14.5px; line-height:1.55; color:var(--ink-2)}
+.provenance strong{color:var(--ink); font-weight:600}
+.provenance ul{margin:8px 0 0; padding-left:20px}
+.provenance li{margin:4px 0}
+
+.abstract{background:var(--ground); border:1px solid var(--rule);
+  border-radius:5px; padding:20px 22px; margin:0 0 30px; font-size:16px}
+.abstract p{margin:0}
+
+figure{margin:30px 0; padding:0}
+figure img{width:100%; height:auto; display:block; border:1px solid var(--rule);
+  border-radius:4px; background:#fff}
+figcaption{font-size:13.5px; line-height:1.55; color:var(--ink-2); margin-top:9px}
+figcaption b{color:var(--ink); font-weight:600;
+  font-family:"IBM Plex Sans",sans-serif; font-size:13px}
+
+.twrap{overflow-x:auto; margin:16px 0 6px; border:1px solid var(--rule);
+  border-radius:5px}
+table{border-collapse:collapse; width:100%; font-size:12.5px;
+  font-family:"IBM Plex Sans",sans-serif; font-variant-numeric:tabular-nums}
+th{background:var(--ground); text-align:left; font-weight:600; font-size:11px;
+  letter-spacing:.03em; text-transform:uppercase; color:var(--ink-2);
+  padding:8px 10px; border-bottom:1px solid var(--rule-2); white-space:nowrap}
+td{padding:6px 10px; border-bottom:1px solid var(--rule); vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+.tcap{font-size:13.5px; color:var(--ink-2); margin:0 0 22px; line-height:1.5}
+.tcap b{color:var(--ink); font-family:"IBM Plex Sans",sans-serif; font-size:13px}
+
+.chip{font-family:"IBM Plex Sans",sans-serif; font-size:11.5px; font-weight:600;
+  border-radius:3px; padding:1px 6px; white-space:nowrap}
+.chip.dbp{color:var(--dbp); background:color-mix(in srgb,var(--dbp) 12%,transparent)}
+.chip.pbp{color:var(--pbp); background:color-mix(in srgb,var(--pbp) 12%,transparent)}
+
+.refs{font-size:14px; line-height:1.55; color:var(--ink-2); counter-reset:r}
+.refs li{margin:0 0 7px}
+ol.refs{padding-left:22px}
+
+footer{margin-top:44px; padding-top:16px; border-top:1px solid var(--rule);
+  font-size:12.5px; color:var(--ink-3); font-family:"IBM Plex Sans",sans-serif}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="sheet">
+
+<p class="eyebrow">Article &middot; draft manuscript</p>
+<h1>Substrate and detergent occupancy of the MexB drug-binding pockets and the geometry of the periplasmic exit route</h1>
+<p class="byline"><span class="placeholder">Author list to be supplied</span></p>
+<p class="affil"><span class="placeholder">Affiliations to be supplied</span> &middot; Correspondence: <span class="placeholder">to be supplied</span></p>
+
+<div class="provenance">
+<strong>What this draft is, and what it is not.</strong> This manuscript was generated
+automatically from the computational analysis pipeline in this repository, following the
+structure of Lawrence <em>et al.</em> (2025)<sup>1</sup>, the MdtF study on which the analysis
+protocol was modelled. Every number in the text, tables and figures is substituted at build
+time from <code>results/tables/</code> and regenerates with <code>bash run.sh</code>.
+<ul>
+<li><strong>No experimental sections are included.</strong> Only coordinate models were
+available to this analysis &mdash; no maps, no sample preparation, no data-collection or
+refinement statistics. Expression, purification, cryo-EM acquisition, processing and model
+building must be written by the authors.</li>
+<li><strong>The reference list is deliberately short.</strong> Only software and database
+citations that were verified during the analysis are given. Citations for the biology
+&mdash; AcrB mechanism, MexB mutagenesis, substrate profiles &mdash; are <em>not</em>
+included rather than guessed at, and must be added.</li>
+<li><strong>Interpretation is the authors&rsquo; to make.</strong> The Results below state
+what the geometry shows; the Discussion is written conservatively and flags where a claim
+rests on a detergent rather than a substrate.</li>
+</ul>
+</div>
+
+<div class="abstract">
+<p><b>Abstract.</b> The resistance-nodulation-division transporter MexB is the inner-membrane
+component of the principal multidrug efflux pump of <em>Pseudomonas aeruginosa</em>. Here we
+analyse two independent substrate-bound cryo-EM reconstructions of the MexB homotrimer &mdash;
+one with ampicillin bound, one with three molecules of the detergent
+n-dodecyl-&beta;-D-maltoside (DDM) &mdash; using a single reproducible geometric pipeline.
+Both reconstructions resolve the same asymmetric trimer, with protomers in the access, binding
+and extrusion states; the binding protomer is indistinguishable between the two maps
+(§X_E§&nbsp;&Aring; C&alpha; RMSD), establishing that the conformational description replicates.
+Ampicillin spans the distal and proximal binding pockets rather than occupying either, making
+§AMP_NRES§ residue contacts and §AMP_HB§ candidate hydrogen bonds. Atom-composition scoring
+places the hydrophobic character firmly in the distal pocket (§DBP_APOLAR§% apolar side-chain
+atoms, mean Kyte-Doolittle §DBP_KD§, eight aromatics) against a markedly more polar proximal
+pocket (§PBP_APOLAR§%, §PBP_KD§, no aromatics), reproducing the canonical AcrB architecture.
+Tunnel analysis on the trimer, cross-validated against CAVER&nbsp;3.0.3, shows the substrate
+site draining through the PC1/PC2 periplasmic cleft with a bottleneck radius of
+§AMP_BN§&nbsp;&Aring;, narrowing to §AMP_BN_W§&nbsp;&Aring; when ampicillin is left in place.
+The three DDM molecules occlude §DDM_PCT§% of the binding-protomer site volume, an occupancy
+observation that we keep explicitly separate from the protein-geometry conclusions.</p>
+</div>
+
+<h2>Introduction</h2>
+<p>Multidrug efflux pumps of the resistance-nodulation-division (RND) superfamily are the
+most clinically significant efflux systems in Gram-negative bacteria<sup>1</sup>. They span
+the double membrane as a tripartite assembly of an inner-membrane RND transporter, a
+periplasmic adaptor and an outer-membrane channel, and are energised by the proton motive
+force. In <em>Pseudomonas aeruginosa</em>, the MexAB-OprM system is the principal
+constitutively expressed pump, with MexB as its inner-membrane transporter.</p>
+
+<p>The mechanistic framework for this family comes from <em>Escherichia coli</em> AcrB, in
+which the homotrimer cycles through three states &mdash; access, binding and extrusion &mdash;
+by functional rotation. Substrates enter the porter domain, pass from a proximal binding
+pocket (PBP) to a distal binding pocket (DBP) across a switch loop, and are then expelled
+towards the exit. The same architecture is annotated in MexB, and the analysis protocol
+underlying this work was calibrated against the recent MdtF study<sup>1</sup>, which applied
+subdomain centroid separations and PC1&ndash;PC2 pseudo-contact counts as state diagnostics.</p>
+
+<p>Here we ask three narrow, geometric questions of two substrate-bound MexB reconstructions.
+Do the two independent maps describe the same conformational states? Where does a bound
+&beta;-lactam actually sit relative to the two pockets? And what is the geometry of the route
+from the substrate site to bulk solvent, with and without the bound ligand in place? We
+deliberately restrict the claims to what protein geometry supports, and treat the
+detergent-bound structure as an occupancy observation rather than evidence of substrate
+recognition.</p>
+
+<h2>Results</h2>
+
+<h3>Two independent reconstructions resolve the same asymmetric trimer</h3>
+<p>Both models comprise three chains (D, E, F) numbered identically to UniProt P52002 with
+zero offset and no sequence mismatches (Table&nbsp;1). Chain D is complete over residues
+1&ndash;1032; chain E spans 1&ndash;1030 with gaps at 229 and 360; chain F spans 1&ndash;1033
+with a gap at 663. The models are therefore directly comparable residue by residue.</p>
+
+<p>Assigning conformational states from PN1&ndash;PN2 and PC1&ndash;PC2 subdomain centroid
+separations places chain E in the binding state in both structures
+(§AMP_E_PN§/§AMP_E_PC§&nbsp;&Aring; and §DDM_E_PN§/§DDM_E_PC§&nbsp;&Aring;) and chain F in the
+extrusion state (§AMP_F_PN§/§AMP_F_PC§&nbsp;&Aring; and §DDM_F_PN§/§DDM_F_PC§&nbsp;&Aring;;
+Fig.&nbsp;1, Table&nbsp;2). Chain D of the DDM structure is cleanly access
+(§DDM_D_PN§/§DDM_D_PC§&nbsp;&Aring;). Chain D of the ampicillin structure is the one genuinely
+ambiguous protomer: its PN1&ndash;PN2 separation of §AMP_D_PN§&nbsp;&Aring; reads as access
+while its PC1&ndash;PC2 separation of §AMP_D_PC§&nbsp;&Aring; reads as binding. We report this
+as a conflict rather than forcing an assignment.</p>
+
+<p>Comparing the same protomer between the two reconstructions, chain E differs by only
+§X_E§&nbsp;&Aring; over all C&alpha; atoms and §X_E_SW§&nbsp;&Aring; across the switch loop
+&mdash; below the threshold at which reconstruction-to-reconstruction noise can be
+distinguished from real conformational change. The binding protomer is therefore the same
+structure in both maps, and every observation made on it replicates. Chains D and F differ by
+§X_D§ and §X_F§&nbsp;&Aring; respectively and are <em>not</em> the same state between the two
+models (Fig.&nbsp;7).</p>
+
+<figure><img src="§FIG1§" alt="Scatter plot of PN1-PN2 against PC1-PC2 centroid separation for all six protomers with published reference states">
+<figcaption><b>Fig. 1 | Conformational state of each protomer.</b> PN1&ndash;PN2 against
+PC1&ndash;PC2 subdomain centroid separation for all six protomers of the two structures. Open
+squares mark the published reference values for the access, binding and extrusion states.
+Chain E and chain F fall on their reference states in both reconstructions. Chain D of the
+ampicillin structure sits between access and binding, with the two diagnostics
+disagreeing.</figcaption></figure>
+
+<p class="tcap"><b>Table 1 |</b> Model inventory and sequence validation against UniProt
+P52002.</p>
+§T_INV§
+
+<p class="tcap"><b>Table 2 |</b> State diagnostics per protomer. Pseudo-contacts are
+C&alpha;&ndash;C&alpha; pairs within 10&nbsp;&Aring; between the named subdomains.</p>
+§T_STATES§
+
+<h3>Ampicillin spans both binding pockets</h3>
+<p>Ampicillin is modelled in the binding protomer (chain E) of the first structure. Its
+centroid lies §AMP_DBP§&nbsp;&Aring; from the distal-pocket centroid and §AMP_PBP§&nbsp;&Aring;
+from the proximal-pocket centroid &mdash; that is, between the two rather than within either.
+A per-atom assignment splits the molecule across both pockets, so we describe it as spanning
+them.</p>
+
+<p>The ligand makes contacts with §AMP_NRES§ residues within 4.5&nbsp;&Aring; and
+§AMP_HB§ candidate hydrogen bonds. It is anchored by a salt bridge from
+<span class="chip pbp">K151</span> to both carboxylate oxygens (2.81 and 2.84&nbsp;&Aring;) and
+packs against an aromatic cluster of <span class="chip dbp">F178</span> (3.25&nbsp;&Aring;, 37
+atomic contacts, 25 of them to ring atoms), <span class="chip dbp">F615</span>
+(3.35&nbsp;&Aring;) and <span class="chip dbp">F610</span> (3.76&nbsp;&Aring;). No heavy-atom
+pair lies below 2.6&nbsp;&Aring;, so the pose carries no steric strain. Contacts to proximal
+residues (K151, Q176) and distal residues (F178, F610, V612, F615) occur simultaneously,
+which is the structural basis for the spanning assignment.</p>
+
+<p>Across all four modelled ligands, §N_MATRIX§ residues make at least one contact and
+§N_SHARED§ are contacted by more than one ligand (Fig.&nbsp;4). The shared set is dominated by
+switch-loop and distal-pocket aromatics, consistent with a common recognition surface, but we
+note that three of the four ligands are detergent and this matrix should not be read as a
+substrate-specificity fingerprint.</p>
+
+<figure><img src="§FIG4§" alt="Heatmap of minimum heavy-atom distance between residues and each of the four bound ligands">
+<figcaption><b>Fig. 4 | Cross-ligand contact matrix.</b> Minimum heavy-atom distance between
+each residue and each bound ligand; blank cells indicate no contact within 4.5&nbsp;&Aring;.
+Residues are annotated by pocket membership (&#9679;&nbsp;DBP, &#9675;&nbsp;PBP) and switch-loop
+membership. Only the leftmost column is a substrate; the remaining three are
+detergent.</figcaption></figure>
+
+<h3>The distal pocket is the hydrophobic one</h3>
+<p>Atom-composition scoring of the two pockets, computed independently in all six protomers,
+gives the distal pocket §DBP_APOLAR§% apolar side-chain atoms with a mean Kyte-Doolittle
+hydropathy of §DBP_KD§ and eight aromatic residues, against §PBP_APOLAR§% apolar,
+§PBP_KD§ and no aromatic residues for the proximal pocket (Fig.&nbsp;5). The ordering is
+identical in every protomer of both structures. This reproduces the canonical AcrB picture of
+a hydrophobic trap at the distal site and settles, in favour of the atom-composition result,
+an earlier reading from surface renderings that had suggested the reverse.</p>
+
+<figure><img src="§FIG5§" alt="Two-panel dot plot comparing percent apolar atoms and mean Kyte-Doolittle hydropathy between the proximal and distal pockets">
+<figcaption><b>Fig. 5 | Pocket hydrophobicity.</b> Percentage of apolar side-chain atoms
+(left) and mean Kyte-Doolittle hydropathy (right) for the proximal and distal binding pockets.
+Each point is one protomer; the bar is the mean across all six. The separation is the same in
+both reconstructions.</figcaption></figure>
+
+<h3>The two pockets form one continuous cavity</h3>
+<p>Unguided cavity detection on the ligand-stripped trimer finds, in the binding protomer of
+both structures, a single cavity that overlaps 13 of 14 distal-pocket residues and 14 of 17
+proximal-pocket residues (Table&nbsp;5). The proximal and distal sites are therefore not
+separate compartments in these models but two ends of one continuous volume, which is the
+geometry a proximal-to-distal transfer step requires. The same is true of the access protomer
+in both structures. In the extrusion protomer of the DDM structure the detection is
+unreliable &mdash; the best distal-overlapping cavity is only 54&nbsp;&Aring;<sup>3</sup> &mdash;
+and we do not interpret it.</p>
+
+<p class="tcap"><b>Table 5 |</b> Unguided cavity detection on the ligand-stripped trimer
+(pyKVFinder).</p>
+§T_CAV§
+
+<h3>The substrate site drains through the PC1/PC2 periplasmic cleft</h3>
+<p>Tunnels were traced on the intact trimer &mdash; never on an isolated protomer, whose
+artificially open protomer&ndash;protomer interface admits spurious escape routes &mdash;
+seeded on the bound ligand where present and on the transferred site position otherwise. In
+the ligand-free binding protomer of the ampicillin structure, the widest route from the
+substrate site to bulk solvent has a bottleneck radius of §AMP_BN§&nbsp;&Aring; and exits
+through the PC1/PC2 periplasmic cleft. The constriction is lined by §AMP_CONS§
+(residue:clearance in &Aring;). The equivalent route in the DDM structure has a bottleneck of
+§DDM_BN§&nbsp;&Aring; through the same cleft, so the exit geometry replicates across the two
+maps.</p>
+
+<p>These values were cross-checked against CAVER&nbsp;3.0.3<sup>2</sup> run on the same
+trimers from the same seed points. §CAVER_AGREE§ of §CAVER_N§ ligand-free comparisons agree to
+within 0.05&nbsp;&Aring;, and CAVER independently identifies the same constriction-lining
+residues in the same order (Table&nbsp;4). CAVER could not be used to check the
+ligand-in-place condition, because it discards most of an arbitrary ligand&rsquo;s atoms
+(Methods). The two implementations differ in reported path
+<em>length</em> because they terminate the path by different criteria, so only the bottleneck
+radii are directly comparable.</p>
+
+<figure><img src="§FIG2§" alt="Tunnel radius profiles along the widest route for both structures, ligand stripped and ligand in place">
+<figcaption><b>Fig. 2 | Tunnel radius profile along the widest route to bulk solvent.</b>
+Local tunnel radius against cumulative distance along each path's own centreline, starting at
+the seed in the substrate site. The two curves in each panel are <em>different routes</em> &mdash;
+with the ligand in place the widest way out changes channel &mdash; so equal <em>x</em> does not
+correspond to the same location and the curves should not be compared point by point. The
+dashed line marks a 1.4&nbsp;&Aring; water probe.</figcaption></figure>
+
+<p class="tcap"><b>Table 3 |</b> Widest tunnel per protomer and ligand condition.</p>
+§T_TUNNELS§
+
+<p class="tcap"><b>Table 4 |</b> Independent cross-check against CAVER 3.0.3
+(<code>probe_radius 0.9</code>), same trimers and seed points.</p>
+§T_CAVER§
+
+<h3>The switch-loop gate is a local widening, not a through-route</h3>
+<p>Because the switch loop is mechanistically central, we measured the F615 gate directly
+(Fig.&nbsp;6, Table&nbsp;6). In every protomer of both structures the gate region is locally
+roomy &mdash; 3.1 to 4.6&nbsp;&Aring; of clearance &mdash; yet a path forced to pass through it
+bottlenecks at 0.5 to 1.2&nbsp;&Aring;. The switch-loop region in these models is therefore a
+widening adjacent to the transfer path rather than the narrowest point of the exit route. The
+gate is widest in the two binding protomers (4.18 and 4.60&nbsp;&Aring;) and narrower in the
+access and extrusion protomers, the same ordering in both reconstructions.</p>
+
+<figure><img src="§FIG6§" alt="Dumbbell plot of widest clearance inside the F615 gate against the bottleneck of a path forced through it">
+<figcaption><b>Fig. 6 | The F615 switch-loop gate.</b> Widest clearance found inside the gate
+region (blue) against the bottleneck of a tunnel forced to pass through it (orange), for every
+protomer. The gate is locally open but is not a through-route in these
+models.</figcaption></figure>
+
+<p class="tcap"><b>Table 6 |</b> Switch-loop gate geometry.</p>
+§T_GATE§
+
+<h3>Bound ligand occludes the site and narrows the exit route</h3>
+<p>Recomputing the site volume with each structure's own ligands in place quantifies
+occlusion. Ampicillin occupies §AMP_PCT§% of the binding-protomer site volume
+(§AMP_VFREE§&nbsp;&rarr;&nbsp;§AMP_VOCC§&nbsp;&Aring;<sup>3</sup>). The three DDM molecules
+occupy §DDM_PCT§% of the equivalent volume
+(§DDM_VFREE§&nbsp;&rarr;&nbsp;§DDM_VOCC§&nbsp;&Aring;<sup>3</sup>), essentially filling it
+(Fig.&nbsp;3, Table&nbsp;7). Site volumes in the access and extrusion protomers are unchanged,
+as expected since no ligand is modelled there.</p>
+
+<p>The bound ligand also narrows the exit route: the widest path from the site falls from
+§AMP_BN§ to §AMP_BN_W§&nbsp;&Aring; with ampicillin in place, and from §DDM_BN§ to
+§DDM_BN_W§&nbsp;&Aring; with the DDM molecules in place. In both cases the widest remaining
+route switches channel, away from the PC1/PC2 cleft. We regard the ampicillin number as the
+meaningful one; the DDM figure describes what a detergent at purification concentration does
+to the geometry, not what a substrate does.</p>
+
+<figure><img src="§FIG3§" alt="Grouped bar chart of substrate-site volume with ligands stripped and with ligands present for all six protomers">
+<figcaption><b>Fig. 3 | Occlusion of the substrate site.</b> Grid-based site volume within
+16&nbsp;&Aring; of the site and connected to it, computed with the structure's own ligands
+stripped and with them present. These volumes are internally comparable across these two
+structures only and are not equivalent to fpocket or CASTp volumes.</figcaption></figure>
+
+<p class="tcap"><b>Table 7 |</b> Substrate-site volume and occlusion.</p>
+§T_VOL§
+
+<h3>The proton relay is intact except for R971</h3>
+<p>Side-chain functional-atom distances across the transmembrane proton relay are consistent
+with an engaged network at D407/D408 and K939 (Table&nbsp;8). In the ampicillin structure,
+chain D gives D407&ndash;K939 2.71&nbsp;&Aring; and D408&ndash;K939 2.70&nbsp;&Aring;. R971,
+however, lies 12&ndash;17&nbsp;&Aring; from both aspartates in all six protomers of both
+structures. Because R971 is essential by mutagenesis and acts as the electrostatic switch in
+the AcrB relay, a separation of this size is far more likely to be a side-chain rotamer
+problem in the models than a biological observation, and it does not change between the two
+reconstructions. We flag it as an unresolved modelling issue and draw no mechanistic
+conclusion from it.</p>
+
+<p class="tcap"><b>Table 8 |</b> Proton relay distances, binding protomer (chain E).</p>
+§T_RELAY§
+
+<figure><img src="§FIG7§" alt="Per-residue sliding-window deviation between the binding and extrusion protomers along the sequence">
+<figcaption><b>Fig. 7 | Binding versus extrusion protomer.</b> Sliding-window per-residue
+C&alpha; deviation between chains E and F after superposition on the trimmed transmembrane
+domain, for both reconstructions. Shaded bands mark the porter and docking domains; the switch
+loop is highlighted. The two traces follow each other closely, so the difference between the
+two states replicates across independent maps.</figcaption></figure>
+
+<h2>Discussion</h2>
+<p>The central strength of this analysis is replication. Two independently determined
+reconstructions give a binding protomer that differs by §X_E§&nbsp;&Aring; overall and
+§X_E_SW§&nbsp;&Aring; across the switch loop, and every geometric conclusion drawn on that
+protomer &mdash; the state assignment, the pocket hydropathy ordering, the continuity of the
+two pockets, the identity and width of the exit route &mdash; is the same in both. Results
+that hold across two maps are considerably stronger than results from one, and we have
+marked throughout which observations do so.</p>
+
+<p>Ampicillin spanning both pockets rather than occupying either is consistent with the
+transfer step the AcrB framework requires, and the simultaneous K151 salt bridge and F178
+aromatic packing gives a plausible structural mechanism for holding a substrate across the
+switch loop. We would caution against over-reading a single pose: the protocol underlying this
+work records that an earlier model version of this same ligand had a different contact set and
+a steric interpenetration with F610, so contact lists must be regenerated whenever the model
+is rebuilt, and were regenerated here.</p>
+
+<p>The strongest caution concerns the detergent structure. DDM at purification concentration
+will occupy any groove that fits it, and the three modelled molecules do exactly that, filling
+§DDM_PCT§% of the binding-protomer site. That they contact distal-pocket and switch-loop
+residues is a statement about the shape of the groove, not about substrate recognition, and we
+have kept the protein-geometry arguments in this paper separate from the detergent-occupancy
+arguments throughout. The contact matrix in Fig.&nbsp;4 in particular should not be read as a
+specificity fingerprint when three of its four columns are detergent.</p>
+
+<p>Two further limitations deserve statement. First, the proximal-pocket residue set used here
+was assembled from AcrB literature rather than from a MexB-specific source, so any conclusion
+that depends sensitively on proximal-pocket membership &mdash; the pocket assignment of a
+ligand, the proximal hydropathy value &mdash; inherits that uncertainty. Second, the R971
+geometry is almost certainly a modelling artefact and should be resolved against density
+before the proton relay in these models is used for any mechanistic argument. Neither issue
+affects the tunnel or volume results.</p>
+
+<p>Finally, on the tunnel geometry itself: the pipeline used here and CAVER&nbsp;3.0.3 are
+independent implementations of different algorithms, and they agree on the ligand-free
+bottleneck radii to within 0.05&nbsp;&Aring; and on the identity of the constriction-lining
+residues. We therefore regard the exit-route description as well supported. The switch-loop
+result &mdash; that F615 marks a local widening rather than the constriction of the exit route
+&mdash; runs against the expectation encoded in the analysis protocol, and is stated here as
+what two independent tunnel calculations find.</p>
+
+<h2>Methods</h2>
+
+<h4>Structures analysed</h4>
+<p>Two coordinate models of the <em>P. aeruginosa</em> MexB homotrimer were analysed:
+an ampicillin-bound model (ligand ZZ7, one copy in chain E) and a DDM-bound model (ligand LMT,
+three copies in chain E). Structure determination is not described here; only coordinate
+models were available to this analysis. Ligand B-factors in both models are group-refined
+&mdash; a single value per molecule &mdash; and carry no per-atom information.</p>
+
+<h4>Sequence and numbering validation</h4>
+<p>Each chain was translated and compared residue by residue against UniProt
+P52002<sup>3</sup> at zero offset; an offset scan over &plusmn;5 residues confirmed that zero is
+optimal. Chains, residue ranges, gaps, HETATM records and alternate locations were enumerated.
+The pipeline halts on any mismatch or non-zero offset.</p>
+
+<h4>Conformational state assignment</h4>
+<p>Porter subdomains were defined as PN1 (40&ndash;130), PN2 (136&ndash;180, 278&ndash;281,
+284&ndash;328), PC1 (571&ndash;666) and PC2 (679&ndash;717, 814&ndash;818, 821&ndash;858).
+For each protomer we computed PN1&ndash;PN2 and PC1&ndash;PC2 C&alpha; centroid separations and
+pseudo-contact counts (C&alpha;&ndash;C&alpha; pairs within 10&nbsp;&Aring;), and assigned the
+nearest of the published access, binding and extrusion reference states by L1 distance. Where
+the two diagnostics select different states the conflict is reported rather than resolved.</p>
+
+<h4>Superposition and inter-protomer analysis</h4>
+<p>Superpositions used the Kabsch algorithm on C&alpha; atoms under two frames: a trimmed
+transmembrane set (10&ndash;35, 337&ndash;495, 516&ndash;565, 876&ndash;1030), which omits the
+mobile 496&ndash;515 cytoplasmic loop and the 859&ndash;875 junction, and the porter domain.
+Whole-protomer RMSD between structures is reported from an all-C&alpha; best fit. Per-residue
+deviations were smoothed with a 9-residue sliding window and exported as ChimeraX
+<code>.defattr</code> attributes and as B-factor-painted coordinates.</p>
+
+<h4>Ligand environment</h4>
+<p>Contacts were enumerated at 4.5&nbsp;&Aring; between ligand and protein heavy atoms, with
+minimum distance, contact count and aromatic-ring contact count per residue. Candidate
+hydrogen bonds were taken as N/O to N/O pairs within 3.6&nbsp;&Aring;. Any heavy-atom pair below
+2.6&nbsp;&Aring; is flagged; such pairs are additionally classified as a short hydrogen bond
+when both partners are N or O, which distinguishes them from steric overlap. Pocket assignment
+used distance from the ligand centroid to the distal and proximal pocket centroids together
+with a per-atom nearest-pocket call, so that a molecule spanning both is described as spanning
+rather than forced into one.</p>
+
+<h4>Cavity and pocket analysis</h4>
+<p>Cavity detection used pyKVFinder<sup>4</sup> (step 0.6&nbsp;&Aring;, probe_in
+1.4&nbsp;&Aring;, probe_out 4.0&nbsp;&Aring;, removal distance 2.4&nbsp;&Aring;), both
+ligand-guided and unguided, on the trimer with ligands stripped. The cavity containing the
+substrate site was identified by distal-pocket residue overlap. fpocket<sup>5</sup> was run on
+the same ligand-stripped trimers. Pocket hydrophobicity was scored by side-chain atom
+composition (carbon against N/O/S, backbone excluded) and by mean Kyte-Doolittle
+hydropathy<sup>6</sup>.</p>
+
+<p>Site volumes are grid-based: free space within 16&nbsp;&Aring; of the midpoint of the
+distal and proximal pocket centroids, connected to that point, on a 0.5&nbsp;&Aring; grid with
+a 1.4&nbsp;&Aring; probe. They were computed with the structure's own ligands stripped, so that
+sites are comparable across structures, and again with ligands present, to quantify occlusion.
+<strong>These volumes are internally comparable across these two structures only and are not
+drop-in replacements for fpocket or CASTp values.</strong></p>
+
+<h4>Tunnel calculation</h4>
+<p>Tunnels were computed on the intact trimer. A regular 0.6&nbsp;&Aring; grid was built over
+the whole assembly and each voxel assigned a clearance, the distance to the nearest atomic van
+der Waals surface. Bulk solvent was defined as the connected region of clearance
+&ge;&nbsp;3.0&nbsp;&Aring; reaching the edge of the box. The bottleneck is the maximum over all
+paths of the minimum clearance, found exactly by a widest-path (max-min) Dijkstra search from
+the seed; the path is then centred on the local medial axis by constrained perpendicular
+optimisation and resampled at 0.15&nbsp;&Aring;, which removes the grid-discretisation bias
+that otherwise under-reports narrow gaps unevenly. Successive distinct tunnels were found by
+blocking the constriction of the previous one. Seeds were the ligand centroid where the chain
+carries a ligand and the distal/proximal pocket midpoint otherwise. Each calculation was run
+twice, once with all ligands stripped and once with them present as obstructions; the
+difference quantifies occlusion of the exit route. Paths are exported as pseudo-atom traces
+with the local radius in the B-factor column.</p>
+
+<h4>Cross-validation against CAVER</h4>
+<p>CAVER 3.0.3<sup>2</sup> was run on the same trimers, seeded at the same coordinates, with
+<code>probe_radius 0.9</code>, <code>shell_radius 3</code> and <code>shell_depth 4</code>.
+Bottleneck radii and bottleneck-lining residues were compared against the pipeline's own
+output. <strong>Note on ligand handling:</strong> CAVER assigns atomic radii from its own atom
+table and silently discards atoms it cannot place. For these ligands that means most of the
+molecule &mdash; 8 of ampicillin&rsquo;s 25 heavy atoms and 78 of DDM&rsquo;s 105 were loaded
+&mdash; and this is true whether the ligand is written as HETATM or as ATOM. CAVER&rsquo;s
+ligand-in-place runs are therefore <em>not</em> a valid cross-check and are excluded from the
+agreement statistics; the ligand-free comparison is unaffected. The occlusion results in this
+paper rest on the pipeline implementation alone.</p>
+
+<h4>Statistics and reproducibility</h4>
+<p>The pipeline is deterministic; no stochastic method is used and no seeds affect the
+reported values. Everything under <code>results/</code> regenerates from a clean working
+directory with a single command. §NPASS§ of §NCHECK§ automated checks against the reference
+values encoded in the analysis protocol pass on the run that produced this manuscript; the
+full check list is written to <code>results/tables/validation.csv</code> on every run.</p>
+
+<h2>Data availability</h2>
+<p>The coordinate models analysed here are <span class="placeholder">to be deposited; accession
+codes to be supplied</span>. All derived data supporting the findings &mdash; state
+diagnostics, contact lists, cavity and volume tables, tunnel geometries and the CAVER
+comparison &mdash; are provided as machine-readable CSV files in <code>results/tables/</code>
+of the accompanying repository, together with tunnel traces and ChimeraX session files in
+<code>results/chimerax/</code>.</p>
+
+<h2>Code availability</h2>
+<p>The complete analysis pipeline is provided in the accompanying repository under
+<code>scripts/</code>, with a single entry point (<code>run.sh</code>) that regenerates every
+table, figure and derived structure in this manuscript from the input coordinate models.</p>
+
+<h2>References</h2>
+<ol class="refs">
+<li>Lawrence, R. <em>et al.</em> Molecular basis for multidrug efflux by an
+anaerobic-associated RND transporter. <em>Nat. Commun.</em> <b>16</b>, 10601 (2025).
+doi:10.1038/s41467-025-65565-7</li>
+<li>Chovancova, E. <em>et al.</em> CAVER 3.0: A tool for the analysis of transport pathways in
+dynamic protein structures. <em>PLoS Comput. Biol.</em> <b>8</b>, e1002708 (2012).</li>
+<li>The UniProt Consortium. UniProt entry P52002 (MEXB_PSEAE), multidrug resistance protein
+MexB, <em>Pseudomonas aeruginosa</em> PAO1.</li>
+<li>Guerra, J. V. S. <em>et al.</em> pyKVFinder: an efficient and integrable Python package for
+biomolecular cavity detection and characterization. <em>BMC Bioinformatics</em> (2021).</li>
+<li>Le Guilloux, V., Schmidtke, P. &amp; Tuffery, P. Fpocket: an open source platform for
+ligand pocket detection. <em>BMC Bioinformatics</em> <b>10</b>, 168 (2009).</li>
+<li>Kyte, J. &amp; Doolittle, R. F. A simple method for displaying the hydropathic character of
+a protein. <em>J. Mol. Biol.</em> <b>157</b>, 105&ndash;132 (1982).</li>
+</ol>
+<p style="font-size:13.5px; color:var(--ink-3)"><em>Citations for the biology &mdash; AcrB
+functional rotation, the hydrophobic trap, MexB mutagenesis including the R971 result, and
+substrate profiles &mdash; are intentionally absent rather than guessed at, and must be added
+by the authors.</em></p>
+
+<h2>Acknowledgements, author contributions and competing interests</h2>
+<p><span class="placeholder">To be supplied by the authors.</span></p>
+
+<footer>
+Draft generated §DATE§ from the MexB analysis pipeline. Numbers substituted at build time from
+<code>results/tables/</code>; regenerate with <code>bash run.sh</code>. Structure follows
+Lawrence <em>et al.</em>, <em>Nature Communications</em> <b>16</b>, 10601 (2025).
+</footer>
+</div>

@@ -30,6 +30,14 @@ echo "### switch-loop gate diagnostic"
 python3 scripts/switch_gate.py
 
 echo
+echo "### CAVER cross-check (set SKIP_CAVER=1 to skip; ~25 min)"
+if [ "${SKIP_CAVER:-0}" = "1" ]; then
+  echo "(skipped)"
+else
+  python3 scripts/run_caver.py --chains E || echo "(CAVER cross-check failed)"
+fi
+
+echo
 echo "### section 6 validation"
 python3 scripts/validate.py || echo "(validation reported failures - see results/tables/validation.csv)"
 
@@ -47,9 +55,14 @@ python3 scripts/viewer_exports.py
 python3 scripts/build_viewer.py
 
 echo
+echo "### manuscript draft"
+python3 scripts/build_paper.py
+
+echo
 echo "### combined workbook"
 python3 scripts/make_workbook.py
 
 echo
 echo "done. see results/REPORT.md, results/MexB_analysis_results.xlsx,"
-echo "          results/figures/, results/chimerax/, results/viewer/"
+echo "          results/figures/, results/chimerax/, results/viewer/,"
+echo "          results/paper/mexb_paper.html"
