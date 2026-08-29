@@ -287,6 +287,37 @@ def main():
           "whether the ligand is written as HETATM or as ATOM. The "
           "occlusion results therefore rest on this pipeline alone.\n")
 
+    cd = rows("caverdock_profile.csv")
+    if cd:
+        lb = [r for r in cd if r["bound"] == "lb"]
+        if lb:
+            E = [float(r["energy_kcal_mol"]) for r in lb]
+            arc = [float(r["position_along_tunnel_A"]) for r in lb]
+            rad = [float(r["tunnel_radius_A"]) for r in lb]
+            i = E.index(max(E)); j = rad.index(min(rad))
+            A("### Ligand transport energetics (CaverDock 1.2)\n")
+            A(f"CaverDock pulls the ligand through the tunnel disc by disc "
+              f"and returns a binding-energy profile, which lets the "
+              f"geometric constriction be checked against an actual "
+              f"barrier. Ampicillin along the chain E route gives a barrier "
+              f"of **{max(E) - E[0]:+.1f} kcal/mol**, peaking at "
+              f"**{arc[i]:.0f} Å** along the path where the tunnel is "
+              f"{rad[i]:.2f} Å wide.\n")
+            A(f"**The hardest point is not the narrowest point.** The "
+              f"geometric bottleneck sits at {arc[j]:.0f} Å "
+              f"({rad[j]:.2f} Å), about {abs(arc[j]-arc[i]):.0f} Å further "
+              f"along, where the energy has already fallen back to "
+              f"{E[j]:.1f} kcal/mol. Radius alone would have picked the "
+              f"wrong residues as rate-limiting.\n")
+            A("Read this as provisional. It is a **lower bound only** - the "
+              "upper-bound stage, which enforces a continuous trajectory, "
+              "did not converge, so the true barrier is at least this "
+              "large and probably larger. It was run at `exhaustiveness 1` "
+              "on a rigid receptor with OpenBabel-assigned Gasteiger "
+              "charges, over the first 32 Å of the tunnel. Before "
+              "quoting it, re-run at higher exhaustiveness and get the "
+              "upper bound to converge.\n")
+
     A("### The switch-loop (F615) gate\n")
     A("PROTOCOL section 6 expects the ampicillin chain-E tunnel to "
       "bottleneck at **2.01 A with the constriction at F615**. This "

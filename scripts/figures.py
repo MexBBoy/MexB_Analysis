@@ -414,6 +414,61 @@ def fig_per_residue():
     save(fig, "fig7_per_residue_EvsF")
 
 
+
+# ------------------------------------------------------------------ fig 8
+
+def fig_caverdock():
+    r = rows("caverdock_profile.csv")
+    lb = [x for x in r if x["bound"] == "lb"]
+    if not lb:
+        return
+    arc = np.array([float(x["position_along_tunnel_A"]) for x in lb])
+    E = np.array([float(x["energy_kcal_mol"]) for x in lb])
+    rad = np.array([float(x["tunnel_radius_A"]) for x in lb])
+    fig, (ax, ax2) = plt.subplots(2, 1, figsize=(8.6, 5.6), sharex=True,
+                                  gridspec_kw={"height_ratios": [1.25, 1]})
+    ax.plot(arc, E, color=S1, solid_capstyle="round")
+    i = int(np.argmax(E))
+    ax.scatter([arc[i]], [E[i]], s=70, color=S1, zorder=4,
+               edgecolor=SURFACE, linewidth=1.5)
+    ax.annotate(f"energy barrier {E[i] - E[0]:+.1f} kcal/mol at "
+                f"{arc[i]:.0f} Å", (arc[i], E[i]),
+                textcoords="offset points", xytext=(12, -14), fontsize=8.5,
+                color=S1, weight="bold")
+    ax.margins(y=0.16)
+    ax.set_ylabel("binding energy (kcal/mol)")
+    ax.set_title("Ampicillin pulled along the chain E tunnel (CaverDock, "
+                 "lower bound)")
+    finish(ax)
+
+    ax2.plot(arc, rad, color=S2, solid_capstyle="round")
+    j = int(np.argmin(rad))
+    ax2.scatter([arc[j]], [rad[j]], s=70, color=S2, zorder=4,
+                edgecolor=SURFACE, linewidth=1.5)
+    ax2.annotate(f"geometric bottleneck {rad[j]:.2f} Å at {arc[j]:.0f} Å",
+                 (arc[j], rad[j]), textcoords="offset points",
+                 xytext=(-12, -16), ha="right", fontsize=8.5, color=S2,
+                 weight="bold")
+    ax2.margins(y=0.2)
+    for a_ in (ax, ax2):
+        a_.axvline(arc[i], color=S1, linewidth=1, linestyle=(0, (3, 3)),
+                   alpha=.55)
+        a_.axvline(arc[j], color=S2, linewidth=1, linestyle=(0, (3, 3)),
+                   alpha=.55)
+    ax2.set_ylabel("tunnel radius (Å)")
+    ax2.set_xlabel("distance along the tunnel from the substrate site (Å)")
+    finish(ax2)
+    fig.text(0.5, -0.04,
+             "The hardest point for the ligand is not the narrowest point: "
+             "the energy maximum sits ~15 Å before the geometric "
+             "constriction.\nLower bound only (the upper-bound stage did not "
+             "converge) at exhaustiveness 1, so the barrier is a lower "
+             "estimate — see REPORT.md.",
+             ha="center", fontsize=7.5, color=MUTED)
+    save(fig, "fig8_caverdock_profile")
+
+
+
 def main():
     os.makedirs(FIGURES, exist_ok=True)
     print("=== figures ===")
@@ -424,6 +479,7 @@ def main():
     fig_pockets()
     fig_switch_gate()
     fig_per_residue()
+    fig_caverdock()
 
 
 if __name__ == "__main__":

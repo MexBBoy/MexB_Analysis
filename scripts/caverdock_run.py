@@ -98,17 +98,26 @@ def write_ligand(path, atoms):
     return path
 
 
-def parse_profile(path):
-    """CaverDock trajectory PDBQT: one MODEL per disc, with REMARK CAVERDOCK
-    lines carrying the position along the tunnel and the energy."""
+def parse_profile(path, spacing):
+    """CaverDock trajectory PDBQT.
+
+    Each disc carries a line
+        REMARK CAVERDOCK TUNNEL: <disc> <energy> <radius> <internal>
+    The fourth field is CaverDock's own coordinate, not arc length in A, so
+    position along the tunnel is recomputed from the disc index and the disc
+    spacing we generated the .dsd with.
+    """
     out = []
     if not os.path.exists(path):
         return out
     for line in open(path):
-        if line.startswith("REMARK CAVERDOCK RESULT:"):
-            parts = line.split()
+        if line.startswith("REMARK CAVERDOCK TUNNEL:"):
+            p = line.split()
             try:
-                out.append((float(parts[-2]), float(parts[-1])))
+                disc = int(float(p[3]))
+                out.append({"disc": disc, "energy": float(p[4]),
+                            "radius": float(p[5]),
+                            "arc": disc * spacing})
             except (ValueError, IndexError):
                 pass
     return out
@@ -125,6 +134,8 @@ def main():
     ap.add_argument("--spacing", type=float, default=0.5)
     ap.add_argument("--exhaustiveness", type=int, default=1)
     ap.add_argument("--cpu", type=int, default=1)
+    ap.add_argument("--parse-only", action="store_true",
+                    help="re-parse an existing run without redocking")
     ap.add_argument("--ranks", type=int, default=4,
                     help="MPI ranks: 1 master + workers, minimum 2")
     a = ap.parse_args()
@@ -149,9 +160,10 @@ def main():
 
     prot = [x for x in s.protein_atoms if not x.is_hydrogen]
     lig = [x for x in s.het_atoms if not x.is_hydrogen]
-    print("  preparing receptor (this takes a minute)")
-    write_receptor(os.path.join(d, "receptor.pdbqt"), prot)
-    write_ligand(os.path.join(d, "ligand.pdbqt"), lig)
+    if not a.parse_only:
+        print("  preparing receptor (this takes a minute)")
+        write_receptor(os.path.join(d, "receptor.pdbqt"), prot)
+        write_ligand(os.path.join(d, "ligand.pdbqt"), lig)
 
     lo, hi = P.min(axis=0), P.max(axis=0)
     cen = (lo + hi) / 2
@@ -169,36 +181,56 @@ def main():
     print(f"  box {size[0]:.0f} x {size[1]:.0f} x {size[2]:.0f} A "
           f"centred on the tunnel")
 
-    print("  running CaverDock ...")
+    if a.parse_only:
+        print("  --parse-only: reusing the existing trajectory")
+    else:
+        print("  running CaverDock ...")
     # CaverDock refuses to run a tunnel job on a single rank: it needs a
     # master plus at least one worker, so it must be launched under mpirun.
     mpirun = os.path.join(LIBS, "bin", "mpirun.openmpi")
+    r = None
     cmd = [mpirun, "-n", str(a.ranks), "--allow-run-as-root",
            "--oversubscribe", binary, "--config", "caverdock.conf",
            "--out", "traj"]
-    r = subprocess.run(cmd, cwd=d, env=env(), capture_output=True,
-                       text=True, timeout=21600)
+    if not a.parse_only:
+        r = subprocess.run(cmd, cwd=d, env=env(), capture_output=True,
+                           text=True, timeout=21600)
     log = os.path.join(d, "caverdock.log")
-    open(log, "w").write(r.stdout + "\n---stderr---\n" + r.stderr)
-    if r.returncode != 0:
-        print(f"  CaverDock failed (exit {r.returncode}); see {log}")
-        print("  " + (r.stderr or r.stdout)[-500:])
-        return
+    if r is not None:
+        open(log, "w").write(r.stdout + "\n---stderr---\n" + r.stderr)
+        if r.returncode != 0:
+            # the upper-bound stage often fails where the lower bound
+            # succeeded; a partial result is still worth parsing
+            print(f"  CaverDock exited {r.returncode} (see {log}) - parsing "
+                  f"whatever trajectory was produced")
 
     rows = []
     for kind in ("lb", "ub"):
-        prof = parse_profile(os.path.join(d, f"traj-{kind}.pdbqt"))
-        for i, (x, e) in enumerate(prof):
-            rows.append([a.structure, a.chain, a.seed, kind, i,
-                         fmt(x, 3), fmt(e, 3)])
-        if prof:
-            e = [p[1] for p in prof]
-            print(f"  {kind}: {len(prof)} discs, energy "
-                  f"{min(e):.2f} to {max(e):.2f} kcal/mol, "
-                  f"barrier {max(e) - e[0]:.2f}")
+        prof = parse_profile(os.path.join(d, f"traj-{kind}.pdbqt"),
+                             a.spacing)
+        if not prof:
+            continue
+        E = [p["energy"] for p in prof]
+        imax = int(np.argmax(E))
+        imin = int(np.argmin([p["radius"] for p in prof]))
+        print(f"  {kind}: {len(prof)} discs, E {min(E):.2f} to {max(E):.2f} "
+              f"kcal/mol; barrier from the site {max(E) - E[0]:.2f}")
+        print(f"       energy max at {prof[imax]['arc']:.1f} A "
+              f"(radius {prof[imax]['radius']:.2f} A)")
+        print(f"       narrowest point at {prof[imin]['arc']:.1f} A "
+              f"(radius {prof[imin]['radius']:.2f} A, "
+              f"E {prof[imin]['energy']:.2f})")
+        for p in prof:
+            rows.append([a.structure, a.chain, a.seed, kind, p["disc"],
+                         fmt(p["arc"], 2), fmt(p["radius"], 2),
+                         fmt(p["energy"], 2)])
+    if not rows:
+        print("  no profile parsed")
+        return
     write_csv(os.path.join(TABLES, "caverdock_profile.csv"),
               ["structure", "chain", "seed", "bound", "disc",
-               "position_along_tunnel_A", "energy_kcal_mol"], rows)
+               "position_along_tunnel_A", "tunnel_radius_A",
+               "energy_kcal_mol"], rows)
     print(f"  wrote results/tables/caverdock_profile.csv ({len(rows)} rows)")
 
 

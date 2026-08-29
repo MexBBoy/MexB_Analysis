@@ -1,6 +1,6 @@
 # MexB substrate-bound structures - tunnel and pocket analysis
 
-Generated 2026-08-29 13:58 from commit `45132f4` by `bash run.sh`. Every table under `results/` is reproducible from a clean `work/`; nothing here is hand-edited.
+Generated 2026-08-29 14:10 from commit `fd9c32e` by `bash run.sh`. Every table under `results/` is reproducible from a clean `work/`; nothing here is hand-edited.
 
 ## Summary
 
@@ -370,6 +370,14 @@ CAVER was run on the same trimers, seeded on the same points, with `probe_radius
 
 Two caveats on reading this table. Tunnel *lengths* are not comparable - CAVER ends the path at its own surface criterion while this pipeline runs on to the edge of the box - so only the bottleneck radii should be compared. And **CAVER's ligand-in-place rows are not a valid cross-check**: CAVER assigns radii from its own atom table and silently discards atoms it cannot place, which for these ligands means most of the molecule (8 of ampicillin's 25 heavy atoms loaded; 78 of DDM's 105), whether the ligand is written as HETATM or as ATOM. The occlusion results therefore rest on this pipeline alone.
 
+### Ligand transport energetics (CaverDock 1.2)
+
+CaverDock pulls the ligand through the tunnel disc by disc and returns a binding-energy profile, which lets the geometric constriction be checked against an actual barrier. Ampicillin along the chain E route gives a barrier of **+2.2 kcal/mol**, peaking at **14 Å** along the path where the tunnel is 3.30 Å wide.
+
+**The hardest point is not the narrowest point.** The geometric bottleneck sits at 28 Å (2.20 Å), about 15 Å further along, where the energy has already fallen back to -6.3 kcal/mol. Radius alone would have picked the wrong residues as rate-limiting.
+
+Read this as provisional. It is a **lower bound only** - the upper-bound stage, which enforces a continuous trajectory, did not converge, so the true barrier is at least this large and probably larger. It was run at `exhaustiveness 1` on a rigid receptor with OpenBabel-assigned Gasteiger charges, over the first 32 Å of the tunnel. Before quoting it, re-run at higher exhaustiveness and get the upper bound to converge.
+
 ### The switch-loop (F615) gate
 
 PROTOCOL section 6 expects the ampicillin chain-E tunnel to bottleneck at **2.01 A with the constriction at F615**. This implementation instead finds **2.21 A constricted at N676/N718/L827** in the PC2/DC region, with F615 sitting 3.4 A clear of the path. Both validation checks therefore fail.
@@ -392,5 +400,6 @@ The honest reading is that this is an unresolved implementation difference, not 
 ## Changes since the previous run
 
 - `caver.csv`: new
+- `caverdock_profile.csv`: new
 - `fpocket.csv`: 9 row(s) changed
 - `validation.csv`: 0 row(s) changed, 2 row(s) added/removed

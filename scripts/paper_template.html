@@ -314,6 +314,29 @@ dashed line marks a 1.4&nbsp;&Aring; water probe.</figcaption></figure>
 (<code>probe_radius 0.9</code>), same trimers and seed points.</p>
 §T_CAVER§
 
+<h3>The energy barrier does not coincide with the geometric bottleneck</h3>
+<p>Geometry says where a tunnel is narrow; it does not say where a particular ligand finds
+the passage hard. To separate the two we pulled ampicillin along the chain E route with
+CaverDock&nbsp;1.2<sup>7</sup>, which docks the ligand at successive discs and returns a
+binding-energy profile. The barrier is §CD_BARRIER§&nbsp;kcal/mol, peaking §CD_EPOS§&nbsp;&Aring;
+along the path where the tunnel is §CD_ERAD§&nbsp;&Aring; wide. The geometric constriction lies
+a further §CD_GAP§&nbsp;&Aring; along, at §CD_RPOS§&nbsp;&Aring; and §CD_RRAD§&nbsp;&Aring;, by
+which point the energy has relaxed again (Fig.&nbsp;8). Radius alone would therefore have
+identified the wrong residues as rate-limiting for this substrate.</p>
+
+<p>This result is provisional in a way the geometric results are not. Only the lower bound
+converged &mdash; the upper-bound calculation, which additionally enforces a continuous
+trajectory, did not &mdash; so the true barrier is at least this large and probably larger. It
+was computed at the lowest exhaustiveness setting on a rigid receptor. We report it because the
+qualitative separation between the energetic and geometric bottlenecks is large and
+unambiguous, not because the number itself is converged.</p>
+
+<figure><img src="§FIG8§" alt="Two-panel plot of binding energy and tunnel radius against distance along the tunnel">
+<figcaption><b>Fig. 8 | Ligand transport energetics along the chain E tunnel.</b> CaverDock
+lower-bound binding energy (top) and tunnel radius (bottom) against distance from the substrate
+site. Dashed lines mark the energy maximum and the geometric bottleneck; they do not
+coincide.</figcaption></figure>
+
 <h3>The switch-loop gate is a local widening, not a through-route</h3>
 <p>Because the switch loop is mechanistically central, we measured the F615 gate directly
 (Fig.&nbsp;6, Table&nbsp;6). In every protomer of both structures the gate region is locally
@@ -503,6 +526,17 @@ ligand-in-place runs are therefore <em>not</em> a valid cross-check and are excl
 agreement statistics; the ligand-free comparison is unaffected. The occlusion results in this
 paper rest on the pipeline implementation alone.</p>
 
+<h4>Ligand transport energetics</h4>
+<p>CaverDock&nbsp;1.2<sup>7</sup>, which uses a docking engine derived from AutoDock Vina
+1.1.2, was used to pull ampicillin along the chain E tunnel. The tunnel centreline computed
+above was resampled at 0.5&nbsp;&Aring; into CaverDock&rsquo;s disc format over the first
+32&nbsp;&Aring; from the substrate site. Receptor and ligand were converted to PDBQT with
+OpenBabel using Gasteiger charges, the receptor kept rigid; the search box was sized to enclose
+the tunnel with a 12&nbsp;&Aring; margin. The calculation was run under MPI at
+<code>exhaustiveness 1</code> with <code>multiple_search 3</code>. Only the lower-bound
+trajectory converged; the upper bound is not reported. Energies are therefore a lower estimate
+of the true barrier and are described as provisional throughout.</p>
+
 <h4>Statistics and reproducibility</h4>
 <p>The pipeline is deterministic; no stochastic method is used and no seeds affect the
 reported values. Everything under <code>results/</code> regenerates from a clean working
@@ -538,6 +572,9 @@ biomolecular cavity detection and characterization. <em>BMC Bioinformatics</em> 
 ligand pocket detection. <em>BMC Bioinformatics</em> <b>10</b>, 168 (2009).</li>
 <li>Kyte, J. &amp; Doolittle, R. F. A simple method for displaying the hydropathic character of
 a protein. <em>J. Mol. Biol.</em> <b>157</b>, 105&ndash;132 (1982).</li>
+<li>Vavra, O. <em>et al.</em> CaverDock: a molecular docking-based tool to analyse ligand
+transport through protein tunnels and channels. <em>Bioinformatics</em> (2019).
+doi:10.1093/bioinformatics/btz386</li>
 </ol>
 <p style="font-size:13.5px; color:var(--ink-3)"><em>Citations for the biology &mdash; AcrB
 functional rotation, the hydrophobic trap, MexB mutagenesis including the R971 result, and

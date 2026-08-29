@@ -93,6 +93,20 @@ def main():
 
     npass = sum(1 for r in val if r["status"] == "PASS")
 
+    cd = [r for r in R("caverdock_profile.csv") if r["bound"] == "lb"]
+    if cd:
+        E = [float(r["energy_kcal_mol"]) for r in cd]
+        arc = [float(r["position_along_tunnel_A"]) for r in cd]
+        rad = [float(r["tunnel_radius_A"]) for r in cd]
+        i, j = E.index(max(E)), rad.index(min(rad))
+        CD = {"CD_BARRIER": f"{max(E) - E[0]:+.1f}",
+              "CD_EPOS": f"{arc[i]:.0f}", "CD_ERAD": f"{rad[i]:.2f}",
+              "CD_RPOS": f"{arc[j]:.0f}", "CD_RRAD": f"{rad[j]:.2f}",
+              "CD_GAP": f"{abs(arc[j] - arc[i]):.0f}"}
+    else:
+        CD = {k: "—" for k in ("CD_BARRIER", "CD_EPOS", "CD_ERAD",
+                               "CD_RPOS", "CD_RRAD", "CD_GAP")}
+
     V = {
         "DATE": datetime.datetime.now().strftime("%d %B %Y"),
         # states
@@ -151,6 +165,7 @@ def main():
         "FIG5": img("fig5_pocket_hydrophobicity.png"),
         "FIG6": img("fig6_switch_gate.png"),
         "FIG7": img("fig7_per_residue_EvsF.png"),
+        "FIG8": img("fig8_caverdock_profile.png"),
         # tables
         "T_STATES": table_html(
             R("states.csv"),
@@ -202,6 +217,7 @@ def main():
              "PBP overlap", "Continuity"]),
     }
 
+    V.update(CD)
     html = open(TPL, encoding="utf-8").read()
     for k, v in V.items():
         html = html.replace(f"§{k}§", str(v))
