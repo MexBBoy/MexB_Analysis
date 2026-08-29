@@ -27,6 +27,74 @@ CD = os.path.join(WORK_DIR, "caverdock-1.2")
 LIBS = os.path.join(WORK_DIR, "cdlibs", "ex", "usr")
 
 
+
+CD_URL = ("https://loschmidt.chemi.muni.cz/static/releases/caverdock/1.2/"
+          "caverdock-1.2-ubuntu18.04.tar.gz")
+# CaverDock 1.2 ships a single Ubuntu 18.04 binary. On any newer distribution
+# its Boost/OpenMPI/hwloc sonames are missing, so those runtime libraries are
+# fetched from the Ubuntu archive and used via LD_LIBRARY_PATH rather than
+# installed system-wide.
+RUNTIME_DEBS = [
+    ("http://archive.ubuntu.com/ubuntu/pool/main/b/boost1.65.1/"
+     "libboost-system1.65.1_1.65.1+dfsg-0ubuntu5_amd64.deb"),
+    ("http://archive.ubuntu.com/ubuntu/pool/main/b/boost1.65.1/"
+     "libboost-thread1.65.1_1.65.1+dfsg-0ubuntu5_amd64.deb"),
+    ("http://archive.ubuntu.com/ubuntu/pool/main/b/boost1.65.1/"
+     "libboost-serialization1.65.1_1.65.1+dfsg-0ubuntu5_amd64.deb"),
+    ("http://archive.ubuntu.com/ubuntu/pool/main/b/boost1.65.1/"
+     "libboost-program-options1.65.1_1.65.1+dfsg-0ubuntu5_amd64.deb"),
+    ("http://archive.ubuntu.com/ubuntu/pool/universe/o/openmpi/"
+     "libopenmpi2_2.1.1-8_amd64.deb"),
+    ("http://archive.ubuntu.com/ubuntu/pool/universe/o/openmpi/"
+     "openmpi-common_2.1.1-8_all.deb"),
+    ("http://archive.ubuntu.com/ubuntu/pool/universe/o/openmpi/"
+     "openmpi-bin_2.1.1-8_amd64.deb"),
+    ("https://launchpad.net/ubuntu/+archive/primary/+files/"
+     "libhwloc5_1.11.9-1_amd64.deb"),
+]
+
+
+def ensure_caverdock():
+    """Download CaverDock and the runtime it needs, if not already present."""
+    import platform
+    import shutil as _sh
+    import tarfile
+    import urllib.request
+
+    binary = os.path.join(CD, "bin", "caverdock")
+    if not os.path.exists(binary):
+        if platform.system() != "Linux" or platform.machine() != "x86_64":
+            raise SystemExit(
+                "CaverDock 1.2 is distributed only as a Linux x86-64 binary. "
+                "On another platform use the Singularity image from "
+                "caver.cz (caverdock-1.2.sif) and point CD at it.")
+        os.makedirs(WORK_DIR, exist_ok=True)
+        tgz = os.path.join(WORK_DIR, "caverdock-1.2.tar.gz")
+        if not os.path.exists(tgz):
+            print(f"  downloading CaverDock from {CD_URL}")
+            urllib.request.urlretrieve(CD_URL, tgz)
+        with tarfile.open(tgz) as t:
+            t.extractall(WORK_DIR)
+        os.chmod(binary, 0o755)
+        os.chmod(os.path.join(CD, "bin", "caverdock_split"), 0o755)
+
+    if not os.path.exists(os.path.join(LIBS, "bin", "mpirun.openmpi")):
+        if _sh.which("dpkg-deb") is None:
+            raise SystemExit("dpkg-deb is needed to unpack CaverDock's "
+                             "runtime libraries")
+        d = os.path.join(WORK_DIR, "cdlibs")
+        os.makedirs(d, exist_ok=True)
+        for url in RUNTIME_DEBS:
+            deb = os.path.join(d, os.path.basename(url))
+            if not os.path.exists(deb):
+                print(f"  fetching {os.path.basename(url)}")
+                urllib.request.urlretrieve(url, deb)
+            subprocess.run(["dpkg-deb", "-x", deb, os.path.join(d, "ex")],
+                           check=True)
+        print("  CaverDock runtime staged in work/cdlibs")
+    return binary
+
+
 def env():
     e = dict(os.environ)
     lib = os.path.join(LIBS, "lib", "x86_64-linux-gnu")
@@ -140,9 +208,7 @@ def main():
                     help="MPI ranks: 1 master + workers, minimum 2")
     a = ap.parse_args()
 
-    binary = os.path.join(CD, "bin", "caverdock")
-    if not os.path.exists(binary):
-        raise SystemExit(f"CaverDock not found at {binary}")
+    binary = ensure_caverdock()
 
     s = next(x for x in load_structures() if x.name == a.structure)
     d = os.path.join(WORK_DIR, "caverdock_runs",
