@@ -270,17 +270,27 @@ These are live problems, not settled facts. Re-check each run and report
 status.
 
 1. **R971 is 12-17 A from both D407 and D408 in every protomer of both
-   structures analysed so far.** R971 is essential by mutagenesis (Guan &
-   Nakae) and acts as the electrostatic switch in AcrB, so this is almost
-   certainly a side-chain rotamer problem rather than biology. Report the
-   distance every run and flag if it stays this large.
+   structures analysed so far.** RESOLVED AGAINST DENSITY (2026-08-30) — and
+   the earlier assumption was wrong. R971 scores at or above its map's median
+   RSCC in every protomer that is itself well resolved (Amp chain E 0.570 vs
+   median 0.533; DDM chains E 0.714 and F 0.631 vs median 0.572). The
+   modelled rotamer is supported by the density, so this is **not** a rotamer
+   problem to be rebuilt away. Treat the separation as a real feature needing
+   a mechanistic explanation. Keep reporting the distance every run.
 
-2. **Chain F proton relay is inconsistent between structures.** D407-K939 was
-   4.24 A in one model and 2.82 A in another; D408-K939 was 9.26 versus 5.05.
-   Treat chain F relay geometry as unresolved until checked against density.
+2. **Chain F proton relay is inconsistent between structures.** RESOLVED
+   (2026-08-30). Chain F of the *ampicillin* model is not supported by its own
+   density: whole-protomer median RSCC 0.182 (21st percentile) against D 0.578
+   and E 0.608, with relay residues actually negative (THR976F -0.164,
+   LYS939F -0.081, ARG971F -0.004). The same residues score 0.63-0.70 in the
+   DDM map. The ampicillin chain F relay geometry was never determinable, which
+   is the whole of the inconsistency. **Exclude chain F of
+   Amp_MexB_20260826 from relay and state analysis.** The weak protomer differs
+   by structure: F in Amp (severe), D in DDM (mild, 29th-34th percentile).
 
 3. **Chain F sits further from both other protomers than they do from each
-   other.** State assignment and model quality for F both need verification.
+   other.** RESOLVED by the same evidence as issue 2 for the ampicillin model.
+   Still open for the DDM model, where chain F is well resolved.
 
 4. **Hydrophobicity of the two pockets.** Atom-composition scoring gives the
    proximal pocket 67% apolar (mean Kyte-Doolittle -1.93, no aromatics) and
@@ -289,11 +299,43 @@ status.
    Report the computed values and note the discrepancy until resolved.
 
 5. **Ligand B-factors are group-refined** (a single value per molecule in the
-   models seen so far). Say so whenever B-factors are reported.
+   models seen so far). Say so whenever B-factors are reported. Per-ligand
+   RSCC now gives an independent confidence measure that a group B-factor
+   cannot.
 
 6. **Poses change between model versions.** An earlier ampicillin pose had a
    1.74 A interpenetration with F610 and a different contact set. Never carry
    a contact list forward from a previous model version — always regenerate.
+   CONFIRMED against density (2026-08-30): ampicillin ZZ7 2000 E scores at only
+   the 26th-34th percentile of its map, inside a chain that is otherwise well
+   resolved — so this is the ligand, not its neighbourhood. **The section 6
+   contact constants (K151 2.81/2.84, F178 3.25, F615 3.35, F610 3.76) are
+   demoted from validation constants to provisional** until the pose is
+   rebuilt.
+
+7. **Acidic residues read as false negatives on RSCC.** D407 and D408 score
+   below baseline in most protomers of both maps while K939/R971/T976 sit at
+   or above it. Asp and Glu side chains are preferentially decarboxylated by
+   the electron beam (Hattne et al. 2018, doi:10.1016/j.str.2018.03.021; Spear
+   et al. 2015, doi:10.1016/j.jsb.2015.09.006). Do not flag D407/D408 as
+   modelling errors on RSCC alone.
+
+8. **Map metric calibration.** Three rules, learned the hard way:
+   - Always pass the true map resolution to `map_validation.py`. RSCC rises
+     monotonically as the value approaches the truth, so a wrong figure
+     depresses every score. The parameter is now required.
+   - Never compare raw RSCC between the two datasets — they differ in voxel
+     size (0.65 vs 0.83 A), sharpening and masking. On like-for-like sharpened
+     maps the two models fit comparably (median protein RSCC 0.533 Amp vs
+     0.572 DDM). Use `rscc_percentile_in_map`.
+   - z-scores are referenced to a solvent shell, not the whole box, because
+     cryoSPARC sharpened volumes are solvent-masked and their box sigma is
+     several times smaller than their own half maps'. The `map_masked` column
+     records which each map is.
+
+9. **The "supported / marginal / weak" verdicts use a 0.7 x map-median
+   threshold**, a working heuristic adopted locally, not a community standard.
+   Say so wherever those words appear.
 
 ---
 

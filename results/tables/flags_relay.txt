@@ -1,0 +1,13 @@
+Amp_MexB_20260826 chain D: ASP407-ARG971 = 12.58 A (known issue 1, R971 rotamer) - still unresolved
+Amp_MexB_20260826 chain D: ASP408-ARG971 = 17.37 A (known issue 1, R971 rotamer) - still unresolved
+Amp_MexB_20260826 chain E: ASP407-ARG971 = 12.75 A (known issue 1, R971 rotamer) - still unresolved
+Amp_MexB_20260826 chain E: ASP408-ARG971 = 16.90 A (known issue 1, R971 rotamer) - still unresolved
+Amp_MexB_20260826 chain F: relay distances NOT DETERMINABLE - median RSCC 0.182 (21st pct of its map); relay residues negative (THR976F -0.164, LYS939F -0.081, ARG971F -0.004). This is the source of the known chain F relay inconsistency; exclude these values (PROTOCOL known issue 2)
+Amp_MexB_20260826 chain F: ASP407-ARG971 = 15.63 A (known issue 1, R971 rotamer) - still unresolved
+Amp_MexB_20260826 chain F: ASP408-ARG971 = 16.87 A (known issue 1, R971 rotamer) - still unresolved
+MexB_DDM_3_20260730 chain D: ASP407-ARG971 = 13.39 A (known issue 1, R971 rotamer) - still unresolved
+MexB_DDM_3_20260730 chain D: ASP408-ARG971 = 16.63 A (known issue 1, R971 rotamer) - still unresolved
+MexB_DDM_3_20260730 chain E: ASP407-ARG971 = 12.81 A (known issue 1, R971 rotamer) - still unresolved
+MexB_DDM_3_20260730 chain E: ASP408-ARG971 = 16.09 A (known issue 1, R971 rotamer) - still unresolved
+MexB_DDM_3_20260730 chain F: ASP407-ARG971 = 13.99 A (known issue 1, R971 rotamer) - still unresolved
+MexB_DDM_3_20260730 chain F: ASP408-ARG971 = 16.74 A (known issue 1, R971 rotamer) - still unresolved

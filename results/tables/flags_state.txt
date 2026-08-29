@@ -1,0 +1,2 @@
+Amp_MexB_20260826 chain D: cleft diagnostics conflict - PN1-PN2 nearest Access, PC1-PC2 nearest Binding; reporting conflict rather than forcing a call
+Amp_MexB_20260826 chain F: NOT SUPPORTED BY DENSITY - median RSCC 0.182 (21st pct of its map); relay residues negative (THR976F -0.164, LYS939F -0.081, ARG971F -0.004). State assignment for this protomer is not determinable; exclude it from downstream analysis (PROTOCOL known issues 2/3)

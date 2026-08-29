@@ -1,6 +1,6 @@
 # MexB substrate-bound structures - tunnel and pocket analysis
 
-Generated 2026-08-29 14:10 from commit `fd9c32e` by `bash run.sh`. Every table under `results/` is reproducible from a clean `work/`; nothing here is hand-edited.
+Generated 2026-08-29 14:50 from commit `215f655` by `bash run.sh`. Every table under `results/` is reproducible from a clean `work/`; nothing here is hand-edited.
 
 ## Summary
 
@@ -111,6 +111,8 @@ Failing checks:
 - MexB_DDM_3_20260730 chain F: ASP407-ARG971 = 13.99 A (known issue 1, R971 rotamer) - still unresolved
 - MexB_DDM_3_20260730 chain F: ASP408-ARG971 = 16.74 A (known issue 1, R971 rotamer) - still unresolved
 - MexB_DDM_3_20260730:LMTE2001: CLOSE CONTACT O6'-ASP274E.OD1 = 2.60 A (<2.6) [short H-bond (both N/O)] - pose or rotamer must be revisited before figures
+- Amp_MexB_20260826 chain F: relay distances NOT DETERMINABLE - median RSCC 0.182 (21st pct of its map); relay residues negative (THR976F -0.164, LYS939F -0.081, ARG971F -0.004). This is the source of the known chain F relay inconsistency; exclude these values (PROTOCOL known issue 2)
+- Amp_MexB_20260826 chain F: NOT SUPPORTED BY DENSITY - median RSCC 0.182 (21st pct of its map); relay residues negative (THR976F -0.164, LYS939F -0.081, ARG971F -0.004). State assignment for this protomer is not determinable; exclude it from downstream analysis (PROTOCOL known issues 2/3)
 
 ## Stage 1 - ingest and validation
 
@@ -136,37 +138,37 @@ Ligand B-factors are group-refined - a single value per molecule - in both model
 
 ## Stage 2 - state assignment
 
-| structure | chain | PN1_PN2_sep | PC1_PC2_sep | PN1_PN2_contacts10A | PN1_PN2_contacts_per_res | PC1_PC2_contacts10A | PC1_PC2_contacts_per_res | state_call | L1_deviation | PN_nearest | PC_nearest | diagnostics_agree |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Amp_MexB_20260826 | D | 26.30 | 28.94 | 21 | 0.114 | 5 | 0.028 | Binding | 2.15 | Access | Binding | no |
-| Amp_MexB_20260826 | E | 27.82 | 28.38 | 1 | 0.005 | 5 | 0.028 | Binding | 1.20 | Binding | Binding | yes |
-| Amp_MexB_20260826 | F | 29.96 | 24.22 | 4 | 0.022 | 16 | 0.090 | Extrusion | 0.43 | Extrusion | Extrusion | yes |
-| MexB_DDM_3_20260730 | D | 26.23 | 27.18 | 21 | 0.114 | 6 | 0.034 | Access | 1.25 | Access | Access | yes |
-| MexB_DDM_3_20260730 | E | 27.82 | 28.49 | 1 | 0.005 | 7 | 0.039 | Binding | 1.09 | Binding | Binding | yes |
-| MexB_DDM_3_20260730 | F | 29.58 | 24.51 | 5 | 0.027 | 15 | 0.085 | Extrusion | 0.24 | Extrusion | Extrusion | yes |
+| structure | chain | PN1_PN2_sep | PC1_PC2_sep | PN1_PN2_contacts10A | PN1_PN2_contacts_per_res | PC1_PC2_contacts10A | PC1_PC2_contacts_per_res | state_call | L1_deviation | PN_nearest | PC_nearest | diagnostics_agree | density_supported |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Amp_MexB_20260826 | D | 26.30 | 28.94 | 21 | 0.114 | 5 | 0.028 | Binding | 2.15 | Access | Binding | no | yes |
+| Amp_MexB_20260826 | E | 27.82 | 28.38 | 1 | 0.005 | 5 | 0.028 | Binding | 1.20 | Binding | Binding | yes | yes |
+| Amp_MexB_20260826 | F | 29.96 | 24.22 | 4 | 0.022 | 16 | 0.090 | Extrusion | 0.43 | Extrusion | Extrusion | yes | no - not supported by density |
+| MexB_DDM_3_20260730 | D | 26.23 | 27.18 | 21 | 0.114 | 6 | 0.034 | Access | 1.25 | Access | Access | yes | yes |
+| MexB_DDM_3_20260730 | E | 27.82 | 28.49 | 1 | 0.005 | 7 | 0.039 | Binding | 1.09 | Binding | Binding | yes | yes |
+| MexB_DDM_3_20260730 | F | 29.58 | 24.51 | 5 | 0.027 | 15 | 0.085 | Extrusion | 0.24 | Extrusion | Extrusion | yes | yes |
 
-| structure | chain | res1 | res2 | min_dist_A | note |
-|---|---|---|---|---|---|
-| Amp_MexB_20260826 | D | ASP407 | ASP408 | 4.46 |  |
-| Amp_MexB_20260826 | D | ASP407 | LYS939 | 2.71 |  |
-| Amp_MexB_20260826 | D | ASP407 | ARG971 | 12.58 |  |
-| Amp_MexB_20260826 | D | ASP407 | THR976 | 3.42 |  |
-| Amp_MexB_20260826 | D | ASP408 | LYS939 | 2.70 |  |
-| Amp_MexB_20260826 | D | ASP408 | ARG971 | 17.37 |  |
-| Amp_MexB_20260826 | D | ASP408 | THR976 | 9.15 |  |
-| Amp_MexB_20260826 | D | LYS939 | ARG971 | 17.05 |  |
-| Amp_MexB_20260826 | D | LYS939 | THR976 | 7.69 |  |
-| Amp_MexB_20260826 | D | ARG971 | THR976 | 10.88 |  |
-| Amp_MexB_20260826 | E | ASP407 | ASP408 | 8.72 |  |
-| Amp_MexB_20260826 | E | ASP407 | LYS939 | 3.30 |  |
-| Amp_MexB_20260826 | E | ASP407 | ARG971 | 12.75 |  |
-| Amp_MexB_20260826 | E | ASP407 | THR976 | 3.91 |  |
-| Amp_MexB_20260826 | E | ASP408 | LYS939 | 6.40 |  |
-| Amp_MexB_20260826 | E | ASP408 | ARG971 | 16.90 |  |
-| Amp_MexB_20260826 | E | ASP408 | THR976 | 11.58 |  |
-| Amp_MexB_20260826 | E | LYS939 | ARG971 | 16.56 |  |
-| Amp_MexB_20260826 | E | LYS939 | THR976 | 8.28 |  |
-| Amp_MexB_20260826 | E | ARG971 | THR976 | 11.23 |  |
+| structure | chain | res1 | res2 | min_dist_A | note | density_supported |
+|---|---|---|---|---|---|---|
+| Amp_MexB_20260826 | D | ASP407 | ASP408 | 4.46 |  | yes |
+| Amp_MexB_20260826 | D | ASP407 | LYS939 | 2.71 |  | yes |
+| Amp_MexB_20260826 | D | ASP407 | ARG971 | 12.58 |  | yes |
+| Amp_MexB_20260826 | D | ASP407 | THR976 | 3.42 |  | yes |
+| Amp_MexB_20260826 | D | ASP408 | LYS939 | 2.70 |  | yes |
+| Amp_MexB_20260826 | D | ASP408 | ARG971 | 17.37 |  | yes |
+| Amp_MexB_20260826 | D | ASP408 | THR976 | 9.15 |  | yes |
+| Amp_MexB_20260826 | D | LYS939 | ARG971 | 17.05 |  | yes |
+| Amp_MexB_20260826 | D | LYS939 | THR976 | 7.69 |  | yes |
+| Amp_MexB_20260826 | D | ARG971 | THR976 | 10.88 |  | yes |
+| Amp_MexB_20260826 | E | ASP407 | ASP408 | 8.72 |  | yes |
+| Amp_MexB_20260826 | E | ASP407 | LYS939 | 3.30 |  | yes |
+| Amp_MexB_20260826 | E | ASP407 | ARG971 | 12.75 |  | yes |
+| Amp_MexB_20260826 | E | ASP407 | THR976 | 3.91 |  | yes |
+| Amp_MexB_20260826 | E | ASP408 | LYS939 | 6.40 |  | yes |
+| Amp_MexB_20260826 | E | ASP408 | ARG971 | 16.90 |  | yes |
+| Amp_MexB_20260826 | E | ASP408 | THR976 | 11.58 |  | yes |
+| Amp_MexB_20260826 | E | LYS939 | ARG971 | 16.56 |  | yes |
+| Amp_MexB_20260826 | E | LYS939 | THR976 | 8.28 |  | yes |
+| Amp_MexB_20260826 | E | ARG971 | THR976 | 11.23 |  | yes |
 
 _40 further rows in `results/tables/proton_relay.csv`._
 
@@ -286,6 +288,8 @@ Cross-ligand contact matrix (residues contacted by more than one ligand):
 | MexB_DDM_3_20260730 | E | ligand_guided_LMT2002 | KAA | 710 | 482 | 5.0 | 1.43 | -0.47 | 10 | 4 |  | 40 |
 | MexB_DDM_3_20260730 | E | ligand_guided_LMT2003 | KAA | 1015 | 468 | 4.7 | 1.37 | 0.55 | 7 | 7 |  | 37 |
 
+**Density caveat on the DDM occlusion figure.** All three DDM molecules are present and reproduce across both half maps, but they are not equally well supported: LMT2001 and LMT2002 sit around the 40th-52nd percentile of their map, while **LMT2003 sits at the 14th-21st percentile** - the weakest feature the 98.2% number depends on. Quote the occlusion figure with LMT2003 named.
+
 Grid-based substrate-site volumes. **These are internally comparable across these structures only and are not drop-in replacements for fpocket or CASTp volumes.** The 'stripped' column removes the structure's own ligands, including the three DDM molecules, so the sites can be compared like for like; the difference is occlusion.
 
 | structure | chain | site_sphere_radius_A | grid_step_A | volume_ligands_stripped_A3 | volume_with_ligands_A3 | occluded_volume_A3 | occluded_pct | note |
@@ -397,9 +401,27 @@ Two things are worth separating here. The **protein geometry is consistent**: th
 
 The honest reading is that this is an unresolved implementation difference, not a settled result. The `tunnels.py` that PROTOCOL section 2 says ships with the protocol was not present in this repository, so a rewrite was unavoidable and there is no original implementation to diff against. Ruled out so far: grid resolution (the value converges upward from 1.79 A at 1.0 A spacing to 2.21 A with continuous refinement) and hydrogen handling (including hydrogens as obstructions gives 1.92 A and still does not move the constriction to F615). **Until the original script is available to compare against, treat every bottleneck radius in this report as provisional.** The channel assignments, which rest on lining composition rather than on the radius, are less affected but are still labelled tentative throughout.
 
+## Density validation (local run, 2026-08-30)
+
+Six cryoSPARC volumes (half A, half B and sharpened, for each structure) were run against the models on a machine holding the full-size maps. The CSVs live with that run; the conclusions are carried here and into `PROTOCOL.md` section 5.
+
+| finding | status |
+|---|---|
+| **R971 rotamer** (issue 1) | **Refuted.** R971 is at or above its map's median RSCC in every well-resolved protomer (Amp E 0.570 vs median 0.533; DDM E 0.714, F 0.631 vs 0.572). The modelled rotamer is supported; the 12-17 Å separation is a real feature, not a rebuild target. |
+| **Chain F relay** (issues 2, 3) | **Resolved.** Chain F of the ampicillin map is not supported by its own density: median RSCC 0.182 (21st pct) against D 0.578 and E 0.608, relay residues negative. The inconsistency existed because the value was never determinable. Now flagged automatically in `states.csv` and `proton_relay.csv`. |
+| **Ampicillin pose** (issue 6) | **Confirmed weak.** 26th-34th percentile of its map, in an otherwise well-resolved chain. The section 6 contact constants are demoted to provisional. |
+| **DDM molecules** | All three real and reproducible; LMT2003 is the weakest (14th-21st pct). |
+| **D407/D408 read low** | Expected radiation artefact, not mismodelling: acidic side chains are preferentially decarboxylated by the beam. New known issue 7. |
+
+Three calibration problems in this pipeline were found and fixed: `--resolution` is now required (the old 3.0 default depressed RSCC on 2.0-2.2 Å maps); z-scores are referenced to a solvent shell rather than the whole box, because sharpened volumes are solvent-masked and their box sigma is several times smaller than their own half maps'; and `rscc_percentile_in_map` was added, because raw RSCC is not comparable between datasets that differ in voxel size, sharpening and masking. On like-for-like sharpened maps the two models fit comparably (median protein RSCC 0.533 Amp vs 0.572 DDM).
+
+Still unknown: no local-resolution map was supplied, so whether chain F is genuinely disordered in the ampicillin sample or that reconstruction has a per-protomer alignment problem cannot yet be distinguished. The supported/marginal/weak verdicts use a 0.7 x map-median threshold, a working heuristic rather than a community standard.
+
 ## Changes since the previous run
 
 - `caver.csv`: new
 - `caverdock_profile.csv`: new
 - `fpocket.csv`: 9 row(s) changed
-- `validation.csv`: 0 row(s) changed, 2 row(s) added/removed
+- `proton_relay.csv`: 60 row(s) changed
+- `states.csv`: 6 row(s) changed
+- `validation.csv`: 51 row(s) changed, 2 row(s) added/removed

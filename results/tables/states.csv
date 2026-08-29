@@ -1,7 +1,7 @@
-structure,chain,PN1_PN2_sep,PC1_PC2_sep,PN1_PN2_contacts10A,PN1_PN2_contacts_per_res,PC1_PC2_contacts10A,PC1_PC2_contacts_per_res,state_call,L1_deviation,PN_nearest,PC_nearest,diagnostics_agree
-Amp_MexB_20260826,D,26.30,28.94,21,0.114,5,0.028,Binding,2.15,Access,Binding,no
-Amp_MexB_20260826,E,27.82,28.38,1,0.005,5,0.028,Binding,1.20,Binding,Binding,yes
-Amp_MexB_20260826,F,29.96,24.22,4,0.022,16,0.090,Extrusion,0.43,Extrusion,Extrusion,yes
-MexB_DDM_3_20260730,D,26.23,27.18,21,0.114,6,0.034,Access,1.25,Access,Access,yes
-MexB_DDM_3_20260730,E,27.82,28.49,1,0.005,7,0.039,Binding,1.09,Binding,Binding,yes
-MexB_DDM_3_20260730,F,29.58,24.51,5,0.027,15,0.085,Extrusion,0.24,Extrusion,Extrusion,yes
+structure,chain,PN1_PN2_sep,PC1_PC2_sep,PN1_PN2_contacts10A,PN1_PN2_contacts_per_res,PC1_PC2_contacts10A,PC1_PC2_contacts_per_res,state_call,L1_deviation,PN_nearest,PC_nearest,diagnostics_agree,density_supported
+Amp_MexB_20260826,D,26.30,28.94,21,0.114,5,0.028,Binding,2.15,Access,Binding,no,yes
+Amp_MexB_20260826,E,27.82,28.38,1,0.005,5,0.028,Binding,1.20,Binding,Binding,yes,yes
+Amp_MexB_20260826,F,29.96,24.22,4,0.022,16,0.090,Extrusion,0.43,Extrusion,Extrusion,yes,no - not supported by density
+MexB_DDM_3_20260730,D,26.23,27.18,21,0.114,6,0.034,Access,1.25,Access,Access,yes,yes
+MexB_DDM_3_20260730,E,27.82,28.49,1,0.005,7,0.039,Binding,1.09,Binding,Binding,yes,yes
+MexB_DDM_3_20260730,F,29.58,24.51,5,0.027,15,0.085,Extrusion,0.24,Extrusion,Extrusion,yes,yes

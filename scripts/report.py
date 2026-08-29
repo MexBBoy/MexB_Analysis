@@ -235,6 +235,12 @@ def main():
 
     A("## Stage 6 - pockets and cavities\n")
     A(table("cavities.csv"))
+    A("**Density caveat on the DDM occlusion figure.** All three DDM "
+      "molecules are present and reproduce across both half maps, but they "
+      "are not equally well supported: LMT2001 and LMT2002 sit around the "
+      "40th-52nd percentile of their map, while **LMT2003 sits at the "
+      "14th-21st percentile** - the weakest feature the 98.2% number "
+      "depends on. Quote the occlusion figure with LMT2003 named.\n")
     A("Grid-based substrate-site volumes. **These are internally comparable "
       "across these structures only and are not drop-in replacements for "
       "fpocket or CASTp volumes.** The 'stripped' column removes the "
@@ -351,6 +357,50 @@ def main():
       "provisional.** The channel assignments, which rest on lining "
       "composition rather than on the radius, are less affected but are "
       "still labelled tentative throughout.\n")
+
+    A("## Density validation (local run, 2026-08-30)\n")
+    A("Six cryoSPARC volumes (half A, half B and sharpened, for each "
+      "structure) were run against the models on a machine holding the "
+      "full-size maps. The CSVs live with that run; the conclusions are "
+      "carried here and into `PROTOCOL.md` section 5.\n")
+    A("| finding | status |")
+    A("|---|---|")
+    A("| **R971 rotamer** (issue 1) | **Refuted.** R971 is at or above its "
+      "map's median RSCC in every well-resolved protomer (Amp E 0.570 vs "
+      "median 0.533; DDM E 0.714, F 0.631 vs 0.572). The modelled rotamer "
+      "is supported; the 12-17 Å separation is a real feature, not a "
+      "rebuild target. |")
+    A("| **Chain F relay** (issues 2, 3) | **Resolved.** Chain F of the "
+      "ampicillin map is not supported by its own density: median RSCC "
+      "0.182 (21st pct) against D 0.578 and E 0.608, relay residues "
+      "negative. The inconsistency existed because the value was never "
+      "determinable. Now flagged automatically in `states.csv` and "
+      "`proton_relay.csv`. |")
+    A("| **Ampicillin pose** (issue 6) | **Confirmed weak.** 26th-34th "
+      "percentile of its map, in an otherwise well-resolved chain. The "
+      "section 6 contact constants are demoted to provisional. |")
+    A("| **DDM molecules** | All three real and reproducible; LMT2003 is "
+      "the weakest (14th-21st pct). |")
+    A("| **D407/D408 read low** | Expected radiation artefact, not "
+      "mismodelling: acidic side chains are preferentially decarboxylated "
+      "by the beam. New known issue 7. |")
+    A("")
+    A("Three calibration problems in this pipeline were found and fixed: "
+      "`--resolution` is now required (the old 3.0 default depressed RSCC "
+      "on 2.0-2.2 Å maps); z-scores are referenced to a solvent shell "
+      "rather than the whole box, because sharpened volumes are "
+      "solvent-masked and their box sigma is several times smaller than "
+      "their own half maps'; and `rscc_percentile_in_map` was added, "
+      "because raw RSCC is not comparable between datasets that differ in "
+      "voxel size, sharpening and masking. On like-for-like sharpened maps "
+      "the two models fit comparably (median protein RSCC 0.533 Amp vs "
+      "0.572 DDM).\n")
+    A("Still unknown: no local-resolution map was supplied, so whether "
+      "chain F is genuinely disordered in the ampicillin sample or that "
+      "reconstruction has a per-protomer alignment problem cannot yet be "
+      "distinguished. The supported/marginal/weak verdicts use a 0.7 x "
+      "map-median threshold, a working heuristic rather than a community "
+      "standard.\n")
 
     A("## Changes since the previous run\n")
     if diffs is None:

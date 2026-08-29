@@ -24,7 +24,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mexb_common import (  # noqa: E402
     AA3to1, AROMATIC, CXDIR, DBP, DOMAINS, KD, PBP, REFERENCE_STATES,
     REGIONS, RELAY, RELAY_ATOMS, SUBDOMAINS, SWITCH_LOOP, TABLES,
-    DETERGENTS, Structure, apply_rt, centroid, coords, fmt,
+    DETERGENTS, Structure, apply_rt, centroid, coords,
+    density_warning, fmt,
     load_reference_sequence, load_structures, rmsd, rotation_angle_axis,
     superpose_on, write_csv,
 )
@@ -144,6 +145,12 @@ def stage_state(structs):
                   f"({m['PN1-PN2']['contacts_norm']:.3f}/res), "
                   f"PC1-PC2 {m['PC1-PC2']['contacts']} "
                   f"({m['PC1-PC2']['contacts_norm']:.3f}/res)")
+            dw = density_warning(s.name, ch)
+            if dw:
+                flag(f"{s.name} chain {ch}: NOT SUPPORTED BY DENSITY - {dw}. "
+                     f"State assignment for this protomer is not "
+                     f"determinable; exclude it from downstream analysis "
+                     f"(PROTOCOL known issues 2/3)")
             if agree == "no":
                 flag(f"{s.name} chain {ch}: cleft diagnostics conflict - "
                      f"PN1-PN2 nearest {pn_best}, PC1-PC2 nearest {pc_best}; "
@@ -153,13 +160,14 @@ def stage_state(structs):
                          fmt(m["PN1-PN2"]["contacts_norm"], 3),
                          m["PC1-PC2"]["contacts"],
                          fmt(m["PC1-PC2"]["contacts_norm"], 3),
-                         call, fmt(dev), pn_best, pc_best, agree])
+                         call, fmt(dev), pn_best, pc_best, agree,
+                         "no - not supported by density" if dw else "yes"])
     write_csv(os.path.join(TABLES, "states.csv"),
               ["structure", "chain", "PN1_PN2_sep", "PC1_PC2_sep",
                "PN1_PN2_contacts10A", "PN1_PN2_contacts_per_res",
                "PC1_PC2_contacts10A", "PC1_PC2_contacts_per_res",
                "state_call", "L1_deviation", "PN_nearest", "PC_nearest",
-               "diagnostics_agree"], rows)
+               "diagnostics_agree", "density_supported"], rows)
     return rows
 
 
@@ -194,9 +202,17 @@ def stage_relay(structs):
                     lab = f"{n1 or '?'}{r1}-{n2 or '?'}{r2}"
                     vals[lab] = d
                     rows.append([s.name, ch, f"{n1 or '?'}{r1}",
-                                 f"{n2 or '?'}{r2}", fmt(d), note])
+                                 f"{n2 or '?'}{r2}", fmt(d), note,
+                                 "no - not supported by density"
+                                 if density_warning(s.name, ch) else "yes"])
             txt = "  ".join(f"{k} {fmt(v)}" for k, v in vals.items())
             print(f"  {s.name} {ch}: {txt}")
+            dw = density_warning(s.name, ch)
+            if dw:
+                flag(f"{s.name} chain {ch}: relay distances NOT "
+                     f"DETERMINABLE - {dw}. This is the source of the "
+                     f"known chain F relay inconsistency; exclude these "
+                     f"values (PROTOCOL known issue 2)")
             # known issue 1
             for lab in ("ASP407-ARG971", "ASP408-ARG971"):
                 d = vals.get(lab)
@@ -204,8 +220,8 @@ def stage_relay(structs):
                     flag(f"{s.name} chain {ch}: {lab} = {d:.2f} A "
                          f"(known issue 1, R971 rotamer) - still unresolved")
     write_csv(os.path.join(TABLES, "proton_relay.csv"),
-              ["structure", "chain", "res1", "res2", "min_dist_A", "note"],
-              rows)
+              ["structure", "chain", "res1", "res2", "min_dist_A", "note",
+               "density_supported"], rows)
     return rows
 
 

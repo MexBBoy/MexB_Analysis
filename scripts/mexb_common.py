@@ -108,6 +108,20 @@ KD = {
 VDW = {"C": 1.70, "N": 1.55, "O": 1.52, "S": 1.80, "P": 1.80,
        "H": 1.20, "F": 1.47, "CL": 1.75, "BR": 1.85, "I": 1.98}
 
+# Protomers whose own density does not support the model, established by
+# map validation on 2026-08-30 (PROTOCOL known issues 2 and 3). Chain F of
+# the ampicillin reconstruction has whole-protomer median RSCC 0.182, 21st
+# percentile of its map, with relay residues scoring negative. Anything
+# derived from it - relay distances, state assignment - is not determinable.
+UNSUPPORTED_PROTOMERS = {("Amp_MexB_20260826", "F"): (
+    "median RSCC 0.182 (21st pct of its map); relay residues negative "
+    "(THR976F -0.164, LYS939F -0.081, ARG971F -0.004)")}
+
+
+def density_warning(structure, chain):
+    return UNSUPPORTED_PROTOMERS.get((structure, chain))
+
+
 SOLVENT_HET = {"HOH", "WAT", "DOD"}
 DETERGENTS = {"LMT", "LDA", "DDM", "BOG", "OLC", "PLM", "MC3", "PEE",
               "PGT", "CLR", "C8E", "DMU", "TRD", "UND", "D10", "D12"}

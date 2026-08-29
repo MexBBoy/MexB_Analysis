@@ -100,7 +100,12 @@ def score_one(map_path, s, resolution):
     """Score every target group of one structure against one map."""
     import re
     m = Map(map_path)
-    mu, sd = m.stats()
+    prot_xyz = coords([a for a in s.protein_atoms if not a.is_hydrogen])
+    mu, sd, masked, zfrac, n_bg = m.background_stats(prot_xyz)
+    print(f"    {os.path.basename(map_path)}: "
+          f"{'masked' if masked else 'unmasked'} "
+          f"({100 * zfrac:.1f}% zero voxels), solvent mu {mu:.4f} "
+          f"sigma {sd:.4f} from {n_bg} voxels")
     targets = []
     for ch in s.chains:
         for r in sorted(RELAY):
@@ -134,7 +139,9 @@ def score_one(map_path, s, resolution):
         g = group_metrics(m, at, resolution, mu, sd)
         if g is None:
             continue
-        rows.append([s.name, ch, r, at[0].resname, why,
+        rows.append([s.name, os.path.basename(map_path),
+                     "masked" if masked else "unmasked", ch, r,
+                     at[0].resname, why,
                      fmt(g["rscc"], 3), fmt(g["mean_z"], 2),
                      fmt(g["min_z"], 2), g["worst_atom"], g["n_atoms"],
                      g["n_voxels"]])
@@ -142,7 +149,9 @@ def score_one(map_path, s, resolution):
         g = group_metrics(m, ats, resolution, mu, sd)
         if g is None:
             continue
-        rows.append([s.name, lch, lres, lname, "bound ligand",
+        rows.append([s.name, os.path.basename(map_path),
+                     "masked" if masked else "unmasked", lch, lres, lname,
+                     "bound ligand",
                      fmt(g["rscc"], 3), fmt(g["mean_z"], 2),
                      fmt(g["min_z"], 2), g["worst_atom"], g["n_atoms"],
                      g["n_voxels"]])
@@ -157,7 +166,10 @@ def main():
                                   "inside is scored and the results stacked")
     ap.add_argument("--structure", help="model name; inferred per crop when "
                                         "using --zip")
-    ap.add_argument("--resolution", type=float, default=3.0)
+    ap.add_argument("--resolution", type=float, required=True,
+                    help="map resolution in A. REQUIRED: RSCC rises "
+                         "monotonically as this approaches the true value, "
+                         "so a wrong figure depresses every score.")
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
 
@@ -219,16 +231,35 @@ def main():
     # completely covered, since a group at a crop edge is truncated
     best = {}
     for r in rows:
-        key = (r[0], r[1], r[2])
-        if key not in best or int(r[10]) > int(best[key][10]):
+        key = (r[0], r[1], r[3], r[4])          # structure, map, chain, resi
+        if key not in best or int(r[12]) > int(best[key][12]):
             best[key] = r
-    rows = sorted(best.values(), key=lambda r: (r[0], r[1], str(r[2])))
+    rows = sorted(best.values(),
+                  key=lambda r: (r[0], r[1], r[3], str(r[4])))
+
+    # Percentile rank of each group's RSCC within its own map. Raw RSCC is
+    # not comparable between datasets - voxel size, sharpening and masking
+    # all shift it - so rank within one map is the only safe comparison, and
+    # it is what the findings should be quoted against.
+    by_map = {}
+    for r in rows:
+        by_map.setdefault((r[0], r[1]), []).append(r)
+    for key, group in by_map.items():
+        vals = sorted(float(x[7]) for x in group if x[7])
+        for r in group:
+            if not r[7]:
+                r.append("")
+                continue
+            v = float(r[7])
+            pct = 100.0 * sum(1 for q in vals if q <= v) / len(vals)
+            r.append(f"{pct:.0f}")
 
     tag = a.structure or "bundle"
     out = a.out or os.path.join(TABLES, f"map_validation_{tag}.csv")
-    write_csv(out, ["structure", "chain", "resseq", "resname", "why",
-                    "rscc", "mean_z", "min_z", "weakest_atom", "n_heavy",
-                    "n_mask_voxels"], rows)
+    write_csv(out, ["structure", "map", "map_masked", "chain", "resseq",
+                    "resname", "why", "rscc", "mean_z", "min_z",
+                    "weakest_atom", "n_heavy", "n_mask_voxels",
+                    "rscc_percentile_in_map"], rows)
 
     def show(label, sel):
         sub = [r for r in rows if sel(r)]
@@ -246,18 +277,34 @@ def main():
     show("tunnel constriction", lambda r: r[4] == "tunnel constriction")
     show("switch loop", lambda r: r[4] == "switch loop")
     print(f"\n  wrote {out} ({len(rows)} rows)")
-    print("\n  Reading these: RSCC below ~0.5 or min_z below ~0.5 sigma "
-          "marks a group the density does not support.")
+    print("\n  How to read these")
+    print("  - Compare within one map, not between maps. Raw RSCC is not "
+          "comparable across datasets: voxel size, sharpening and masking "
+          "all move it. Use rscc_percentile_in_map.")
+    print("  - z-scores are referenced to a solvent shell around the model "
+          "rather than the whole box, which puts masked and unmasked maps "
+          "on a common footing to within ~10%. It cannot do better: a mask "
+          "cutting close to the model truncates the solvent population. "
+          "The map_masked column records which each map is.")
+    print("  - RSCC is unreliable for very small groups. A glycine scores "
+          "low even against a perfect map, because a small mask holds "
+          "little density contrast. Check n_mask_voxels and prefer the "
+          "z-scores below ~6 heavy atoms.")
+    print("  - Acidic side chains read low by design. D and E are "
+          "preferentially decarboxylated by the electron beam (Hattne et "
+          "al. 2018, doi:10.1016/j.str.2018.03.021; Spear et al. 2015, "
+          "doi:10.1016/j.jsb.2015.09.006), so a weak D407/D408 is a "
+          "radiation artefact, not evidence of mismodelling.")
     if a.zip:
-        print("  Scored from crops. A group sitting near a crop boundary has "
-              "a clipped mask, which can move its RSCC by a few hundredths "
-              "(z-scores are per-atom and unaffected); where a group appears "
-              "in more than one crop the best-covered instance is kept.")
-    print("  RSCC is unreliable for very small groups - a glycine with a "
-          "handful of atoms in a small mask scores low even against a "
-          "perfect map, because there is little density contrast to "
-          "correlate. Check n_mask_voxels, and prefer mean_z/min_z for "
-          "residues with fewer than ~6 heavy atoms.")
+        print("  - Scored from crops: a group near a crop boundary has a "
+              "clipped mask, which can move its RSCC by a few hundredths "
+              "(z-scores are unaffected). Where a group appears in more "
+              "than one crop the best-covered instance is kept.")
+    asp = [r for r in rows if r[5] in ("ASP", "GLU")]
+    if asp:
+        v = [float(r[7]) for r in asp if r[7]]
+        print(f"\n  ({len(asp)} Asp/Glu groups scored, median RSCC "
+              f"{np.median(v):.3f} - expected to sit low, see above.)")
 
 
 if __name__ == "__main__":

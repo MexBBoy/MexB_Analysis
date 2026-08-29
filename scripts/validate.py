@@ -34,11 +34,17 @@ def close(a, b, tol=0.011):
 
 CHECKS = []
 
+# Constants demoted by map validation (2026-08-30). The ampicillin pose is
+# only supported at the 26th-34th percentile of its own map, so these still
+# have to reproduce - they guard against silent code drift - but they are no
+# longer evidence that the pose is right. PROTOCOL known issue 6.
+PROVISIONAL = "provisional - pose weakly supported by density (issue 6)"
 
-def check(label, got, want, ok=None):
+
+def check(label, got, want, ok=None, note=""):
     if ok is None:
         ok = close(got, want)
-    CHECKS.append((label, got, want, ok))
+    CHECKS.append((label, got, want, ok, note))
 
 
 def run():
@@ -89,7 +95,9 @@ def run():
         return None
     check("amp D ASP407-LYS939", rel(AMP, "D", "ASP407", "LYS939"), 2.71)
     check("amp D ASP408-LYS939", rel(AMP, "D", "ASP408", "LYS939"), 2.70)
-    check("amp F LYS939-THR976", rel(AMP, "F", "LYS939", "THR976"), 4.81)
+    check("amp F LYS939-THR976", rel(AMP, "F", "LYS939", "THR976"), 4.81,
+          note="chain F of this map is not supported by density; value "
+               "reproduces but is not determinable (issue 2)")
 
     con = load(f"contacts_{AMP}_ZZ7E2000.csv") or []
 
@@ -98,17 +106,21 @@ def run():
             if r["resseq"] == str(n):
                 return r
         return {}
-    check("amp K151 min distance", cres(151).get("min_dist_A"), 2.81)
-    check("amp F178 min distance", cres(178).get("min_dist_A"), 3.25)
+    check("amp K151 min distance", cres(151).get("min_dist_A"), 2.81,
+          note=PROVISIONAL)
+    check("amp F178 min distance", cres(178).get("min_dist_A"), 3.25,
+          note=PROVISIONAL)
     check("amp F178 contact count", cres(178).get("n_contacts_4.5A"), "37",
-          cres(178).get("n_contacts_4.5A") == "37")
-    check("amp F615 min distance", cres(615).get("min_dist_A"), 3.35)
-    check("amp F610 min distance", cres(610).get("min_dist_A"), 3.76)
+          cres(178).get("n_contacts_4.5A") == "37", note=PROVISIONAL)
+    check("amp F615 min distance", cres(615).get("min_dist_A"), 3.35,
+          note=PROVISIONAL)
+    check("amp F610 min distance", cres(610).get("min_dist_A"), 3.76,
+          note=PROVISIONAL)
     hb = load(f"hbonds_{AMP}_ZZ7E2000.csv") or []
     got = {(r["lig_atom"], r["prot_atom"]): r["dist_A"] for r in hb
            if r["resseq"] == "151"}
-    check("amp K151 NZ-O1", got.get(("O1", "NZ")), 2.81)
-    check("amp K151 NZ-O2", got.get(("O2", "NZ")), 2.84)
+    check("amp K151 NZ-O1", got.get(("O1", "NZ")), 2.81, note=PROVISIONAL)
+    check("amp K151 NZ-O2", got.get(("O2", "NZ")), 2.84, note=PROVISIONAL)
     ls = load("ligand_summary.csv") or []
     amp_row = next((r for r in ls if r["structure"] == AMP), {})
     check("amp: no heavy-atom pair under 2.6 A",
@@ -148,21 +160,25 @@ def run():
         check(lab, r["caver_bottleneck_A"], r["our_bottleneck_A"],
               close(r["caver_bottleneck_A"], r["our_bottleneck_A"], 0.05))
 
+
     npass = sum(1 for c in CHECKS if c[3])
-    print(f"PROTOCOL section 6 validation: {npass}/{len(CHECKS)} pass\n")
-    for label, got, want, ok in CHECKS:
+    nprov = sum(1 for c in CHECKS if c[4])
+    print(f"PROTOCOL section 6 validation: {npass}/{len(CHECKS)} pass"
+          f"{f', {nprov} provisional' if nprov else ''}\n")
+    for label, got, want, ok, note in CHECKS:
         if not ok:
             print(f"  FAIL  {label}: got {got!r}, expected {want!r}")
     print()
-    for label, got, want, ok in CHECKS:
+    for label, got, want, ok, note in CHECKS:
         if ok:
-            print(f"  pass  {label}: {got}")
+            print(f"  pass  {label}: {got}"
+                  + (f"   [{note}]" if note else ""))
     with open(os.path.join(TABLES, "validation.csv"), "w",
               newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["check", "value", "expected", "status"])
-        for label, got, want, ok in CHECKS:
-            w.writerow([label, got, want, "PASS" if ok else "FAIL"])
+        w.writerow(["check", "value", "expected", "status", "note"])
+        for label, got, want, ok, note in CHECKS:
+            w.writerow([label, got, want, "PASS" if ok else "FAIL", note])
     return npass, len(CHECKS)
 
 

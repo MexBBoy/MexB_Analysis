@@ -1,54 +1,54 @@
-check,value,expected,status
-Amp_MexB_20260826 D mismatches vs P52002,0,0,PASS
-Amp_MexB_20260826 D numbering offset,0,0,PASS
-Amp_MexB_20260826 E mismatches vs P52002,0,0,PASS
-Amp_MexB_20260826 E numbering offset,0,0,PASS
-Amp_MexB_20260826 F mismatches vs P52002,0,0,PASS
-Amp_MexB_20260826 F numbering offset,0,0,PASS
-MexB_DDM_3_20260730 D mismatches vs P52002,0,0,PASS
-MexB_DDM_3_20260730 D numbering offset,0,0,PASS
-MexB_DDM_3_20260730 E mismatches vs P52002,0,0,PASS
-MexB_DDM_3_20260730 E numbering offset,0,0,PASS
-MexB_DDM_3_20260730 F mismatches vs P52002,0,0,PASS
-MexB_DDM_3_20260730 F numbering offset,0,0,PASS
-Amp_MexB_20260826 chain D gaps,none,none,PASS
-Amp_MexB_20260826 chain E gaps,229;360,229;360,PASS
-Amp_MexB_20260826 chain F gaps,663,663,PASS
-MexB_DDM_3_20260730 chain D gaps,none,none,PASS
-MexB_DDM_3_20260730 chain E gaps,229;360,229;360,PASS
-MexB_DDM_3_20260730 chain F gaps,663,663,PASS
-Amp_MexB_20260826 chain D residue range,1-1032,1-1032,PASS
-Amp_MexB_20260826 chain E residue range,1-1030,1-1030,PASS
-Amp_MexB_20260826 chain F residue range,1-1033,1-1033,PASS
-MexB_DDM_3_20260730 chain D residue range,1-1032,1-1032,PASS
-MexB_DDM_3_20260730 chain E residue range,1-1030,1-1030,PASS
-MexB_DDM_3_20260730 chain F residue range,1-1033,1-1033,PASS
-amp D PN1-PN2 separation,26.30,26.3,PASS
-amp D PC1-PC2 separation,28.94,28.94,PASS
-amp D PN1-PN2 pseudo-contacts,21,21,PASS
-amp D PC1-PC2 pseudo-contacts,5,5,PASS
-amp E PN1-PN2 separation,27.82,27.82,PASS
-amp E PC1-PC2 separation,28.38,28.38,PASS
-amp E PN1-PN2 pseudo-contacts,1,1,PASS
-amp E PC1-PC2 pseudo-contacts,5,5,PASS
-amp F PN1-PN2 separation,29.96,29.96,PASS
-amp F PC1-PC2 separation,24.22,24.22,PASS
-amp F PN1-PN2 pseudo-contacts,4,4,PASS
-amp F PC1-PC2 pseudo-contacts,16,16,PASS
-amp D ASP407-LYS939,2.71,2.71,PASS
-amp D ASP408-LYS939,2.70,2.7,PASS
-amp F LYS939-THR976,4.81,4.81,PASS
-amp K151 min distance,2.81,2.81,PASS
-amp F178 min distance,3.25,3.25,PASS
-amp F178 contact count,37,37,PASS
-amp F615 min distance,3.35,3.35,PASS
-amp F610 min distance,3.76,3.76,PASS
-amp K151 NZ-O1,2.81,2.81,PASS
-amp K151 NZ-O2,2.84,2.84,PASS
-amp: no heavy-atom pair under 2.6 A,0,0,PASS
-cross-structure chain E whole protomer,0.86,0.86,PASS
-cross-structure chain E switch loop,0.30,0.3,PASS
-amp chain E tunnel bottleneck (seeded on ligand),2.21,2.01,FAIL
-amp chain E constriction residue is F615,ASN676E,PHE615E,FAIL
-CAVER agrees with ours: Amp_MexB_20260826 protein chain E,2.22,2.21,PASS
-CAVER agrees with ours: MexB_DDM_3_20260730 protein chain E,2.46,2.43,PASS
+check,value,expected,status,note
+Amp_MexB_20260826 D mismatches vs P52002,0,0,PASS,
+Amp_MexB_20260826 D numbering offset,0,0,PASS,
+Amp_MexB_20260826 E mismatches vs P52002,0,0,PASS,
+Amp_MexB_20260826 E numbering offset,0,0,PASS,
+Amp_MexB_20260826 F mismatches vs P52002,0,0,PASS,
+Amp_MexB_20260826 F numbering offset,0,0,PASS,
+MexB_DDM_3_20260730 D mismatches vs P52002,0,0,PASS,
+MexB_DDM_3_20260730 D numbering offset,0,0,PASS,
+MexB_DDM_3_20260730 E mismatches vs P52002,0,0,PASS,
+MexB_DDM_3_20260730 E numbering offset,0,0,PASS,
+MexB_DDM_3_20260730 F mismatches vs P52002,0,0,PASS,
+MexB_DDM_3_20260730 F numbering offset,0,0,PASS,
+Amp_MexB_20260826 chain D gaps,none,none,PASS,
+Amp_MexB_20260826 chain E gaps,229;360,229;360,PASS,
+Amp_MexB_20260826 chain F gaps,663,663,PASS,
+MexB_DDM_3_20260730 chain D gaps,none,none,PASS,
+MexB_DDM_3_20260730 chain E gaps,229;360,229;360,PASS,
+MexB_DDM_3_20260730 chain F gaps,663,663,PASS,
+Amp_MexB_20260826 chain D residue range,1-1032,1-1032,PASS,
+Amp_MexB_20260826 chain E residue range,1-1030,1-1030,PASS,
+Amp_MexB_20260826 chain F residue range,1-1033,1-1033,PASS,
+MexB_DDM_3_20260730 chain D residue range,1-1032,1-1032,PASS,
+MexB_DDM_3_20260730 chain E residue range,1-1030,1-1030,PASS,
+MexB_DDM_3_20260730 chain F residue range,1-1033,1-1033,PASS,
+amp D PN1-PN2 separation,26.30,26.3,PASS,
+amp D PC1-PC2 separation,28.94,28.94,PASS,
+amp D PN1-PN2 pseudo-contacts,21,21,PASS,
+amp D PC1-PC2 pseudo-contacts,5,5,PASS,
+amp E PN1-PN2 separation,27.82,27.82,PASS,
+amp E PC1-PC2 separation,28.38,28.38,PASS,
+amp E PN1-PN2 pseudo-contacts,1,1,PASS,
+amp E PC1-PC2 pseudo-contacts,5,5,PASS,
+amp F PN1-PN2 separation,29.96,29.96,PASS,
+amp F PC1-PC2 separation,24.22,24.22,PASS,
+amp F PN1-PN2 pseudo-contacts,4,4,PASS,
+amp F PC1-PC2 pseudo-contacts,16,16,PASS,
+amp D ASP407-LYS939,2.71,2.71,PASS,
+amp D ASP408-LYS939,2.70,2.7,PASS,
+amp F LYS939-THR976,4.81,4.81,PASS,chain F of this map is not supported by density; value reproduces but is not determinable (issue 2)
+amp K151 min distance,2.81,2.81,PASS,provisional - pose weakly supported by density (issue 6)
+amp F178 min distance,3.25,3.25,PASS,provisional - pose weakly supported by density (issue 6)
+amp F178 contact count,37,37,PASS,provisional - pose weakly supported by density (issue 6)
+amp F615 min distance,3.35,3.35,PASS,provisional - pose weakly supported by density (issue 6)
+amp F610 min distance,3.76,3.76,PASS,provisional - pose weakly supported by density (issue 6)
+amp K151 NZ-O1,2.81,2.81,PASS,provisional - pose weakly supported by density (issue 6)
+amp K151 NZ-O2,2.84,2.84,PASS,provisional - pose weakly supported by density (issue 6)
+amp: no heavy-atom pair under 2.6 A,0,0,PASS,
+cross-structure chain E whole protomer,0.86,0.86,PASS,
+cross-structure chain E switch loop,0.30,0.3,PASS,
+amp chain E tunnel bottleneck (seeded on ligand),2.21,2.01,FAIL,
+amp chain E constriction residue is F615,ASN676E,PHE615E,FAIL,
+CAVER agrees with ours: Amp_MexB_20260826 protein chain E,2.22,2.21,PASS,
+CAVER agrees with ours: MexB_DDM_3_20260730 protein chain E,2.46,2.43,PASS,

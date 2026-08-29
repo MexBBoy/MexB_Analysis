@@ -314,6 +314,43 @@ dashed line marks a 1.4&nbsp;&Aring; water probe.</figcaption></figure>
 (<code>probe_radius 0.9</code>), same trimers and seed points.</p>
 <div class="twrap"><table class="tbl"><thead><tr><th>Structure</th><th>Ligand</th><th>Protomer</th><th>CAVER (Å)</th><th>This work (Å)</th><th>Δ (Å)</th><th>CAVER bottleneck residues</th></tr></thead><tbody><tr><td>Amp_MexB_20260826</td><td>protein</td><td>E</td><td>2.22</td><td>2.21</td><td>0.01</td><td></td></tr><tr><td>Amp_MexB_20260826</td><td>withlig</td><td>E</td><td>2.22</td><td>1.26</td><td>0.96</td><td></td></tr><tr><td>MexB_DDM_3_20260730</td><td>protein</td><td>E</td><td>2.46</td><td>2.43</td><td>0.03</td><td></td></tr><tr><td>MexB_DDM_3_20260730</td><td>withlig</td><td>E</td><td>1.57</td><td>1.42</td><td>0.15</td><td></td></tr></tbody></table></div>
 
+<h3>Density validation revises three of the model-quality flags</h3>
+<p>All of the above rests on coordinates. Scoring both models against their own cryoSPARC
+volumes (half A, half B and sharpened; 2.19&nbsp;&Aring; and 2.04&nbsp;&Aring;) changes three
+conclusions and confirms a fourth. Every finding below replicates across both independent half
+maps (|&Delta;RSCC| &lt; 0.07 for every flagged group, typically &lt; 0.03) and is quoted as
+percentile rank within a single map, because raw correlation is not comparable between datasets
+differing in voxel size, sharpening and masking.</p>
+
+<p><b>R971 is correctly modelled.</b> Its 12&ndash;17&nbsp;&Aring; separation from D407 and D408
+had been assumed to be a side-chain rotamer error. It is not: R971 sits at or above its map's
+median in every well-resolved protomer (chain E of the ampicillin map 0.570 against a median of
+0.533; chains E and F of the DDM map 0.714 and 0.631 against 0.572). The separation is a real
+feature of these structures and needs a mechanistic explanation rather than a rebuild.</p>
+
+<p><b>Chain F of the ampicillin reconstruction is not supported by its own density.</b>
+Whole-protomer median RSCC is 0.182, the 21st percentile of that map, against 0.578 for chain D
+and 0.608 for chain E; the relay residues score negative (THR976F &minus;0.164, LYS939F
+&minus;0.081, ARG971F &minus;0.004), where the same residues reach 0.63&ndash;0.70 in the DDM
+map. This is an internal, same-map comparison, so no cross-dataset caveat applies. Chain F
+relay distances and state assignment from this structure are therefore not determinable, and are
+excluded. This also accounts for the previously unexplained discrepancy in chain F relay
+geometry between the two models.</p>
+
+<p><b>The ampicillin pose is only weakly supported.</b> The ligand scores at the
+26th&ndash;34th percentile of its map, inside a chain that is otherwise well resolved &mdash; so
+this reflects the ligand, not its environment. The contact distances reported above should be
+treated as provisional pending a rebuild.</p>
+
+<p><b>All three DDM molecules are real, but not equally.</b> LMT2001 and LMT2002 sit at the
+40th&ndash;52nd percentile and LMT2003 at the 14th&ndash;21st. The 98.2% occlusion figure
+is therefore not resting on a phantom, but LMT2003 is the weakest feature it depends on.</p>
+
+<p>One artefact deserves recording so it is not mistaken for a modelling error in future work:
+D407 and D408 score below baseline in most protomers of both maps while K939, R971 and T976 do
+not. Acidic side chains are preferentially decarboxylated under electron
+irradiation<sup>8,9</sup>, so a weak aspartate is expected at these doses.</p>
+
 <h3>The energy barrier does not coincide with the geometric bottleneck</h3>
 <p>Geometry says where a tunnel is narrow; it does not say where a particular ligand finds
 the passage hard. To separate the two we pulled ampicillin along the chain E route with
@@ -537,6 +574,23 @@ the tunnel with a 12&nbsp;&Aring; margin. The calculation was run under MPI at
 trajectory converged; the upper bound is not reported. Energies are therefore a lower estimate
 of the true barrier and are described as provisional throughout.</p>
 
+<h4>Density validation</h4>
+<p>Each model was scored against its own half maps and sharpened volume. For every residue and
+ligand we computed the real-space correlation between the experimental density and density
+simulated from the model within a 2.2&nbsp;&Aring; mask, together with per-atom map values
+expressed in sigma above solvent. Three calibration points matter and were established
+empirically. Correlation rises monotonically as the assumed resolution approaches the true
+value, so the real resolutions (2.19 and 2.04&nbsp;&Aring;) were used rather than a default.
+Sharpened cryoSPARC volumes are solvent-masked, which shrinks the whole-box sigma several-fold
+relative to their own unmasked half maps, so z-scores are referenced to a solvent shell around
+the model instead of the box. Absolute correlation is not comparable between the two datasets,
+which differ in voxel size (0.65 against 0.83&nbsp;&Aring;), sharpening and masking; all
+findings are therefore stated as percentile rank within a single map. On like-for-like
+sharpened maps the two models fit comparably (median protein RSCC 0.533 and 0.572).</p>
+<p>Resolutions were confirmed independently from the half-map pairs by Fourier shell
+correlation. The supported / marginal / weak verdicts use a threshold of 0.7 times the map
+median, a working heuristic rather than a community standard.</p>
+
 <h4>Statistics and reproducibility</h4>
 <p>The pipeline is deterministic; no stochastic method is used and no seeds affect the
 reported values. Everything under <code>results/</code> regenerates from a clean working
@@ -575,6 +629,10 @@ a protein. <em>J. Mol. Biol.</em> <b>157</b>, 105&ndash;132 (1982).</li>
 <li>Vavra, O. <em>et al.</em> CaverDock: a molecular docking-based tool to analyse ligand
 transport through protein tunnels and channels. <em>Bioinformatics</em> (2019).
 doi:10.1093/bioinformatics/btz386</li>
+<li>Hattne, J. <em>et al.</em> Analysis of global and site-specific radiation damage in
+cryo-EM. <em>Structure</em> (2018). doi:10.1016/j.str.2018.03.021</li>
+<li>Spear, J. M. <em>et al.</em> Correcting radiation damage in cryo-EM.
+<em>J. Struct. Biol.</em> (2015). doi:10.1016/j.jsb.2015.09.006</li>
 </ol>
 <p style="font-size:13.5px; color:var(--ink-3)"><em>Citations for the biology &mdash; AcrB
 functional rotation, the hydrophobic trap, MexB mutagenesis including the R971 result, and

@@ -115,6 +115,67 @@ class Map:
                     return None
         return None
 
+    def mask_state(self):
+        """Is this map solvent-masked? Returns (is_masked, zero_fraction).
+
+        cryoSPARC sharpened volumes are usually solvent-masked, which sets a
+        large block of voxels to exactly zero. That shrinks the whole-box
+        sigma and therefore inflates any z-score computed against it, by as
+        much as 5x relative to the unmasked half maps of the same job. The
+        two are then not comparable, so the state has to be detected and
+        recorded rather than assumed.
+        """
+        d = self.data
+        zf = float((d == 0).sum()) / d.size
+        # a corner block is solvent in any real reconstruction
+        n = max(4, int(min(self.shape) // 12))
+        corner = d[:n, :n, :n]
+        return (zf > 0.005 or float(corner.std()) == 0.0), zf
+
+    def background_stats(self, atom_xyz=None, exclude_radius=5.0,
+                         shell_outer=10.0):
+        """Mean and sigma of solvent, for z-scores that mean the same thing
+        on masked and unmasked maps.
+
+        Whole-box statistics are not usable: on a masked map the zeros
+        dominate. Nor is "everything far from the model" enough, because a
+        masked map only has solvent inside its mask while an unmasked one
+        has the whole box - different populations, ~10% different sigma.
+        The reference is therefore a fixed shell around the model, which is
+        the same physical region either way, with exact zeros dropped on a
+        masked map. This gets z-scores onto a common footing to within about
+        10%: it cannot do better, because where a mask cuts closer than
+        shell_outer the solvent population really is truncated. Percentile
+        rank within one map remains the robust comparison.
+        """
+        from scipy.spatial import cKDTree
+        masked, zf = self.mask_state()
+        d = self.data
+        # subsample; a few hundred thousand voxels is ample for mu/sigma
+        step = max(1, int(round((d.size / 4e5) ** (1 / 3))))
+        sub = d[::step, ::step, ::step]
+        idx = np.stack(np.meshgrid(
+            np.arange(0, d.shape[0], step), np.arange(0, d.shape[1], step),
+            np.arange(0, d.shape[2], step), indexing="ij"), axis=-1)
+        idx = idx.reshape(-1, 3)
+        vals = sub.reshape(-1)
+        keep = np.ones(len(vals), dtype=bool)
+        if masked:
+            keep &= vals != 0.0
+        if atom_xyz is not None and len(atom_xyz):
+            world = self.grid_to_world(idx)
+            dist = cKDTree(np.asarray(atom_xyz)).query(
+                world, k=1, workers=-1)[0]
+            keep &= (dist > exclude_radius) & (dist <= shell_outer)
+        if keep.sum() < 500:            # shell too thin at this sampling
+            keep = np.ones(len(vals), bool)
+            if masked:
+                keep &= vals != 0.0
+            if atom_xyz is not None and len(atom_xyz):
+                keep &= dist > exclude_radius
+        v = vals[keep]
+        return float(v.mean()), float(v.std()), masked, zf, int(keep.sum())
+
     def stats(self):
         p = self.parent_stats
         if p:
