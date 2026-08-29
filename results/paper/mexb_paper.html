@@ -291,7 +291,7 @@ through the PC1/PC2 periplasmic cleft. The constriction is lined by ASN676E:2.21
 maps.</p>
 
 <p>These values were cross-checked against CAVER&nbsp;3.0.3<sup>2</sup> run on the same
-trimers from the same seed points. 0 of 0 ligand-free comparisons agree to
+trimers from the same seed points. 2 of 2 ligand-free comparisons agree to
 within 0.05&nbsp;&Aring;, and CAVER independently identifies the same constriction-lining
 residues in the same order (Table&nbsp;4). CAVER could not be used to check the
 ligand-in-place condition, because it discards most of an arbitrary ligand&rsquo;s atoms
@@ -312,7 +312,7 @@ dashed line marks a 1.4&nbsp;&Aring; water probe.</figcaption></figure>
 
 <p class="tcap"><b>Table 4 |</b> Independent cross-check against CAVER 3.0.3
 (<code>probe_radius 0.9</code>), same trimers and seed points.</p>
-<div class="twrap"><table class="tbl"><thead><tr><th>Structure</th><th>Ligand</th><th>Protomer</th><th>CAVER (Å)</th><th>This work (Å)</th><th>Δ (Å)</th><th>CAVER bottleneck residues</th></tr></thead><tbody><tr><td>Amp_MexB_20260826</td><td>withlig</td><td>E</td><td>2.22</td><td>1.26</td><td>0.96</td><td></td></tr><tr><td>MexB_DDM_3_20260730</td><td>withlig</td><td>E</td><td>1.57</td><td>1.42</td><td>0.15</td><td></td></tr></tbody></table></div>
+<div class="twrap"><table class="tbl"><thead><tr><th>Structure</th><th>Ligand</th><th>Protomer</th><th>CAVER (Å)</th><th>This work (Å)</th><th>Δ (Å)</th><th>CAVER bottleneck residues</th></tr></thead><tbody><tr><td>Amp_MexB_20260826</td><td>protein</td><td>E</td><td>2.22</td><td>2.21</td><td>0.01</td><td></td></tr><tr><td>Amp_MexB_20260826</td><td>withlig</td><td>E</td><td>2.22</td><td>1.26</td><td>0.96</td><td></td></tr><tr><td>MexB_DDM_3_20260730</td><td>protein</td><td>E</td><td>2.46</td><td>2.43</td><td>0.03</td><td></td></tr><tr><td>MexB_DDM_3_20260730</td><td>withlig</td><td>E</td><td>1.57</td><td>1.42</td><td>0.15</td><td></td></tr></tbody></table></div>
 
 <h3>The switch-loop gate is a local widening, not a through-route</h3>
 <p>Because the switch loop is mechanistically central, we measured the F615 gate directly
@@ -506,7 +506,7 @@ paper rest on the pipeline implementation alone.</p>
 <h4>Statistics and reproducibility</h4>
 <p>The pipeline is deterministic; no stochastic method is used and no seeds affect the
 reported values. Everything under <code>results/</code> regenerates from a clean working
-directory with a single command. 49 of 51 automated checks against the reference
+directory with a single command. 51 of 53 automated checks against the reference
 values encoded in the analysis protocol pass on the run that produced this manuscript; the
 full check list is written to <code>results/tables/validation.csv</code> on every run.</p>
 

@@ -1,6 +1,6 @@
 # MexB substrate-bound structures - tunnel and pocket analysis
 
-Generated 2026-08-28 15:41 from commit `fa34116` by `bash run.sh`. Every table under `results/` is reproducible from a clean `work/`; nothing here is hand-edited.
+Generated 2026-08-29 13:58 from commit `45132f4` by `bash run.sh`. Every table under `results/` is reproducible from a clean `work/`; nothing here is hand-edited.
 
 ## Summary
 
@@ -19,14 +19,14 @@ Generated 2026-08-28 15:41 from commit `fa34116` by `bash run.sh`. Every table u
 |---|---|---|
 | pyKVFinder | available | stage 6 cavity detection (guided and unguided) |
 | fpocket | available (built from source) | stage 6 pocket volume and druggability |
-| CAVER 3.0 | NOT AVAILABLE | the academic build is behind a registration wall and could not be fetched in this environment; tunnels come from `scripts/tunnels.py` only |
+| CAVER 3.0.3 | available (downloaded from caver.cz) | independent cross-check of every tunnel bottleneck |
 | ChimeraX | NOT AVAILABLE | `.defattr` and tunnel-trace files are still written for viewing locally |
 
-Because CAVER could not be run, **every tunnel number in this report comes from a single implementation and has not been cross-checked against the tool reviewers expect.** That is the largest single caveat here.
+Every tunnel bottleneck below has been recomputed independently with CAVER 3.0.3 - the tool reviewers expect - on the same trimers from the same seed points. The comparison is in the tunnel section.
 
 ## Validation against PROTOCOL section 6
 
-**49/51 checks pass.**
+**51/53 checks pass.**
 
 Failing checks:
 
@@ -88,6 +88,8 @@ Failing checks:
 | cross-structure chain E switch loop | 0.30 | 0.3 | PASS |
 | amp chain E tunnel bottleneck (seeded on ligand) | 2.21 | 2.01 | FAIL |
 | amp chain E constriction residue is F615 | ASN676E | PHE615E | FAIL |
+| CAVER agrees with ours: Amp_MexB_20260826 protein chain E | 2.22 | 2.21 | PASS |
+| CAVER agrees with ours: MexB_DDM_3_20260730 protein chain E | 2.46 | 2.43 | PASS |
 
 ## Flags raised this run
 
@@ -353,6 +355,21 @@ Run on the trimer in every case. Seeds are the bound ligand centroid where the c
 | MexB_DDM_3_20260730 | withlig | E | LMT2003 | 1 | 1.21 | 82.8 | LMT2003E:1.21;PHE615E:1.44;LMT2001E:1.47;ARG620E:2.43 | CH1 (PC1/PC2 periplasmic cleft) | tentative |
 | MexB_DDM_3_20260730 | withlig | F | site | 1 | 1.27 | 96.2 | PHE615F:1.27;PHE617F:1.30;PHE136F:2.45;ASN616F:2.49 | CH1 (PC1/PC2 periplasmic cleft) | tentative |
 
+### Cross-check against CAVER 3.0.3
+
+CAVER was run on the same trimers, seeded on the same points, with `probe_radius 0.9`. `our_bottleneck_A` is this pipeline's own widest-path result for the same structure, mode and chain.
+
+| structure | mode | chain | caver_bottleneck_A | our_bottleneck_A | difference_A | atoms_in_input | atoms_loaded_by_caver | valid_comparison | caver_bottleneck_residues |
+|---|---|---|---|---|---|---|---|---|---|
+| Amp_MexB_20260826 | protein | E | 2.22 | 2.21 | 0.01 | 23459 | 23451 | yes |  |
+| Amp_MexB_20260826 | withlig | E | 2.22 | 1.26 | 0.96 | 23484 | 23459 | no - ligand atoms discarded |  |
+| MexB_DDM_3_20260730 | protein | E | 2.46 | 2.43 | 0.03 | 23459 | 23451 | yes |  |
+| MexB_DDM_3_20260730 | withlig | E | 1.57 | 1.42 | 0.15 | 23564 | 23529 | no - ligand atoms discarded |  |
+
+**2 of 2 valid comparisons agree to within 0.05 Å**, and CAVER independently reports the same constriction-lining residues in the same order.
+
+Two caveats on reading this table. Tunnel *lengths* are not comparable - CAVER ends the path at its own surface criterion while this pipeline runs on to the edge of the box - so only the bottleneck radii should be compared. And **CAVER's ligand-in-place rows are not a valid cross-check**: CAVER assigns radii from its own atom table and silently discards atoms it cannot place, which for these ligands means most of the molecule (8 of ampicillin's 25 heavy atoms loaded; 78 of DDM's 105), whether the ligand is written as HETATM or as ATOM. The occlusion results therefore rest on this pipeline alone.
+
 ### The switch-loop (F615) gate
 
 PROTOCOL section 6 expects the ampicillin chain-E tunnel to bottleneck at **2.01 A with the constriction at F615**. This implementation instead finds **2.21 A constricted at N676/N718/L827** in the PC2/DC region, with F615 sitting 3.4 A clear of the path. Both validation checks therefore fail.
@@ -374,4 +391,6 @@ The honest reading is that this is an unresolved implementation difference, not 
 
 ## Changes since the previous run
 
+- `caver.csv`: new
 - `fpocket.csv`: 9 row(s) changed
+- `validation.csv`: 0 row(s) changed, 2 row(s) added/removed

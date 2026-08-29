@@ -50,3 +50,5 @@ cross-structure chain E whole protomer,0.86,0.86,PASS
 cross-structure chain E switch loop,0.30,0.3,PASS
 amp chain E tunnel bottleneck (seeded on ligand),2.21,2.01,FAIL
 amp chain E constriction residue is F615,ASN676E,PHE615E,FAIL
+CAVER agrees with ours: Amp_MexB_20260826 protein chain E,2.22,2.21,PASS
+CAVER agrees with ours: MexB_DDM_3_20260730 protein chain E,2.46,2.43,PASS

@@ -205,6 +205,15 @@ def main():
            "'withlig' keeps them as obstructions. Bottleneck radii are "
            "PROVISIONAL - see README.",
            "Stage 7 - tunnel bottlenecks and channel calls")
+    simple("caver", "caver_crosscheck",
+           "Independent cross-check with CAVER 3.0.3 on the same trimers "
+           "and seed points. Rows marked valid_comparison=no are NOT a "
+           "cross-check: CAVER discards most ligand atoms.",
+           "Stage 7 - CAVER 3.0.3 cross-check")
+    simple("caverdock_profile", "caverdock_profile",
+           "CaverDock 1.2 energy profile along the tunnel: lower and upper "
+           "bound energy per disc.",
+           "Stage 7 - CaverDock ligand transport energy")
     simple("switch_gate", "switch_gate",
            "Diagnostic for the two failing validation checks: how open the "
            "F615 switch-loop gate is, and what a path forced through it "
