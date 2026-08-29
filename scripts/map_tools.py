@@ -38,6 +38,14 @@ class Map:
                                int(h.nzstart)])
             origin = np.array([float(h.origin.x), float(h.origin.y),
                                float(h.origin.z)])
+            self.labels = []
+            try:
+                for i in range(int(h.nlabl)):
+                    t = h.label[i].tobytes().decode(errors="replace").strip()
+                    if t:
+                        self.labels.append(t)
+            except Exception:
+                pass
         # array axes are (slow, medium, fast) = (maps, mapr, mapc)
         # transpose so that axis 0 -> x, 1 -> y, 2 -> z
         axes = [maps, mapr, mapc]              # crystallographic axis per array axis
@@ -47,6 +55,19 @@ class Map:
         self.origin = origin + nstart * self.voxel
         if np.allclose(origin, 0) and np.allclose(nstart, 0):
             self.origin = np.zeros(3)
+        # crops written by prepare_maps.py are stored as int16 over a
+        # recorded range; undo that here or every density value - and every
+        # z-score derived from it - is in the wrong units
+        for t in getattr(self, "labels", []):
+            if t.startswith("CROP int16"):
+                try:
+                    lo = float(t.split("lo=")[1].split()[0])
+                    hi = float(t.split("hi=")[1].split()[0])
+                except (IndexError, ValueError):
+                    break
+                self.data = ((self.data + 30000.0) / 60000.0
+                             * (hi - lo) + lo).astype(np.float32)
+                break
         self.shape = np.array(self.data.shape)
 
     def world_to_grid(self, xyz):
@@ -60,7 +81,7 @@ class Map:
         g = self.world_to_grid(np.atleast_2d(xyz))
         lo = np.floor(g).astype(int)
         frac = g - lo
-        out = np.zeros(len(g), dtype=np.float64)
+        out = np.full(len(g), np.nan, dtype=np.float64)
         ok = np.all((lo >= 0) & (lo < self.shape - 1), axis=1)
         if not ok.any():
             return out
@@ -77,7 +98,27 @@ class Map:
         out[ok] = acc
         return out
 
+    @property
+    def parent_stats(self):
+        """Mean and sigma of the map this was cropped from, if recorded.
+
+        A crop is mostly protein, so its own mean sits well above the parent
+        map's; using it would push every z-score down by a constant.
+        """
+        for t in getattr(self, "labels", []):
+            if t.startswith("PARENT"):
+                try:
+                    mu = float(t.split("mean=")[1].split()[0])
+                    sd = float(t.split("sigma=")[1].split()[0])
+                    return mu, sd
+                except (IndexError, ValueError):
+                    return None
+        return None
+
     def stats(self):
+        p = self.parent_stats
+        if p:
+            return p
         d = self.data
         return float(d.mean()), float(d.std())
 

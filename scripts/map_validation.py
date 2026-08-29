@@ -85,32 +85,22 @@ def group_metrics(m, atoms, resolution, mu, sd, pad=2.2):
     if obs.std() < 1e-9 or calc.std() < 1e-9:
         return None
     rscc = float(np.corrcoef(obs, calc)[0, 1])
-    at = (m.sample(X) - mu) / (sd or 1.0)
+    raw = m.sample(X)
+    if not np.all(np.isfinite(raw)):
+        return None          # part of the group lies outside this crop
+    at = (raw - mu) / (sd or 1.0)
     return {"rscc": rscc, "mean_z": float(at.mean()),
             "min_z": float(at.min()), "n_atoms": len(heavy),
             "n_voxels": int(keep.sum()),
             "worst_atom": heavy[int(np.argmin(at))].name}
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--map", required=True)
-    ap.add_argument("--structure", required=True)
-    ap.add_argument("--resolution", type=float, default=3.0)
-    ap.add_argument("--out", default=None)
-    a = ap.parse_args()
 
-    s = next((x for x in load_structures() if x.name == a.structure), None)
-    if s is None:
-        raise SystemExit(f"structure {a.structure} not found in structures/")
-    m = Map(a.map)
+def score_one(map_path, s, resolution):
+    """Score every target group of one structure against one map."""
+    import re
+    m = Map(map_path)
     mu, sd = m.stats()
-    print(f"=== map validation: {a.structure} vs {os.path.basename(a.map)} ===")
-    print(f"  {tuple(m.shape)} voxels, {m.voxel[0]:.3f} A/voxel, "
-          f"mean {mu:.4f}, sigma {sd:.4f}")
-
-    # which groups to score, and why
     targets = []
     for ch in s.chains:
         for r in sorted(RELAY):
@@ -121,24 +111,18 @@ def main():
             targets.append((ch, r, "proximal pocket"))
         for r in SWITCH_LOOP:
             targets.append((ch, r, "switch loop"))
-    # constriction residues from the tunnel stage
     p = os.path.join(TABLES, "tunnels.csv")
     if os.path.exists(p):
         with open(p) as fh:
             for row in csv.DictReader(fh):
-                if (row["structure"] != a.structure or row["mode"] != "protein"
+                if (row["structure"] != s.name or row["mode"] != "protein"
                         or row["tunnel_rank"] != "1"):
                     continue
                 for e in (row["constriction_lining_clearance_A"] or "").split(";"):
-                    e = e.strip()
-                    if not e:
-                        continue
-                    import re
-                    mm = re.match(r"^[A-Z]{2,3}(\d+)([A-Za-z])", e)
+                    mm = re.match(r"^[A-Z]{2,3}(\d+)([A-Za-z])", e.strip())
                     if mm:
                         targets.append((mm.group(2), int(mm.group(1)),
                                         "tunnel constriction"))
-
     seen, rows = set(), []
     for ch, r, why in targets:
         if (ch, r) in seen:
@@ -147,23 +131,101 @@ def main():
         at = s.residue_atoms(ch, r)
         if not at:
             continue
-        g = group_metrics(m, at, a.resolution, mu, sd)
+        g = group_metrics(m, at, resolution, mu, sd)
         if g is None:
             continue
-        rows.append([a.structure, ch, r, at[0].resname, why,
-                     fmt(g["rscc"], 3), fmt(g["mean_z"], 2),
-                     fmt(g["min_z"], 2), g["worst_atom"], g["n_atoms"]])
-
-    for (lch, lres, lname, ats) in s.ligands():
-        g = group_metrics(m, ats, a.resolution, mu, sd)
-        if g is None:
-            continue
-        rows.append([a.structure, lch, lres, lname, "bound ligand",
+        rows.append([s.name, ch, r, at[0].resname, why,
                      fmt(g["rscc"], 3), fmt(g["mean_z"], 2),
                      fmt(g["min_z"], 2), g["worst_atom"], g["n_atoms"],
                      g["n_voxels"]])
+    for (lch, lres, lname, ats) in s.ligands():
+        g = group_metrics(m, ats, resolution, mu, sd)
+        if g is None:
+            continue
+        rows.append([s.name, lch, lres, lname, "bound ligand",
+                     fmt(g["rscc"], 3), fmt(g["mean_z"], 2),
+                     fmt(g["min_z"], 2), g["worst_atom"], g["n_atoms"],
+                     g["n_voxels"]])
+    return rows
 
-    out = a.out or os.path.join(TABLES, f"map_validation_{a.structure}.csv")
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--map", help="a single .mrc/.ccp4/.map file")
+    ap.add_argument("--zip", help="a bundle from prepare_maps.py; every crop "
+                                  "inside is scored and the results stacked")
+    ap.add_argument("--structure", help="model name; inferred per crop when "
+                                        "using --zip")
+    ap.add_argument("--resolution", type=float, default=3.0)
+    ap.add_argument("--out", default=None)
+    a = ap.parse_args()
+
+    if not a.map and not a.zip:
+        raise SystemExit("pass --map or --zip")
+
+    jobs = []           # (map_path, structure)
+    tmp = None
+    if a.zip:
+        import tempfile, zipfile
+        tmp = tempfile.mkdtemp(prefix="mapzip_")
+        with zipfile.ZipFile(a.zip) as z:
+            z.extractall(tmp)
+        structs = load_structures()
+        for f in sorted(os.listdir(tmp)):
+            if not f.lower().endswith((".mrc", ".ccp4", ".map")):
+                continue
+            st = None
+            if a.structure:
+                st = next((x for x in structs if x.name == a.structure), None)
+            else:
+                # crops are named <mapstem>__<region>.mrc; match the stem
+                best, score = None, 0
+                for x in structs:
+                    n = sum(1 for p, q in zip(f.lower(), x.name.lower())
+                            if p == q)
+                    for tok in ("amp", "ddm", "lmt", "zz7"):
+                        if tok in f.lower() and tok in x.name.lower():
+                            n += 20
+                    if n > score:
+                        best, score = x, n
+                st = best
+            if st is None:
+                print(f"  {f}: no matching model, skipped")
+                continue
+            jobs.append((os.path.join(tmp, f), st))
+        print(f"=== map validation: {len(jobs)} crops from "
+              f"{os.path.basename(a.zip)} ===")
+    else:
+        st = next((x for x in load_structures()
+                   if x.name == a.structure), None)
+        if st is None:
+            raise SystemExit(f"structure {a.structure} not found")
+        jobs.append((a.map, st))
+        print(f"=== map validation: {a.structure} vs "
+              f"{os.path.basename(a.map)} ===")
+
+    all_rows = []
+    for map_path, s in jobs:
+        rows = score_one(map_path, s, a.resolution)
+        all_rows += rows
+        print(f"  {os.path.basename(map_path)} -> {len(rows)} groups scored")
+    rows = all_rows
+    if tmp:
+        import shutil
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    # a group can appear in several crops; keep the one where it is most
+    # completely covered, since a group at a crop edge is truncated
+    best = {}
+    for r in rows:
+        key = (r[0], r[1], r[2])
+        if key not in best or int(r[10]) > int(best[key][10]):
+            best[key] = r
+    rows = sorted(best.values(), key=lambda r: (r[0], r[1], str(r[2])))
+
+    tag = a.structure or "bundle"
+    out = a.out or os.path.join(TABLES, f"map_validation_{tag}.csv")
     write_csv(out, ["structure", "chain", "resseq", "resname", "why",
                     "rscc", "mean_z", "min_z", "weakest_atom", "n_heavy",
                     "n_mask_voxels"], rows)
@@ -186,6 +248,11 @@ def main():
     print(f"\n  wrote {out} ({len(rows)} rows)")
     print("\n  Reading these: RSCC below ~0.5 or min_z below ~0.5 sigma "
           "marks a group the density does not support.")
+    if a.zip:
+        print("  Scored from crops. A group sitting near a crop boundary has "
+              "a clipped mask, which can move its RSCC by a few hundredths "
+              "(z-scores are per-atom and unaffected); where a group appears "
+              "in more than one crop the best-covered instance is kept.")
     print("  RSCC is unreliable for very small groups - a glycine with a "
           "handful of atoms in a small mask scores low even against a "
           "perfect map, because there is little density contrast to "
