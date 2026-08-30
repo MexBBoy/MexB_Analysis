@@ -50,6 +50,10 @@ echo "### figures"
 python3 scripts/figures.py
 
 echo
+echo "### poster panels"
+python3 scripts/poster_figures.py
+
+echo
 echo "### viewer exports (ChimeraX sessions, painted PDBs, 3D viewer)"
 python3 scripts/viewer_exports.py
 python3 scripts/build_viewer.py
