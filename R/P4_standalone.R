@@ -12,7 +12,6 @@ d <- data.frame(
   depth  = c(62.80, 52.38, 33.53, 62.13, 61.63, 62.13, 58.69, 52.80),
   volume = c(1850,  2068,  2037,  2132,  1953,  2209,  1868,  2008),
   atoms  = c(25,    105,   36,    20,    35,    35,    49,    69),
-  ours   = c(TRUE,  TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
   stringsAsFactors = FALSE
 )
 
@@ -32,10 +31,8 @@ cat(sprintf("volume vs ligand size r = %+.2f\n", cor(d$atoms, d$volume)))
 p <- ggplot(d, aes(depth, volume, colour = ligand)) +
   geom_smooth(method = "lm", formula = y ~ x, se = FALSE,
               colour = "#104862", linetype = "22", linewidth = 0.6) +
-  geom_point(aes(size = atoms, shape = ours)) +
+  geom_point(size = 4) +
   scale_colour_manual(values = pal, guide = "none") +
-  scale_size_area(max_size = 9, guide = "none") +   # area tracks ligand size
-  scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 18), guide = "none") +
   scale_x_continuous(limits = c(25, 80), breaks = seq(30, 70, 10)) +
   labs(x = expression("depth into the pocket from the periplasmic entrance ("
                       * ring(A) * ")"),
@@ -47,7 +44,8 @@ p <- ggplot(d, aes(depth, volume, colour = ligand)) +
 
 if (requireNamespace("ggrepel", quietly = TRUE)) {
   p <- p + ggrepel::geom_text_repel(aes(label = ligand), size = 3.6, seed = 1,
-                                    box.padding = 0.5, show.legend = FALSE)
+                                    box.padding = 0.6, min.segment.length = Inf,
+                                    show.legend = FALSE)
 } else {
   p <- p + geom_text(aes(label = ligand), size = 3.6, vjust = -1.4,
                      show.legend = FALSE)

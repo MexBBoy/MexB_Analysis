@@ -64,7 +64,6 @@ pal <- c(`ampicillin`      = "#078A08",   # poster #1EFF21
          `chloramphenicol` = "#000000")   # poster black
 
 d$ligand <- factor(lig[d$pdb], levels = names(pal))
-d$ours   <- d$pdb %in% c("Amp_MexB_20260826", "MexB_DDM_3_20260730")
 
 # ---- the number in the callout ---------------------------------------------
 r_depth <- cor(d$depth, d$volume)
@@ -77,11 +76,8 @@ p <- ggplot(d, aes(depth, volume, colour = ligand)) +
   geom_smooth(method = "lm", se = FALSE, colour = "#104862",
               linetype = "22", linewidth = 0.6, alpha = 0.55,
               formula = y ~ x) +
-  geom_point(aes(size = ligand_heavy_atoms, shape = ours)) +
+  geom_point(size = 4) +
   scale_colour_manual(values = pal, guide = "none") +
-  # marker area tracks ligand size, so both variables stay readable
-  scale_size_area(max_size = 9, guide = "none") +
-  scale_shape_manual(values = c(`FALSE` = 16, `TRUE` = 18), guide = "none") +
   scale_x_continuous(limits = c(25, 80), breaks = seq(30, 70, 10)) +
   labs(
     title    = "The pocket does not enlarge, wherever the ligand sits",
@@ -115,8 +111,8 @@ p <- ggplot(d, aes(depth, volume, colour = ligand)) +
 
 if (requireNamespace("ggrepel", quietly = TRUE)) {
   p <- p + ggrepel::geom_text_repel(aes(label = ligand), size = 3.4,
-                                    seed = 1, min.segment.length = 0.4,
-                                    box.padding = 0.5, show.legend = FALSE)
+                                    seed = 1, min.segment.length = Inf,
+                                    box.padding = 0.6, show.legend = FALSE)
 } else {
   message("ggrepel not installed - using fixed label offsets")
   p <- p + geom_text(aes(label = ligand), size = 3.4, vjust = -1.3,
