@@ -320,90 +320,119 @@ def panel_ligand_size():
     rows = R("published_pockets.csv")
     if not rows:
         return
-    RES = {"Amp_MexB_20260826": 2.19, "MexB_DDM_3_20260730": 2.11,
-           "21FO": 2.30, "21FP": 2.89, "2V50": 3.00, "3W9I": 2.71,
-           "3W9J": 3.15, "6IIA": 2.91, "6T7S": 4.50}
     NAME = {"21FP": "chloramphenicol", "Amp_MexB_20260826": "ampicillin",
             "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
             "3W9J": "EPI", "6IIA": "LMNG",
-            "MexB_DDM_3_20260730": "DDM ×3", "6T7S": "apo"}
+            "MexB_DDM_3_20260730": "DDM \u00d73", "6T7S": "apo"}
     OURS = {"Amp_MexB_20260826", "MexB_DDM_3_20260730"}
-    bound = [r for r in rows if int(r["ligand_heavy_atoms"]) > 0]
+
+    def num(r, k):
+        try:
+            return float(r[k])
+        except (KeyError, TypeError, ValueError):
+            return float("nan")
+
+    bound = [r for r in rows if int(r["ligand_heavy_atoms"]) > 0
+             and np.isfinite(num(r, "depth_from_entrance_A"))]
     apo = [r for r in rows if int(r["ligand_heavy_atoms"]) == 0]
+    if not bound:
+        return
+    D = np.array([num(r, "depth_from_entrance_A") for r in bound])
+    V = np.array([num(r, "volume_r16_A3") for r in bound])
     L = np.array([int(r["ligand_heavy_atoms"]) for r in bound], float)
-    V = np.array([float(r["volume_r16_A3"]) for r in bound])
-    rp = float(np.corrcoef(L, V)[0, 1])
-    slope = float(np.polyfit(L, V, 1)[0])
+    rp = float(np.corrcoef(D, V)[0, 1])
 
     fig = plt.figure(figsize=(10.6, 6.6))
-    title(fig, "The pocket does not enlarge for bigger ligands",
+    title(fig, "The pocket does not enlarge, wherever the ligand sits",
           "Every published substrate- or detergent-bound MexB structure, "
           "measured in one common frame.")
-    ax = fig.add_axes([0.095, 0.185, 0.60, 0.48])
+    ax = fig.add_axes([0.095, 0.275, 0.60, 0.40])
+
+    # apo as a reference line: it has no ligand, so it has no depth
+    if apo:
+        av = num(apo[0], "volume_r16_A3")
+        ax.axhline(av, color="#8c9aa1", linewidth=2, linestyle=(0, (5, 4)),
+                   zorder=1)
+        ax.annotate("apo (4.5 \u00c5)", (25.6, av), textcoords="offset points",
+                    xytext=(0, 8), ha="left", fontsize=13, color="#8c9aa1")
 
     # noise floor: two independent structures with the identical ligand
     same = [r for r in bound if int(r["ligand_heavy_atoms"]) == 35]
     if len(same) == 2:
-        vs = [float(r["volume_r16_A3"]) for r in same]
-        ax.plot([35, 35], vs, color=WARN, linewidth=4, zorder=2,
+        vs = [num(r, "volume_r16_A3") for r in same]
+        xs_ = [num(r, "depth_from_entrance_A") for r in same]
+        ax.plot(xs_, vs, color=WARN, linewidth=4, zorder=2,
                 solid_capstyle="round", alpha=.85)
-        ax.annotate(f"identical ligand,\n{abs(vs[0]-vs[1]):.0f} Å³ apart",
-                    (35, sum(vs) / 2), textcoords="offset points",
-                    xytext=(16, 30), fontsize=14, color=WARN,
-                    fontweight="bold", linespacing=1.3)
+        ax.annotate(f"identical ligand,\n{abs(vs[0]-vs[1]):.0f} \u00c5\u00b3 apart",
+                    (float(np.mean(xs_)), float(np.mean(vs))),
+                    xytext=(27.0, 1715), textcoords="data",
+                    ha="left", va="center", fontsize=14, color=WARN,
+                    fontweight="bold", linespacing=1.3,
+                    arrowprops=dict(arrowstyle="-", color=WARN, lw=1.6,
+                                    alpha=.7,
+                                    connectionstyle="arc3,rad=-0.18"))
 
     for r in bound:
-        x = int(r["ligand_heavy_atoms"]); y = float(r["volume_r16_A3"])
+        x = num(r, "depth_from_entrance_A"); y = num(r, "volume_r16_A3")
+        lo, hi = num(r, "shallowest_atom_depth_A"), num(r, "deepest_atom_depth_A")
         mine = r["pdb"] in OURS
-        ax.scatter([x], [y], s=270 if mine else 190,
-                   color=BINDING if mine else TEAL, zorder=4,
-                   edgecolor="white", linewidth=2.4,
+        col = BINDING if mine else TEAL
+        # the bar is the span of the ligand itself along the channel
+        if np.isfinite(lo) and np.isfinite(hi):
+            ax.plot([lo, hi], [y, y], color=col, linewidth=2.6, alpha=.42,
+                    solid_capstyle="round", zorder=3)
+        # marker area tracks ligand size, so both variables stay visible
+        ax.scatter([x], [y], s=90 + 3.2 * int(r["ligand_heavy_atoms"]),
+                   color=col, zorder=4, edgecolor="white", linewidth=2.4,
                    marker="D" if mine else "o")
-        OFF = {"21FP": (-12, -6, "right"), "Amp_MexB_20260826": (0, -26, "center"),
-               "2V50": (14, -6, "left"), "3W9I": (-10, 14, "right"),
-               "21FO": (12, -4, "left"), "3W9J": (0, -26, "center"),
-               "6IIA": (0, -26, "center"),
-               "MexB_DDM_3_20260730": (0, -28, "center")}
-        dx, dy, ha = OFF.get(r["pdb"], (0, -26, "center"))
+        OFF = {"21FP": (17, -6, "left"), "Amp_MexB_20260826": (14, -12, "left"),
+               "2V50": (17, -6, "left"), "3W9I": (17, -6, "left"),
+               "21FO": (0, -30, "center"), "3W9J": (0, -30, "center"),
+               "6IIA": (-16, -6, "right"),
+               "MexB_DDM_3_20260730": (0, 24, "center")}
+        dx, dy, ha = OFF.get(r["pdb"], (0, -28, "center"))
         ax.annotate(NAME.get(r["pdb"], r["pdb"]), (x, y),
                     textcoords="offset points", xytext=(dx, dy),
-                    ha=ha, fontsize=13,
-                    color=BINDING if mine else INK2)
-    for r in apo:
-        ax.scatter([0], [float(r["volume_r16_A3"])], s=190, color="#8c9aa1",
-                   zorder=4, edgecolor="white", linewidth=2.4, marker="s")
-        ax.annotate("apo\n(4.5 Å)", (0, float(r["volume_r16_A3"])),
-                    textcoords="offset points", xytext=(0, -40),
-                    ha="center", fontsize=13, color="#8c9aa1",
-                    linespacing=1.3)
-    xs = np.linspace(0, 110, 10)
-    ax.plot(xs, np.polyval(np.polyfit(L, V, 1), xs), color=TEAL,
-            linewidth=2, linestyle=(0, (5, 4)), alpha=.55, zorder=1)
-    ax.set_xlabel("ligand heavy atoms bound in the pocket")
-    ax.set_ylabel("ligand-free pocket volume (Å³)")
-    ax.set_xlim(-8, 118); ax.margins(y=.28)
-    ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+                    ha=ha, fontsize=13, color=col)
 
-    # one text axes rather than a stat cell plus a block: with a tall
-    # narrow column the two kept overrunning each other
-    tx = fig.add_axes([0.735, 0.185, 0.25, 0.50]); tx.axis("off")
+    xs = np.linspace(D.min() - 4, D.max() + 4, 10)
+    ax.plot(xs, np.polyval(np.polyfit(D, V, 1), xs), color=TEAL,
+            linewidth=2, linestyle=(0, (5, 4)), alpha=.55, zorder=1)
+    ax.set_xlabel("depth into the pocket from the periplasmic entrance "
+                  "(\u00c5)", labelpad=26)
+    ax.set_ylabel("ligand-free pocket volume (\u00c5\u00b3)")
+    ax.set_xlim(25, 80); ax.margins(y=.30)
+    ax.set_xticks([30, 40, 50, 60, 70])
+    ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+    ax.annotate("\u2190 towards the entrance", (0.0, 0.0),
+                xycoords="axes fraction", xytext=(2, -42),
+                textcoords="offset points", ha="left", fontsize=13,
+                color=INK2, fontstyle="italic")
+    ax.annotate("deeper into the distal pocket \u2192", (1.0, 0.0),
+                xycoords="axes fraction", xytext=(-2, -42),
+                textcoords="offset points", ha="right", fontsize=13,
+                color=INK2, fontstyle="italic")
+
+    tx = fig.add_axes([0.735, 0.245, 0.25, 0.44]); tx.axis("off")
     tx.text(0, 1.0, f"r = {rp:+.2f}", ha="left", va="top", fontsize=46,
             fontweight="bold", color=TEAL, transform=tx.transAxes)
     tx.text(0, 0.79,
-            "between pocket volume and\nligand size, across eight\n"
-            "ligand-bound structures.\n\n"
-            "A 5.3× range of bound ligand\nproduces no systematic\n"
-            "change in pocket size.\n\n"
-            "The largest ligand sits in a\npocket 64 Å³ smaller than\n"
-            "the smallest one's.",
+            "between pocket volume and\nhow deep the ligand sits,\n"
+            "across eight structures.\n\n"
+            "Ligands sit 33 to 63 \u00c5 in,\nover a 5.3\u00d7 range of\n"
+            "size, with no systematic\nchange in pocket volume\n"
+            "(r = +0.05 against ligand\nsize).",
             ha="left", va="top", fontsize=14, color=INK2,
             transform=tx.transAxes, linespacing=1.55)
 
-    fig.text(0.095, 0.075,
-             "Each protomer superposed on 39 pocket-lining Cα of one "
-             "reference, so the sphere sits identically in every structure. "
-             "Volume is not\ncorrelated with resolution either (r = −0.05). "
-             "Engineered MexB chimeras excluded.",
+    fig.text(0.095, 0.085,
+             "Depth is arc length back from the periplasmic mouth along the "
+             "widest ligand-free entry channel of the reference protomer; "
+             "bars span the\nshallowest to deepest atom of each ligand, "
+             "marker area tracks ligand size. Each protomer superposed on 39 "
+             "pocket-lining C\u03b1 of one reference,\nso the measuring "
+             "sphere sits identically in every structure. Engineered MexB "
+             "chimeras excluded.",
              fontsize=14, color=INK2, va="top", linespacing=1.5)
     save(fig, "P4_ligand_size_vs_pocket")
 

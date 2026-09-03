@@ -25,7 +25,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from pockets import site_volume
-from mexb_common import (DBP, PBP, SWITCH_LOOP, STRUCT_DIR, TABLES,
+from mexb_common import (CXDIR, DBP, PBP, SWITCH_LOOP, STRUCT_DIR, TABLES,
                          Structure, apply_rt, centroid, coords, fmt, kabsch,
                          write_csv)
 
@@ -47,6 +47,42 @@ LABEL = {
     "MexB_DDM_3_20260730": "DDM x3 (2.11 A, this work)",
 }
 RADII = (14.0, 16.0, 18.0, 20.0)
+# widest ligand-free route out of the reference protomer: it leaves by the
+# PC1/PC2 periplasmic cleft, i.e. the substrate entry channel (CH1). Its
+# coordinates are already in the reference frame, so the common-frame
+# transform puts every ligand onto the same axis.
+REF_CHANNEL = os.path.join(CXDIR,
+                           "Amp_MexB_20260826_protein_E_ZZ72000_t1_tunnel.pdb")
+
+
+def load_channel(path=REF_CHANNEL):
+    """Entry-channel centreline as (points, arc-length-from-site, total)."""
+    if not os.path.exists(path):
+        return None
+    pts = []
+    for ln in open(path):
+        if ln.startswith(("ATOM", "HETATM")):
+            pts.append([float(ln[30:38]), float(ln[38:46]), float(ln[46:54])])
+    if len(pts) < 10:
+        return None
+    P = np.asarray(pts, float)
+    seg = np.linalg.norm(np.diff(P, axis=0), axis=1)
+    arc = np.concatenate([[0.0], np.cumsum(seg)])
+    return P, arc, float(arc[-1])
+
+
+def channel_depth(cen, chan):
+    """(depth from the periplasmic entrance, offset from the centreline).
+
+    Arc length runs 0 at the deep site seed to `total` at the bulk exit, so
+    depth into the pocket measured from the entrance is total - arc.
+    """
+    if chan is None:
+        return None, None
+    P, arc, total = chan
+    d = np.linalg.norm(P - np.asarray(cen, float), axis=1)
+    i = int(np.argmin(d))
+    return float(total - arc[i]), float(d[i])
 
 
 def numbering_ok(s, ch):
@@ -132,6 +168,14 @@ def main():
     ref_ch = "E"
     rca = ref.ca(ref_ch)
     ref_centre = 0.5 * (centroid(rca, DBP) + centroid(rca, PBP))
+    chan = load_channel()
+    if chan is None:
+        print("  (entry channel trace missing - run tunnels.py first; "
+              "depth columns will be blank)")
+    # cross-check axis: proximal-pocket centroid -> distal-pocket centroid
+    pbp_c, dbp_c = centroid(rca, PBP), centroid(rca, DBP)
+    ax = dbp_c - pbp_c
+    ax = ax / np.linalg.norm(ax)
 
     targets = [(os.path.join(STRUCT_DIR, f"{n}.pdb"), n)
                for n in ("Amp_MexB_20260826", "MexB_DDM_3_20260730")]
@@ -151,9 +195,10 @@ def main():
             n_heavy = sum(len(l[2]) for l in same)
             names = "+".join(sorted({l[1] for l in same}))
             n_lig = len(same)
+            lig_atoms = [a for l in same for a in l[2]]
         else:
             ch = binding_protomer(s)
-            n_heavy, names, n_lig = 0, "apo", 0
+            n_heavy, names, n_lig, lig_atoms = 0, "apo", 0, []
         if ch is None:
             print(f"  {pid}: no usable protomer, skipped"); continue
         good, bad = numbering_ok(s, ch)
@@ -176,27 +221,50 @@ def main():
         moved = apply_rt(R, t, coords(prot))
         atoms = [Frozen(p, a.element) for p, a in zip(moved, prot)]
 
+        # put the ligand in the same common frame and ask how deep it sits
+        if lig_atoms:
+            lxyz = apply_rt(R, t, coords(lig_atoms))
+            lcen = lxyz.mean(0)
+            depth, offset = channel_depth(lcen, chan)
+            axial = float(np.dot(lcen - pbp_c, ax))
+            # the ligands are elongated, so record the span they occupy
+            per = [channel_depth(x, chan)[0] for x in lxyz] \
+                if chan is not None else []
+            deep = max(per) if per else None
+            shal = min(per) if per else None
+        else:
+            depth = offset = axial = deep = shal = None
+
         vols = {}
         for rad in RADII:
             v, _ = site_volume(atoms, ref_centre, radius=rad, step=0.5,
                                probe=1.4)
             vols[rad] = v
+        dtxt = "  apo " if depth is None else f"{depth:5.1f}"
         print(f"  {pid:22} {LABEL.get(pid,''):32} ch{ch} "
-              f"lig {n_heavy:>3} atoms  fit {fit:4.2f} A   "
+              f"lig {n_heavy:>3} atoms  depth {dtxt} A  fit {fit:4.2f} A   "
               + "  ".join(f"r{int(r)}={vols[r]:.0f}" for r in RADII))
         rows.append([pid, LABEL.get(pid, ""), ch, names, n_lig, n_heavy,
+                     fmt(depth), fmt(shal), fmt(deep), fmt(offset), fmt(axial),
                      fmt(fit), len(common)]
                     + [fmt(vols[r], 0) for r in RADII])
 
     write_csv(os.path.join(TABLES, "published_pockets.csv"),
               ["pdb", "description", "chain", "ligands", "n_ligands",
-               "ligand_heavy_atoms", "fit_rmsd_A", "n_lining_CA"]
+               "ligand_heavy_atoms", "depth_from_entrance_A",
+               "shallowest_atom_depth_A", "deepest_atom_depth_A",
+               "offset_from_channel_A",
+               "axial_PBP_to_DBP_A", "fit_rmsd_A", "n_lining_CA"]
               + [f"volume_r{int(r)}_A3" for r in RADII], rows)
 
     print("\n  --- correlation of pocket volume with ligand size ---")
-    lig = np.array([float(r[5]) for r in rows])
+    # apo entries carry no ligand and only one exists (6T7S, 4.5 A); leaving
+    # it in would manufacture a correlation out of a single low-resolution
+    # point, so the size trend is fitted on the ligand-bound structures only.
+    bound = [r for r in rows if float(r[5]) > 0]
+    lig = np.array([float(r[5]) for r in bound])
     for i, rad in enumerate(RADII):
-        v = np.array([float(r[8 + i]) for r in rows])
+        v = np.array([float(r[13 + i]) for r in bound])
         ok = np.isfinite(v) & np.isfinite(lig)
         if ok.sum() < 4:
             continue
@@ -205,6 +273,18 @@ def main():
         print(f"    sphere {int(rad)} A: Pearson r = {r_p:+.3f}, "
               f"slope {sl:+.2f} A^3 per ligand heavy atom "
               f"(volume spread {v[ok].min():.0f}-{v[ok].max():.0f})")
+    print("\n  --- how far into the pocket each ligand sits ---")
+    dep = np.array([float(r[6]) if r[6] not in ("", "NA") else np.nan
+                    for r in bound])
+    for i, rad in enumerate(RADII):
+        v = np.array([float(r[13 + i]) for r in bound])
+        ok = np.isfinite(v) & np.isfinite(dep)
+        if ok.sum() < 4:
+            continue
+        r_p = float(np.corrcoef(dep[ok], v[ok])[0, 1])
+        print(f"    sphere {int(rad)} A: volume vs depth Pearson "
+              f"r = {r_p:+.3f}  (depth range "
+              f"{dep[ok].min():.1f}-{dep[ok].max():.1f} A)")
     print("\nwrote results/tables/published_pockets.csv")
 
 
