@@ -321,10 +321,26 @@ def panel_ligand_size():
     if not rows:
         return
     NAME = {"21FP": "chloramphenicol", "Amp_MexB_20260826": "ampicillin",
-            "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
+            "2V50": "DDM (2V50)", "3W9I": "DDM (3W9I)", "21FO": "CYMAL-7",
             "3W9J": "EPI", "6IIA": "LMNG",
             "MexB_DDM_3_20260730": "DDM \u00d73", "6T7S": "apo"}
     OURS = {"Amp_MexB_20260826", "MexB_DDM_3_20260730"}
+    # each substrate in the colour the poster already gives it, sampled from
+    # the conserved-residues legend and table header of
+    # Combio_Poster_20260828.pdf, then darkened at constant hue to clear
+    # 4.5:1 on white (the poster's own colours are set on dark panels and
+    # run 1.4-2.5:1 here). 3W9I is not on the poster; it takes the pink the
+    # poster legend uses for DDM generally.
+    LIGCOL = {
+        "Amp_MexB_20260826": "#078A08",    # poster #1EFF21 ampicillin green
+        "MexB_DDM_3_20260730": "#CF13CF",  # poster #FF29FF DDM #1 magenta
+        "2V50": "#986598",                 # poster #FFB0FF DDM #2 pink
+        "3W9I": "#C24A8B",                 # poster #FF6DBC legend DDM pink
+        "6IIA": "#2F54FF",                 # poster #3E61FF LMNG blue
+        "21FO": "#A1685E",                 # poster #FFAB9C CYMAL-7 salmon
+        "3W9J": "#767676",                 # poster #A3A3A3 EPI grey
+        "21FP": "#000000",                 # poster black chloramphenicol
+    }
 
     def num(r, k):
         try:
@@ -350,7 +366,7 @@ def panel_ligand_size():
     for r in bound:
         x = num(r, "depth_from_entrance_A"); y = num(r, "volume_r16_A3")
         mine = r["pdb"] in OURS
-        col = BINDING if mine else TEAL
+        col = LIGCOL.get(r["pdb"], TEAL)
         # marker area tracks ligand size, so both variables stay visible
         ax.scatter([x], [y], s=90 + 3.2 * int(r["ligand_heavy_atoms"]),
                    color=col, zorder=4, edgecolor="white", linewidth=2.4,
