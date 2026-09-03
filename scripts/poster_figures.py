@@ -334,7 +334,6 @@ def panel_ligand_size():
 
     bound = [r for r in rows if int(r["ligand_heavy_atoms"]) > 0
              and np.isfinite(num(r, "depth_from_entrance_A"))]
-    apo = [r for r in rows if int(r["ligand_heavy_atoms"]) == 0]
     if not bound:
         return
     D = np.array([num(r, "depth_from_entrance_A") for r in bound])
@@ -347,30 +346,6 @@ def panel_ligand_size():
           "Every published substrate- or detergent-bound MexB structure, "
           "measured in one common frame.")
     ax = fig.add_axes([0.095, 0.275, 0.60, 0.40])
-
-    # apo as a reference line: it has no ligand, so it has no depth
-    if apo:
-        av = num(apo[0], "volume_r16_A3")
-        ax.axhline(av, color="#8c9aa1", linewidth=2, linestyle=(0, (5, 4)),
-                   zorder=1)
-        ax.annotate("apo (4.5 \u00c5)", (25.6, av), textcoords="offset points",
-                    xytext=(0, 8), ha="left", fontsize=13, color="#8c9aa1")
-
-    # noise floor: two independent structures with the identical ligand
-    same = [r for r in bound if int(r["ligand_heavy_atoms"]) == 35]
-    if len(same) == 2:
-        vs = [num(r, "volume_r16_A3") for r in same]
-        xs_ = [num(r, "depth_from_entrance_A") for r in same]
-        ax.plot(xs_, vs, color=WARN, linewidth=4, zorder=2,
-                solid_capstyle="round", alpha=.85)
-        ax.annotate(f"identical ligand,\n{abs(vs[0]-vs[1]):.0f} \u00c5\u00b3 apart",
-                    (float(np.mean(xs_)), float(np.mean(vs))),
-                    xytext=(27.0, 1715), textcoords="data",
-                    ha="left", va="center", fontsize=14, color=WARN,
-                    fontweight="bold", linespacing=1.3,
-                    arrowprops=dict(arrowstyle="-", color=WARN, lw=1.2,
-                                    alpha=.55, shrinkB=6,
-                                    connectionstyle="arc3,rad=0"))
 
     for r in bound:
         x = num(r, "depth_from_entrance_A"); y = num(r, "volume_r16_A3")
