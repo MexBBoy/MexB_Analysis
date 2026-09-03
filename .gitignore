@@ -5,3 +5,4 @@ __pycache__/
 # stray scratch downloads
 /*.html
 /*.zip
+Rplots.pdf
