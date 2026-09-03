@@ -46,7 +46,7 @@ d$depth  <- d$depth_from_entrance_A
 # white (the poster sets them on dark panels, where they run 1.4-2.5:1).
 # 3W9I is not on the poster; it takes the pink the legend uses for DDM.
 lig <- c(Amp_MexB_20260826   = "ampicillin",
-         MexB_DDM_3_20260730 = "DDM ×3",
+         MexB_DDM_3_20260730 = "DDM x3",
          `2V50`              = "DDM (2V50)",
          `3W9I`              = "DDM (3W9I)",
          `6IIA`              = "LMNG",
@@ -55,7 +55,7 @@ lig <- c(Amp_MexB_20260826   = "ampicillin",
          `21FP`              = "chloramphenicol")
 
 pal <- c(`ampicillin`      = "#078A08",   # poster #1EFF21
-         `DDM ×3`     = "#CF13CF",   # poster #FF29FF  (DDM #1)
+         `DDM x3`          = "#CF13CF",   # poster #FF29FF  (DDM #1)
          `DDM (2V50)`      = "#986598",   # poster #FFB0FF  (DDM #2)
          `DDM (3W9I)`      = "#C24A8B",   # poster #FF6DBC  (legend DDM)
          `LMNG`            = "#2F54FF",   # poster #3E61FF
@@ -87,8 +87,11 @@ p <- ggplot(d, aes(depth, volume, colour = ligand)) +
     title    = "The pocket does not enlarge, wherever the ligand sits",
     subtitle = paste("Every published substrate- or detergent-bound MexB",
                      "structure, measured in one common frame."),
-    x = "depth into the pocket from the periplasmic entrance (Å)",
-    y = "ligand-free pocket volume (Å³)",
+    # plotmath rather than literal Å/³, so the labels render on any device
+    # and in any locale
+    x = expression("depth into the pocket from the periplasmic entrance ("
+                   * ring(A) * ")"),
+    y = expression("ligand-free pocket volume (" * ring(A)^3 * ")"),
     caption = paste0(
       "r = ", sprintf("%+.2f", r_depth), " between volume and depth; ",
       sprintf("%+.2f", r_size), " between volume and ligand size.\n",
