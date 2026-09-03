@@ -368,19 +368,14 @@ def panel_ligand_size():
                     xytext=(27.0, 1715), textcoords="data",
                     ha="left", va="center", fontsize=14, color=WARN,
                     fontweight="bold", linespacing=1.3,
-                    arrowprops=dict(arrowstyle="-", color=WARN, lw=1.6,
-                                    alpha=.7,
-                                    connectionstyle="arc3,rad=-0.18"))
+                    arrowprops=dict(arrowstyle="-", color=WARN, lw=1.2,
+                                    alpha=.55, shrinkB=6,
+                                    connectionstyle="arc3,rad=0"))
 
     for r in bound:
         x = num(r, "depth_from_entrance_A"); y = num(r, "volume_r16_A3")
-        lo, hi = num(r, "shallowest_atom_depth_A"), num(r, "deepest_atom_depth_A")
         mine = r["pdb"] in OURS
         col = BINDING if mine else TEAL
-        # the bar is the span of the ligand itself along the channel
-        if np.isfinite(lo) and np.isfinite(hi):
-            ax.plot([lo, hi], [y, y], color=col, linewidth=2.6, alpha=.42,
-                    solid_capstyle="round", zorder=3)
         # marker area tracks ligand size, so both variables stay visible
         ax.scatter([x], [y], s=90 + 3.2 * int(r["ligand_heavy_atoms"]),
                    color=col, zorder=4, edgecolor="white", linewidth=2.4,
@@ -427,12 +422,11 @@ def panel_ligand_size():
 
     fig.text(0.095, 0.085,
              "Depth is arc length back from the periplasmic mouth along the "
-             "widest ligand-free entry channel of the reference protomer; "
-             "bars span the\nshallowest to deepest atom of each ligand, "
-             "marker area tracks ligand size. Each protomer superposed on 39 "
-             "pocket-lining C\u03b1 of one reference,\nso the measuring "
-             "sphere sits identically in every structure. Engineered MexB "
-             "chimeras excluded.",
+             "widest ligand-free entry channel of the reference protomer, "
+             "to the ligand centroid;\nmarker area tracks ligand size. Each "
+             "protomer superposed on 39 pocket-lining C\u03b1 of one "
+             "reference, so the measuring sphere sits\nidentically in every "
+             "structure. Engineered MexB chimeras excluded.",
              fontsize=14, color=INK2, va="top", linespacing=1.5)
     save(fig, "P4_ligand_size_vs_pocket")
 
