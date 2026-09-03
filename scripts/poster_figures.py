@@ -186,9 +186,12 @@ def panel_occlusion():
     statcell(fig, [0.095, 0.635, 0.42, 0.175], "98%",
              "of the binding-protomer site is taken by\n"
              "the three DDM molecules    2018 → 36 Å³", BINDING)
-    statcell(fig, [0.575, 0.635, 0.42, 0.175], "21%",
-             "taken by ampicillin in the equivalent\n"
-             "protomer    1843 → 1456 Å³", TEAL)
+    # Ampicillin displaces a fixed 387 A^3 at every sphere radius tested,
+    # but its PERCENTAGE runs 27%->12% as the sphere grows, because the
+    # denominator grows and the ligand does not. Quote the volume.
+    statcell(fig, [0.575, 0.635, 0.42, 0.175], "387 Å³",
+             "displaced by ampicillin in the\n"
+             "equivalent protomer", TEAL, big_size=52)
 
     ax = fig.add_axes([0.095, 0.165, 0.88, 0.365])
     labs, free, occ, cols = [], [], [], []
@@ -206,7 +209,7 @@ def panel_occlusion():
     for i, (f, o) in enumerate(zip(free, occ)):
         pct = 100 * (f - o) / f if f else 0
         if pct > 1:
-            ax.annotate(f"−{pct:.0f}%", (i, max(f, o)),
+            ax.annotate(f"−{f - o:.0f} Å³", (i, max(f, o)),
                         textcoords="offset points", xytext=(0, 13),
                         ha="center", fontsize=20, fontweight="bold",
                         color=WARN)
@@ -222,11 +225,12 @@ def panel_occlusion():
                bbox_to_anchor=(0.53, 0.588), fontsize=15, handlelength=1.5,
                handleheight=1.1, columnspacing=2.0)
     fig.text(0.095, 0.075,
-             "Grid volumes, internally comparable across these two "
-             "structures only. All three DDM molecules are present in both "
-             "half maps;\nLMT2003 is the weakest of them (14th–21st "
-             "percentile of its map).", fontsize=14.5, color=INK2,
-             va="top", linespacing=1.5)
+             "The DDM figure is a percentage because three molecules "
+             "saturate the pocket: 97.8–98.8% however the site is measured. "
+             "Ampicillin\ndisplaces a constant 387 Å³, so it is quoted as a "
+             "volume. All three DDM are present in both half maps; LMT2003 "
+             "is the weakest.",
+             fontsize=14.5, color=INK2, va="top", linespacing=1.5)
     save(fig, "P2_detergent_occlusion")
 
 

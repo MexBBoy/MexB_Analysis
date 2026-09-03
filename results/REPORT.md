@@ -1,6 +1,6 @@
 # MexB substrate-bound structures - tunnel and pocket analysis
 
-Generated 2026-08-29 14:50 from commit `215f655` by `bash run.sh`. Every table under `results/` is reproducible from a clean `work/`; nothing here is hand-edited.
+Generated 2026-09-03 05:57 from commit `87db625` by `bash run.sh`. Every table under `results/` is reproducible from a clean `work/`; nothing here is hand-edited.
 
 ## Summary
 
@@ -422,6 +422,8 @@ Still unknown: no local-resolution map was supplied, so whether chain F is genui
 - `caver.csv`: new
 - `caverdock_profile.csv`: new
 - `fpocket.csv`: 9 row(s) changed
+- `occlusion_robustness.csv`: new
+- `pocket_size_compare.csv`: new
 - `proton_relay.csv`: 60 row(s) changed
 - `states.csv`: 6 row(s) changed
 - `validation.csv`: 51 row(s) changed, 2 row(s) added/removed

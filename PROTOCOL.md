@@ -337,6 +337,22 @@ status.
    threshold**, a working heuristic adopted locally, not a community standard.
    Say so wherever those words appear.
 
+10. **Grid site volumes are not comparable between structures unless the
+    difference survives a parameter sweep.** Established 2026-08-30. Measured
+    in a common frame, the binding-protomer pocket looks 9.4% larger in the
+    DDM model at the default 16 A sphere - but the difference falls to +0.1%
+    at 18 A and reverses to -4.3% at 20 A, the parameter spread is 13.5x the
+    difference, and pyKVFinder puts it in the opposite direction. There is no
+    pocket-size difference between the two models. Always run
+    `pocket_size_compare.py` before claiming one.
+
+11. **Quote ampicillin occlusion as a volume and DDM occlusion as a
+    percentage.** Ampicillin displaces a constant 387 A^3 at every sphere
+    radius, while its percentage runs 27% -> 12% as the sphere grows. The
+    three DDM molecules saturate the pocket, so free volume collapses to a
+    constant 36 A^3 and the percentage is stable at 97.8-98.8%. Using the
+    unstable form of either is a reporting error.
+
 ---
 
 ## 6. Validation — the pipeline must reproduce these

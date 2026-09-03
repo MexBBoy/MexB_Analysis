@@ -22,6 +22,10 @@ echo "### stage 6 - pockets and cavities"
 python3 scripts/pockets.py
 
 echo
+echo "### pocket size comparison and occlusion robustness"
+python3 scripts/pocket_size_compare.py
+
+echo
 echo "### stage 7 - tunnels (trimer, grid step ${STEP} A)"
 python3 scripts/tunnels.py --step "${STEP}"
 

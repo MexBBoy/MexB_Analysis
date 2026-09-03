@@ -394,11 +394,17 @@ models.</figcaption></figure>
 
 <h3>Bound ligand occludes the site and narrows the exit route</h3>
 <p>Recomputing the site volume with each structure's own ligands in place quantifies
-occlusion. Ampicillin occupies 21.0% of the binding-protomer site volume
-(1843&nbsp;&rarr;&nbsp;1456&nbsp;&Aring;<sup>3</sup>). The three DDM molecules
+occlusion, but the two ligands must be quoted differently. Ampicillin displaces a constant
+387&nbsp;&Aring;<sup>3</sup> at every sphere radius tested (14&ndash;20&nbsp;&Aring;), while the
+percentage this represents runs from 27% down to 12% as the sphere grows, because the
+denominator grows and the ligand does not; the volume is the robust quantity. The three DDM
+molecules
 occupy 98.2% of the equivalent volume
 (2018&nbsp;&rarr;&nbsp;36&nbsp;&Aring;<sup>3</sup>), essentially filling it
-(Fig.&nbsp;3, Table&nbsp;7). Site volumes in the access and extrusion protomers are unchanged,
+(Fig.&nbsp;3, Table&nbsp;7). Here the percentage <em>is</em> the robust quantity &mdash; it holds
+at 97.8&ndash;98.8% across the same sphere range, because three molecules saturate the pocket and
+the free volume collapses to a constant 36&nbsp;&Aring;<sup>3</sup> however widely it is
+measured. Site volumes in the access and extrusion protomers are unchanged,
 as expected since no ligand is modelled there.</p>
 
 <p>The bound ligand also narrows the exit route: the widest path from the site falls from
@@ -416,6 +422,20 @@ structures only and are not equivalent to fpocket or CASTp volumes.</figcaption>
 
 <p class="tcap"><b>Table 7 |</b> Substrate-site volume and occlusion.</p>
 <div class="twrap"><table class="tbl"><thead><tr><th>Structure</th><th>Protomer</th><th>Ligand-free (Å³)</th><th>With ligand (Å³)</th><th>Occluded (Å³)</th><th>Occluded (%)</th></tr></thead><tbody><tr><td>Amp_MexB_20260826</td><td>D</td><td>1476</td><td>1476</td><td>0</td><td>0.0</td></tr><tr><td>Amp_MexB_20260826</td><td>E</td><td>1843</td><td>1456</td><td>387</td><td>21.0</td></tr><tr><td>Amp_MexB_20260826</td><td>F</td><td>1402</td><td>1402</td><td>0</td><td>0.0</td></tr><tr><td>MexB_DDM_3_20260730</td><td>D</td><td>964</td><td>964</td><td>0</td><td>0.0</td></tr><tr><td>MexB_DDM_3_20260730</td><td>E</td><td>2018</td><td>36</td><td>1982</td><td>98.2</td></tr><tr><td>MexB_DDM_3_20260730</td><td>F</td><td>1543</td><td>1543</td><td>0</td><td>0.0</td></tr></tbody></table></div>
+
+<h3>The pocket itself is the same size in both models</h3>
+<p>Because the detergent structure might be suspected of a distorted or enlarged pocket, we
+measured the ligand-free site volume of the binding protomer in both models in a single common
+frame, superposing on the pocket-lining residues (39 C&alpha;, fit RMSD 0.60&nbsp;&Aring;) so that
+the measuring sphere sits identically in both. At the default 16&nbsp;&Aring; radius the DDM model
+appears 174&nbsp;&Aring;<sup>3</sup> (9.4%) larger, but that difference is not a property of the
+pocket: it falls monotonically with sphere radius, reaching +0.1% at 18&nbsp;&Aring; and reversing
+to &minus;4.3% at 20&nbsp;&Aring;. Across 27 combinations of grid step, probe radius and sphere
+radius the parameter-induced spread in the absolute volume is 13.5 times the between-structure
+difference, and pyKVFinder &mdash; an independent method with no arbitrary sphere &mdash; puts the
+difference in the opposite direction (5632 against 5341&nbsp;&Aring;<sup>3</sup>). We therefore
+find no evidence that the substrate pocket differs in size between the two reconstructions, which
+is what the 0.86&nbsp;&Aring; whole-protomer agreement already implied.</p>
 
 <h3>The proton relay is intact except for R971</h3>
 <p>Side-chain functional-atom distances across the transmembrane proton relay are consistent
@@ -643,7 +663,7 @@ by the authors.</em></p>
 <p><span class="placeholder">To be supplied by the authors.</span></p>
 
 <footer>
-Draft generated 29 August 2026 from the MexB analysis pipeline. Numbers substituted at build time from
+Draft generated 03 September 2026 from the MexB analysis pipeline. Numbers substituted at build time from
 <code>results/tables/</code>; regenerate with <code>bash run.sh</code>. Structure follows
 Lawrence <em>et al.</em>, <em>Nature Communications</em> <b>16</b>, 10601 (2025).
 </footer>
