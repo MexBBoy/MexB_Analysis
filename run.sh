@@ -54,6 +54,10 @@ echo "### figures"
 python3 scripts/figures.py
 
 echo
+echo "### published MexB pocket comparison (downloads from the PDB)"
+python3 scripts/published_pockets.py || echo "(skipped - no network?)"
+
+echo
 echo "### poster panels"
 python3 scripts/poster_figures.py
 

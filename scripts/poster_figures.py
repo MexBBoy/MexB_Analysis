@@ -314,11 +314,107 @@ def panel_exit_route():
     save(fig, "P3_exit_route")
 
 
+
+# ------------------------------------------------------------------- P4
+def panel_ligand_size():
+    rows = R("published_pockets.csv")
+    if not rows:
+        return
+    RES = {"Amp_MexB_20260826": 2.19, "MexB_DDM_3_20260730": 2.11,
+           "21FO": 2.30, "21FP": 2.89, "2V50": 3.00, "3W9I": 2.71,
+           "3W9J": 3.15, "6IIA": 2.91, "6T7S": 4.50}
+    NAME = {"21FP": "chloramphenicol", "Amp_MexB_20260826": "ampicillin",
+            "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
+            "3W9J": "EPI", "6IIA": "LMNG",
+            "MexB_DDM_3_20260730": "DDM ×3", "6T7S": "apo"}
+    OURS = {"Amp_MexB_20260826", "MexB_DDM_3_20260730"}
+    bound = [r for r in rows if int(r["ligand_heavy_atoms"]) > 0]
+    apo = [r for r in rows if int(r["ligand_heavy_atoms"]) == 0]
+    L = np.array([int(r["ligand_heavy_atoms"]) for r in bound], float)
+    V = np.array([float(r["volume_r16_A3"]) for r in bound])
+    rp = float(np.corrcoef(L, V)[0, 1])
+    slope = float(np.polyfit(L, V, 1)[0])
+
+    fig = plt.figure(figsize=(10.6, 6.6))
+    title(fig, "The pocket does not enlarge for bigger ligands",
+          "Every published substrate- or detergent-bound MexB structure, "
+          "measured in one common frame.")
+    ax = fig.add_axes([0.095, 0.185, 0.60, 0.48])
+
+    # noise floor: two independent structures with the identical ligand
+    same = [r for r in bound if int(r["ligand_heavy_atoms"]) == 35]
+    if len(same) == 2:
+        vs = [float(r["volume_r16_A3"]) for r in same]
+        ax.plot([35, 35], vs, color=WARN, linewidth=4, zorder=2,
+                solid_capstyle="round", alpha=.85)
+        ax.annotate(f"identical ligand,\n{abs(vs[0]-vs[1]):.0f} Å³ apart",
+                    (35, sum(vs) / 2), textcoords="offset points",
+                    xytext=(16, 30), fontsize=14, color=WARN,
+                    fontweight="bold", linespacing=1.3)
+
+    for r in bound:
+        x = int(r["ligand_heavy_atoms"]); y = float(r["volume_r16_A3"])
+        mine = r["pdb"] in OURS
+        ax.scatter([x], [y], s=270 if mine else 190,
+                   color=BINDING if mine else TEAL, zorder=4,
+                   edgecolor="white", linewidth=2.4,
+                   marker="D" if mine else "o")
+        OFF = {"21FP": (-12, -6, "right"), "Amp_MexB_20260826": (0, -26, "center"),
+               "2V50": (14, -6, "left"), "3W9I": (-10, 14, "right"),
+               "21FO": (12, -4, "left"), "3W9J": (0, -26, "center"),
+               "6IIA": (0, -26, "center"),
+               "MexB_DDM_3_20260730": (0, -28, "center")}
+        dx, dy, ha = OFF.get(r["pdb"], (0, -26, "center"))
+        ax.annotate(NAME.get(r["pdb"], r["pdb"]), (x, y),
+                    textcoords="offset points", xytext=(dx, dy),
+                    ha=ha, fontsize=13,
+                    color=BINDING if mine else INK2)
+    for r in apo:
+        ax.scatter([0], [float(r["volume_r16_A3"])], s=190, color="#8c9aa1",
+                   zorder=4, edgecolor="white", linewidth=2.4, marker="s")
+        ax.annotate("apo\n(4.5 Å)", (0, float(r["volume_r16_A3"])),
+                    textcoords="offset points", xytext=(0, -40),
+                    ha="center", fontsize=13, color="#8c9aa1",
+                    linespacing=1.3)
+    xs = np.linspace(0, 110, 10)
+    ax.plot(xs, np.polyval(np.polyfit(L, V, 1), xs), color=TEAL,
+            linewidth=2, linestyle=(0, (5, 4)), alpha=.55, zorder=1)
+    ax.set_xlabel("ligand heavy atoms bound in the pocket")
+    ax.set_ylabel("ligand-free pocket volume (Å³)")
+    ax.set_xlim(-8, 118); ax.margins(y=.28)
+    ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+
+    # one text axes rather than a stat cell plus a block: with a tall
+    # narrow column the two kept overrunning each other
+    tx = fig.add_axes([0.735, 0.185, 0.25, 0.50]); tx.axis("off")
+    tx.text(0, 1.0, f"r = {rp:+.2f}", ha="left", va="top", fontsize=46,
+            fontweight="bold", color=TEAL, transform=tx.transAxes)
+    tx.text(0, 0.79,
+            "between pocket volume and\nligand size, across eight\n"
+            "ligand-bound structures.\n\n"
+            "A 5.3× range of bound ligand\nproduces no systematic\n"
+            "change in pocket size.\n\n"
+            "The largest ligand sits in a\npocket 64 Å³ smaller than\n"
+            "the smallest one's.",
+            ha="left", va="top", fontsize=14, color=INK2,
+            transform=tx.transAxes, linespacing=1.55)
+
+    fig.text(0.095, 0.075,
+             "Each protomer superposed on 39 pocket-lining Cα of one "
+             "reference, so the sphere sits identically in every structure. "
+             "Volume is not\ncorrelated with resolution either (r = −0.05). "
+             "Engineered MexB chimeras excluded.",
+             fontsize=14, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P4_ligand_size_vs_pocket")
+
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
     panel_occlusion()
     panel_exit_route()
+    panel_ligand_size()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
