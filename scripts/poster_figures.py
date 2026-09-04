@@ -384,8 +384,8 @@ def panel_ligand_size():
     xs = np.linspace(D.min() - 4, D.max() + 4, 10)
     ax.plot(xs, np.polyval(np.polyfit(D, V, 1), xs), color=TEAL,
             linewidth=2, linestyle=(0, (5, 4)), alpha=.55, zorder=1)
-    ax.set_xlabel("depth into the pocket from the periplasmic entrance "
-                  "(\u00c5)", labelpad=26)
+    ax.set_xlabel("depth into the porter domain from the periplasmic "
+                  "entrance (\u00c5)", labelpad=26)
     ax.set_ylabel("ligand-free pocket volume (\u00c5\u00b3)")
     ax.set_xlim(25, 80); ax.margins(y=.30)
     ax.set_xticks([30, 40, 50, 60, 70])
@@ -394,7 +394,7 @@ def panel_ligand_size():
                 xycoords="axes fraction", xytext=(2, -42),
                 textcoords="offset points", ha="left", fontsize=13,
                 color=INK2, fontstyle="italic")
-    ax.annotate("deeper into the distal pocket \u2192", (1.0, 0.0),
+    ax.annotate("deeper into the porter domain \u2192", (1.0, 0.0),
                 xycoords="axes fraction", xytext=(-2, -42),
                 textcoords="offset points", ha="right", fontsize=13,
                 color=INK2, fontstyle="italic")
@@ -414,7 +414,10 @@ def panel_ligand_size():
     fig.text(0.095, 0.085,
              "Depth is arc length back from the periplasmic mouth along the "
              "widest ligand-free entry channel of the reference protomer, "
-             "to the ligand centroid;\nmarker area tracks ligand size. Each "
+             "to the ligand centroid. The proximal and\ndistal pockets both "
+             "lie at the far end of that channel, so depth separates pocket "
+             "from entry cleft but not one pocket from the other.\nMarker "
+             "area tracks ligand size. Each "
              "protomer superposed on 39 pocket-lining C\u03b1 of one "
              "reference, so the measuring sphere sits\nidentically in every "
              "structure. Engineered MexB chimeras excluded.",
@@ -520,6 +523,105 @@ def panel_protomer_states():
     save(fig, "P5_protomer_states")
 
 
+# ------------------------------------------------------------------- P6
+def panel_path_occupancy():
+    """Where every bound ligand sits along the transport path."""
+    rows = R("ligand_environment.csv")
+    if not rows:
+        return
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+    NAME = {"21FP": "chloramphenicol", "Amp_MexB_20260826": "ampicillin",
+            "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
+            "3W9J": "EPI", "6IIA": "LMNG",
+            "MexB_DDM_3_20260730": "DDM \u00d73"}
+    SITECOL = {"DBP": APOLAR, "PBP": POLAR, "both": "#7a8891",
+               "neither": "#b9c3c8"}
+
+    prot = {}
+    for r in rows:
+        prot.setdefault((r["pdb"], r["chain"]), []).append(r)
+    for v in prot.values():
+        v.sort(key=lambda r: float(r["depth_from_entrance_A"]))
+    order = sorted(prot, key=lambda k: (
+        -(float(prot[k][-1]["depth_from_entrance_A"])
+          - float(prot[k][0]["depth_from_entrance_A"])),
+        -float(prot[k][-1]["depth_from_entrance_A"])))
+
+    fig = plt.figure(figsize=(10.6, 7.0))
+    title(fig, "Three ligands, three stations of one pathway",
+          "Every bound ligand in every MexB structure, placed on the same "
+          "entry channel.")
+    ax = fig.add_axes([0.245, 0.235, 0.50, 0.47])
+
+    for i, k in enumerate(order):
+        y = len(order) - 1 - i
+        grp = prot[k]
+        d = [float(r["depth_from_entrance_A"]) for r in grp]
+        mine = k[0] in OURS
+        if len(grp) > 1:
+            ax.plot([min(d), max(d)], [y, y], color=BINDING, linewidth=5,
+                    alpha=.30, solid_capstyle="round", zorder=2)
+        for r, x in zip(grp, d):
+            ax.scatter([x], [y], s=80 + 2.6 * int(r["heavy_atoms"]),
+                       color=SITECOL.get(r["site"], "#b9c3c8"), zorder=4,
+                       edgecolor=INK if mine else "white",
+                       linewidth=2.0 if mine else 1.6)
+        lab = f"{NAME.get(k[0], k[0])}  {k[1]}"
+        ax.annotate(lab, (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-12, -5), textcoords="offset points", ha="right",
+                    fontsize=14, color=BINDING if mine else INK2,
+                    fontweight="bold" if mine else "normal")
+
+    ax.set_yticks([]); ax.set_ylim(-0.8, len(order) - 0.2)
+    ax.set_xlim(25, 70)
+    ax.set_xlabel("depth into the porter domain (\u00c5 from the "
+                  "periplasmic entrance)", labelpad=12)
+    ax.xaxis.label.set_size(16)
+    ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
+    for sp in ("left",):
+        ax.spines[sp].set_visible(False)
+
+    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=12,
+                          markerfacecolor=SITECOL[s], markeredgecolor="white",
+                          markeredgewidth=1.6,
+                          label={"DBP": "distal pocket",
+                                 "PBP": "proximal pocket",
+                                 "both": "spans both"}[s])
+               for s in ("DBP", "PBP", "both")]
+    fig.legend(handles=handles, loc="upper center", ncol=3,
+               bbox_to_anchor=(0.50, 0.775), fontsize=15,
+               handletextpad=0.35, columnspacing=1.8)
+
+    multi = [r for r in rows if int(r["ligands_in_protomer"]) > 1]
+    span = 0.0
+    if multi:
+        dd = [float(r["depth_from_entrance_A"]) for r in multi]
+        span = max(dd) - min(dd)
+    tx = fig.add_axes([0.775, 0.235, 0.215, 0.47]); tx.axis("off")
+    tx.text(0, 1.0, f"{span:.0f} \u00c5", ha="left", va="top", fontsize=44,
+            fontweight="bold", color=BINDING, transform=tx.transAxes)
+    tx.text(0, 0.845,
+            "of the transport path is\noccupied at once in the\n"
+            "DDM \u00d73 structure. Every\nother MexB structure,\n"
+            "published or ours, holds\none ligand at one point.\n\n"
+            "The three engage ten\naromatic residues between\n"
+            "them, but largely different\nones: only F615, F617 and\n"
+            "F628 are shared by any\ntwo, and none by all three.",
+            ha="left", va="top", fontsize=13.5, color=INK2,
+            transform=tx.transAxes, linespacing=1.5)
+
+    fig.text(0.055, 0.10,
+             "Marker area tracks ligand size; pocket assignment is by which "
+             "lining residues each ligand actually contacts at 4.5 \u00c5, "
+             "not by depth - the proximal\nand distal pockets both lie at "
+             "the far end of this channel, so depth alone does not separate "
+             "them. Ligands are scored one at a time, which is what makes\n"
+             "the multi-ligand protomer comparable with the single-ligand "
+             "ones. Analyses after Lawrence et al., Nat Commun 2025;16:10601.",
+             fontsize=13.5, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P6_path_occupancy")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -527,6 +629,7 @@ def main():
     panel_exit_route()
     panel_ligand_size()
     panel_protomer_states()
+    panel_path_occupancy()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
