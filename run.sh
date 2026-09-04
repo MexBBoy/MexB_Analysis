@@ -70,6 +70,8 @@ python3 scripts/lining_conservation.py || echo "(skipped - no network?)"
 # APBS: ~45 s and several GB per protomer, so a subset. SKIP_APBS=1 to skip.
 [ -n "${SKIP_APBS}" ] || python3 scripts/pocket_electrostatics.py || echo "(APBS step failed)"
 
+python3 scripts/multiligand_survey.py || echo "(skipped - no network?)"
+
 python3 scripts/poster_figures.py
 
 echo

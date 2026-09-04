@@ -900,6 +900,115 @@ def panel_pocket_physchem():
     save(fig, "P9_pocket_physchem")
 
 
+# ------------------------------------------------------------------ P10
+def panel_mechanism():
+    """AcrB's sequential handoff against the chain seen here.
+
+    Deliberately a schematic: AcrB coordinates are not measured in this
+    project's reference frame, so the stations are drawn as named landmarks
+    rather than on a metric axis. Every number annotated on it is measured -
+    the DDM depths and contact distances from ligand_environment.csv and
+    multiligand_survey.csv, the doxorubicin separation from AcrB 4DX7.
+    """
+    env = R("ligand_environment.csv")
+    ml = R("multiligand_survey.csv")
+    multi = sorted((float(r["depth_from_entrance_A"]) for r in env
+                    if int(r["ligands_in_protomer"]) > 1))
+    ours = next((r for r in ml if r["structure"].startswith("MexB_DDM")), None)
+    if len(multi) < 3 or ours is None:
+        return
+    touch = float(ours["closest_approach_A"])
+    span = multi[-1] - multi[0]
+
+    STATIONS = ["periplasmic\nentrance", "proximal\npocket",
+                "switch\nloop", "distal\npocket", "exit to\nfunnel"]
+    XS = [0.6, 2.1, 3.5, 4.9, 6.4]
+
+    fig = plt.figure(figsize=(10.6, 8.0))
+    title(fig, "One substrate at a time, or a chain across the path?",
+          "The canonical RND mechanism against what the three-ligand "
+          "structure shows. Schematic; annotated values are measured.")
+    statcell(fig, [0.055, 0.775, 0.40, 0.075], f"{span:.0f} \u00c5",
+             "of the path occupied at once, as one\ncontiguous chain of "
+             "three molecules", BINDING, big_size=38)
+    statcell(fig, [0.535, 0.775, 0.44, 0.075], "5.7 \u00c5",
+             "between the two doxorubicin of AcrB 4DX7 \u2014\n"
+             "multi-copy binding, but stacked at one site", ACCESS,
+             big_size=38)
+
+    ax = fig.add_axes([0.055, 0.225, 0.90, 0.45])
+    ax.set_xlim(-0.55, 7.5); ax.set_ylim(-2.0, 3.35)
+    ax.axis("off")
+
+    def channel(y0):
+        """A tapering channel silhouette behind one row of stations."""
+        xs = np.linspace(-0.1, 7.1, 200)
+        half = 0.60 - 0.26 * (xs - xs.min()) / (xs.max() - xs.min())
+        ax.fill_between(xs, y0 - half, y0 + half, color="#eef4f6",
+                        zorder=0, linewidth=0)
+        for sgn in (1, -1):
+            ax.plot(xs, y0 + sgn * half, color="#c7d5da", linewidth=1.6,
+                    zorder=1)
+
+    # ---- top row: AcrB, sequential
+    ax.text(-0.5, 3.20, "AcrB and the canonical RND cycle", fontsize=18,
+            fontweight="bold", color=ACCESS, va="top")
+    channel(2.45)
+    for k, x in enumerate(XS[1:4]):
+        ax.scatter([x], [2.45], s=620, color=ACCESS, alpha=[.28, .55, 1.0][k],
+                   zorder=4, edgecolor="white", linewidth=2.2)
+        ax.annotate(f"t{k + 1}", (x, 2.45), ha="center", va="center",
+                    fontsize=15, color="white", fontweight="bold", zorder=5)
+        if k < 2:
+            ax.annotate("", (XS[2 + k] - 0.40, 2.45), (x + 0.40, 2.45),
+                        arrowprops=dict(arrowstyle="-|>", color=ACCESS,
+                                        lw=2.6, shrinkA=0, shrinkB=0))
+    ax.text(-0.5, 1.78, "one substrate per protomer, handed forward",
+            fontsize=15, color=INK2, fontstyle="italic", va="center")
+
+    # ---- bottom row: this work, simultaneous chain
+    ax.text(-0.5, 1.32, "MexB with three DDM bound (this work)", fontsize=18,
+            fontweight="bold", color=BINDING, va="center")
+    channel(0.25)
+    for k, x in enumerate(XS[1:4]):
+        ax.scatter([x], [0.25], s=620, color=BINDING, zorder=4,
+                   edgecolor="white", linewidth=2.2)
+        ax.annotate(f"{multi[k]:.0f} \u00c5", (x, 0.25),
+                    textcoords="offset points", xytext=(0, 26), ha="center",
+                    fontsize=14, color=BINDING, fontweight="bold", zorder=5)
+        if k < 2:
+            ax.plot([x + 0.28, XS[2 + k] - 0.28], [0.25, 0.25],
+                    color=BINDING, linewidth=7, alpha=.38, zorder=2,
+                    solid_capstyle="round")
+    ax.annotate(f"all three present at once, closest approach "
+                f"{touch:.1f} \u00c5",
+                ((XS[1] + XS[3]) / 2, 0.25), textcoords="offset points",
+                xytext=(0, -36), ha="center", fontsize=14.5, color=BINDING,
+                fontweight="bold")
+
+    for x, lab in zip(XS, STATIONS):
+        ax.annotate(lab, (x, -0.95), ha="center", va="top", fontsize=13.5,
+                    color=INK2, linespacing=1.25)
+    ax.annotate("depth into the porter domain, measured along the entry "
+                "channel", (XS[2], -1.72), ha="center", va="top",
+                fontsize=13, color=INK2, fontstyle="italic")
+
+    fig.text(0.055, 0.135,
+             "Multi-copy binding is not itself new: AcrB 4DX7 holds two "
+             "doxorubicin molecules in one protomer. They are a stack at a "
+             "single site, 5.7 \u00c5 apart. Across 16\nAcrB entries no "
+             "protomer holds a contiguous chain of ligands of any length. "
+             "The claim here is the arrangement, not the count. DDM is a "
+             "detergent, so this shows that the\npath can be occupied at "
+             "three stations simultaneously, not that substrates are "
+             "transported as a chain - but the three engage the same "
+             "aromatics that bind\nchloramphenicol, the pyridopyrimidine "
+             "inhibitor and LMNG, and the other detergent structures "
+             "(CYMAL-7, LMNG) each occupy one station only.",
+             fontsize=13.5, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P10_mechanism_contrast")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -911,6 +1020,7 @@ def main():
     panel_rotamers()
     panel_conservation()
     panel_pocket_physchem()
+    panel_mechanism()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
