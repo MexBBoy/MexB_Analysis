@@ -798,6 +798,78 @@ def panel_conservation():
     save(fig, "P8_lining_conservation")
 
 
+# ------------------------------------------------------------------- P9
+def panel_pocket_physchem():
+    """Lipophilicity and electrostatics of the site, by state."""
+    pk = R("protomer_pockets.csv")
+    el = R("pocket_electrostatics.csv")
+    if not pk or not el:
+        return
+    STATES = ("Access", "Binding", "Extrusion")
+
+    def col(rows, key, st):
+        out = []
+        for r in rows:
+            if r["state_call"] != st:
+                continue
+            try:
+                out.append(float(r[key]))
+            except (KeyError, TypeError, ValueError):
+                pass
+        return np.array(out)
+
+    fig = plt.figure(figsize=(10.6, 6.6))
+    title(fig, "The site changes chemistry around the cycle, not just size",
+          "Lipophilicity and electrostatic potential of the same substrate "
+          "site, measured per protomer.")
+    specs = [(pk, "lipophilic_index_pct",
+              "lipophilic index of the\nsite surface (% C or S)", "{:.0f}%"),
+             (el, "mean_potential_kT_e",
+              "mean electrostatic\npotential (kT/e)", "{:+.1f}")]
+    gs = fig.add_gridspec(1, 2, left=0.105, right=0.985, top=0.60,
+                          bottom=0.235, wspace=0.36)
+    for k, (rows, key, ylab, f) in enumerate(specs):
+        ax = fig.add_subplot(gs[0, k])
+        for i, st in enumerate(STATES):
+            v = col(rows, key, st)
+            if not len(v):
+                continue
+            x = np.full(len(v), i) + np.linspace(-.18, .18, len(v))
+            ax.scatter(x, v, s=110, color=STATE_COLOR[st], zorder=3,
+                       edgecolor="white", linewidth=1.5, alpha=.8)
+            m = float(v.mean())
+            ax.plot([i - .32, i + .32], [m, m], color=INK, linewidth=4,
+                    solid_capstyle="round", zorder=4)
+            ax.annotate(f.format(m), (i - .34, m),
+                        textcoords="offset points", xytext=(-6, -8),
+                        ha="right", fontsize=20, fontweight="bold",
+                        color=STATE_COLOR[st])
+        if key.startswith("mean_potential"):
+            ax.axhline(0, color="#9fb0b8", linewidth=1.6,
+                       linestyle=(0, (5, 4)))
+        ax.set_xticks(range(len(STATES)))
+        ax.set_xticklabels(STATES, fontsize=17)
+        ax.set_xlim(-.95, len(STATES) - .4)
+        ax.set_ylabel(ylab, labelpad=8, fontsize=16)
+        ax.margins(y=.24)
+        ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+
+    fig.text(0.105, 0.135,
+             "The site is electronegative in every protomer of every "
+             "structure - it never once comes out positive - and most so in "
+             "Access, the state that faces the\nperiplasmic entrance. It is "
+             "at its most hydrophobic in Binding and its least in Extrusion, "
+             "where the substrate is released. Lipophilic index over 48 "
+             "protomers;\npotential over 34, one per state per structure "
+             "plus all six of ours (PDB2PQR AMBER charges, APBS linearised "
+             "PB, pdie 2 / sdie 78.54, 298 K). Both are\nsampled over the "
+             "free points of the same 16 \u00c5 sphere used for volume. "
+             "Spread within a state is wide, so read the ordering, not the "
+             "individual values.",
+             fontsize=13.5, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P9_pocket_physchem")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -808,6 +880,7 @@ def main():
     panel_path_occupancy()
     panel_rotamers()
     panel_conservation()
+    panel_pocket_physchem()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
