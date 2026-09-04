@@ -65,6 +65,8 @@ python3 scripts/ligand_environment.py || echo "(skipped - no network?)"
 
 python3 scripts/aromatic_rotamers.py || echo "(skipped - no network?)"
 
+python3 scripts/lining_conservation.py || echo "(skipped - no network?)"
+
 python3 scripts/poster_figures.py
 
 echo

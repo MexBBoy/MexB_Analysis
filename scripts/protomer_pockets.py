@@ -107,6 +107,27 @@ def main():
                 vols[r], tots[r] = site_volume(atoms, ref_centre, radius=r,
                                                step=0.5, probe=1.4)
 
+            # Lipophilic index of the site surface, after the pocket
+            # lipophilicity of Ramaswamy et al. (Front Microbiol 2018) but
+            # computed directly rather than with the PyMOL MLP plugin: sample
+            # the free space in the sphere, take the protein atom nearest each
+            # free point that is close enough to line it, and report the
+            # fraction of that lining that is carbon or sulfur. No borrowed
+            # parameter table, and it is the same quantity the poster's
+            # polarity panel shows qualitatively.
+            g = np.arange(-16.0, 16.0 + 1e-9, 0.8)
+            G = np.stack(np.meshgrid(g, g, g, indexing="ij"), -1).reshape(-1, 3)
+            G = G[np.linalg.norm(G, axis=1) <= 16.0] + ref_centre
+            dd, ii = tree.query(G, k=1)
+            free = dd - rad[ii] >= 1.4          # not inside any atom
+            near = dd - rad[ii] <= 5.0          # close enough to be lined by it
+            sel = free & near
+            if sel.sum() >= 50:
+                el = np.array([a.element.strip().upper() for a in prot])[ii[sel]]
+                lipo = float(np.isin(el, ("C", "S")).mean() * 100)
+            else:
+                lipo = float("nan")
+
             n_heavy, names = lig_by_chain.get(ch, (0, set()))
             ok = (vols[16.0] is not None and tots[16.0] > 0
                   and vols[16.0] >= 0.10 * tots[16.0])
@@ -120,7 +141,7 @@ def main():
                          pn_best, pc_best, agree, fmt(pn), fmt(pc),
                          "+".join(sorted(names)) or "none", n_heavy,
                          fmt(fit), len(common), fmt(centre_clear),
-                         "yes" if ok else "no"]
+                         "yes" if ok else "no", fmt(lipo, 1)]
                         + [fmt(tots[r], 0) for r in RADII]
                         + [fmt(vols[r], 0) if ok else "" for r in RADII])
 
@@ -129,13 +150,14 @@ def main():
                "PN_nearest", "PC_nearest", "diagnostics_agree",
                "PN1_PN2_sep_A", "PC1_PC2_sep_A", "pocket_ligands",
                "ligand_heavy_atoms", "fit_rmsd_A", "n_lining_CA",
-               "centre_clearance_A", "connected_volume_measurable"]
+               "centre_clearance_A", "connected_volume_measurable",
+               "lipophilic_index_pct"]
               + [f"free_volume_r{int(r)}_A3" for r in RADII]
               + [f"connected_volume_r{int(r)}_A3" for r in RADII], rows)
 
     print("\n  --- free volume in a 16 A sphere, by state ---")
     for st in ("Access", "Binding", "Extrusion"):
-        v = np.array([float(r[17]) for r in rows if r[3] == st])
+        v = np.array([float(r[18]) for r in rows if r[3] == st])
         if len(v) < 2:
             continue
         print(f"    {st:9} n={len(v):2d}  {v.mean():.0f} +- {v.std(ddof=1):.0f}"
@@ -143,9 +165,9 @@ def main():
     ours = [r for r in rows if r[0].startswith(("Amp_", "MexB_"))]
     print("\n  --- our two structures against the published spread ---")
     for r in ours:
-        same = [float(x[17]) for x in rows if x[3] == r[3]
+        same = [float(x[18]) for x in rows if x[3] == r[3]
                 and not x[0].startswith(("Amp_", "MexB_"))]
-        v = float(r[17])
+        v = float(r[18])
         if len(same) >= 2:
             z = (v - np.mean(same)) / np.std(same, ddof=1)
             print(f"    {r[0]:22} {r[2]} {r[3]:9} {v:6.0f} A^3  "
@@ -153,6 +175,17 @@ def main():
         else:
             print(f"    {r[0]:22} {r[2]} {r[3]:9} {v:6.0f} A^3  "
                   f"(only {len(same)} published {r[3]} protomer to compare)")
+    print("\n  --- lipophilic index of the site surface, by state ---")
+    for st in ("Access", "Binding", "Extrusion"):
+        v = np.array([float(r[16]) for r in rows
+                      if r[3] == st and r[16] not in ("", "NA")])
+        if len(v) < 2:
+            continue
+        print(f"    {st:9} n={len(v):2d}  {v.mean():.1f}% +- "
+              f"{v.std(ddof=1):.1f}%  (range {v.min():.1f}-{v.max():.1f})")
+    mine = [r for r in rows if r[0].startswith(("Amp_", "MexB_"))]
+    for r in mine:
+        print(f"    {r[0]:22} {r[2]} {r[3]:9} {float(r[16]):.1f}%")
     print("\nwrote results/tables/protomer_pockets.csv")
 
 

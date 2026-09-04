@@ -719,6 +719,85 @@ def panel_rotamers():
     save(fig, "P7_aromatic_rotamers")
 
 
+# ------------------------------------------------------------------- P8
+def panel_conservation():
+    """Is the pocket lining conserved scaffold or specificity tuning?"""
+    rows = R("lining_conservation.csv")
+    if not rows:
+        return
+    key = [k for k in rows[0] if k.startswith("homologues_")
+           and k != "homologues_aromatic"][0]
+    NAMES = ["MexD", "MexF", "MexY", "AcrB", "AcrF", "MdtF", "AcrD"]
+    AMINO = {"MexY", "AcrD"}          # aminoglycoside-preferring
+    AROM = set("FYWH")
+
+    fig = plt.figure(figsize=(10.6, 6.8))
+    title(fig, "The aromatic core is family scaffold; the outer rim is not",
+          "Pocket-lining residues of MexB against seven RND transporters, "
+          "aligned to MexB.")
+
+    # --- left: aromatic vs non-aromatic identity
+    ax = fig.add_axes([0.095, 0.255, 0.30, 0.45])
+    groups = [("aromatic", [r for r in rows if r["mexb_aromatic"] == "yes"],
+               APOLAR),
+              ("everything\nelse", [r for r in rows
+                                    if r["mexb_aromatic"] == "no"], POLAR)]
+    for i, (lab, grp, col) in enumerate(groups):
+        v = np.array([float(r["percent_identical"]) for r in grp])
+        x = np.full(len(v), i) + np.linspace(-.19, .19, len(v))
+        ax.scatter(x, v, s=110, color=col, zorder=3, edgecolor="white",
+                   linewidth=1.6, alpha=.85)
+        m = float(v.mean())
+        ax.plot([i - .32, i + .32], [m, m], color=INK, linewidth=4,
+                solid_capstyle="round", zorder=4)
+        ax.annotate(f"{m:.0f}%", (i, m), textcoords="offset points",
+                    xytext=(0, 14), ha="center", fontsize=23,
+                    fontweight="bold", color=col)
+    ax.set_xticks([0, 1])
+    ax.set_xticklabels([g[0] for g in groups], fontsize=17)
+    ax.set_xlim(-.6, 1.6); ax.margins(y=.22)
+    ax.set_ylabel("identity to MexB across the\nseven transporters (%)",
+                  labelpad=8, fontsize=16)
+    ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+
+    # --- right: aromatic scaffold retained, per transporter
+    ax2 = fig.add_axes([0.505, 0.255, 0.44, 0.45])
+    arom_rows = [r for r in rows if r["mexb_aromatic"] == "yes"]
+    n = len(arom_rows)
+    keep = []
+    for k, nm in enumerate(NAMES):
+        kept = sum(1 for r in arom_rows if r[key][k] in AROM)
+        keep.append((nm, kept))
+    keep.sort(key=lambda x: -x[1])
+    ys = np.arange(len(keep))[::-1]
+    for (nm, kept), y in zip(keep, ys):
+        col = WARN if nm in AMINO else TEAL
+        ax2.barh([y], [kept], color=col, height=.62, zorder=3,
+                 alpha=.9 if nm in AMINO else .75)
+        ax2.annotate(f"{kept}/{n}", (kept, y), textcoords="offset points",
+                     xytext=(8, -6), fontsize=15, color=col,
+                     fontweight="bold")
+    ax2.set_yticks(ys)
+    ax2.set_yticklabels([nm + (" *" if nm in AMINO else "")
+                         for nm, _ in keep], fontsize=15)
+    ax2.set_xlim(0, n + 1.6)
+    ax2.set_xlabel(f"MexB pocket aromatics still aromatic "
+                   f"(of {n})", fontsize=16)
+    ax2.grid(axis="y", visible=False); ax2.set_axisbelow(True)
+
+    fig.text(0.095, 0.135,
+             "*  MexY and AcrD prefer aminoglycosides - polar, cationic "
+             "substrates MexB exports poorly - and they are the two that "
+             "lose the aromatic core.\nAcross the three stations the DDM "
+             "\u00d73 ligands occupy, conservation falls as they approach "
+             "the entrance: deepest 86%, middle 79%, outermost 55%. The "
+             "deep\nstation is built from family-invariant residues (Y327, "
+             "F628 identical in all seven; F610, F615 in six); the outer "
+             "one is not (F573 identical in none).",
+             fontsize=13.5, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P8_lining_conservation")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -728,6 +807,7 @@ def main():
     panel_protomer_states()
     panel_path_occupancy()
     panel_rotamers()
+    panel_conservation()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
