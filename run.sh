@@ -59,6 +59,8 @@ python3 scripts/published_pockets.py || echo "(skipped - no network?)"
 
 echo
 echo "### poster panels"
+python3 scripts/protomer_pockets.py || echo "(skipped - no network?)"
+
 python3 scripts/poster_figures.py
 
 echo

@@ -1,0 +1,40 @@
+pdb,description,chain,state_call,state_L1_dev,PN_nearest,PC_nearest,diagnostics_agree,PN1_PN2_sep_A,PC1_PC2_sep_A,pocket_ligands,ligand_heavy_atoms,fit_rmsd_A,n_lining_CA,centre_clearance_A,connected_volume_measurable,free_volume_r14_A3,free_volume_r16_A3,free_volume_r18_A3,free_volume_r20_A3,connected_volume_r14_A3,connected_volume_r16_A3,connected_volume_r18_A3,connected_volume_r20_A3
+Amp_MexB_20260826,"ampicillin (2.19 A, this work)",D,Binding,2.15,Access,Binding,no,26.30,28.94,none,0,1.73,39,-0.45,yes,997,1561,2352,3652,972,1512,2283,3400
+Amp_MexB_20260826,"ampicillin (2.19 A, this work)",E,Binding,1.20,Binding,Binding,yes,27.82,28.38,ZZ7,25,0.00,39,0.51,yes,1467,1969,2926,4335,1452,1850,2902,4282
+Amp_MexB_20260826,"ampicillin (2.19 A, this work)",F,Extrusion,0.43,Extrusion,Extrusion,yes,29.96,24.22,none,0,2.49,39,1.03,yes,1002,1638,2490,3757,927,1499,2311,3364
+MexB_DDM_3_20260730,"DDM x3 (2.11 A, this work)",D,Access,1.25,Access,Access,yes,26.23,27.18,none,0,1.61,39,-0.35,yes,753,1158,1817,3007,709,1023,1521,2352
+MexB_DDM_3_20260730,"DDM x3 (2.11 A, this work)",E,Binding,1.09,Binding,Binding,yes,27.82,28.49,LMT,105,0.60,39,0.67,yes,1664,2102,2977,4349,1649,2068,2875,4104
+MexB_DDM_3_20260730,"DDM x3 (2.11 A, this work)",F,Extrusion,0.24,Extrusion,Extrusion,yes,29.58,24.51,none,0,2.21,39,-0.47,yes,1140,1734,2643,4016,1094,1667,2555,3695
+21FO,CYMAL-7 (2.30 A),A,Access,0.85,Access,Access,yes,26.10,25.75,none,0,1.70,39,-0.02,yes,706,1102,1760,2911,647,868,1440,2282
+21FO,CYMAL-7 (2.30 A),B,Binding,1.25,Binding,Binding,yes,27.61,28.54,CA7,36,0.79,39,0.69,yes,1645,2148,3016,4385,1627,2037,2997,4344
+21FO,CYMAL-7 (2.30 A),C,Extrusion,0.67,Extrusion,Extrusion,yes,29.52,24.11,none,0,2.14,39,-0.40,yes,1126,1722,2640,4011,1090,1660,2495,3594
+21FP,chloramphenicol (2.89 A),A,Access,0.52,Access,Access,yes,26.18,26.00,none,0,1.70,39,-0.10,yes,769,1138,1825,3005,726,964,1686,2590
+21FP,chloramphenicol (2.89 A),B,Binding,0.82,Binding,Binding,yes,27.73,28.85,CLM,20,1.08,39,0.88,yes,1741,2233,3121,4592,1723,2132,3002,4284
+21FP,chloramphenicol (2.89 A),C,Extrusion,0.46,Extrusion,Extrusion,yes,29.54,24.31,none,0,2.16,39,-0.54,yes,1207,1804,2702,4021,1188,1744,2624,3726
+2V50,DDM x1 (3.00 A),A,Access,0.94,Access,Access,yes,25.99,25.77,none,0,1.76,37,-0.12,yes,996,1425,2069,3266,927,1205,2002,2956
+2V50,DDM x1 (3.00 A),B,Binding,1.29,Binding,Binding,yes,27.51,28.61,LMT,35,1.19,39,-0.02,yes,1588,2036,2857,4154,1571,1953,2677,3695
+2V50,DDM x1 (3.00 A),C,Extrusion,0.64,Extrusion,Extrusion,yes,29.40,24.26,none,0,2.24,39,-0.49,yes,1092,1604,2422,3797,1062,1539,2330,3490
+2V50,DDM x1 (3.00 A),D,Access,0.99,Access,Access,yes,25.96,25.75,none,0,1.75,37,-0.05,yes,796,1265,2016,3324,702,914,1660,3002
+2V50,DDM x1 (3.00 A),E,Binding,1.14,Binding,Binding,yes,27.51,28.75,LMT,35,0.43,36,0.08,yes,2000,2741,3829,5326,1986,2671,3703,5302
+2V50,DDM x1 (3.00 A),F,Extrusion,0.63,Extrusion,Extrusion,yes,29.40,24.27,none,0,2.24,39,-0.48,yes,1091,1604,2422,3797,1061,1539,2329,3490
+3W9I,DDM x1 (2.71 A),A,Access,0.68,Access,Access,yes,25.88,26.14,none,0,1.67,39,-0.06,yes,670,1068,1710,2852,627,898,1545,2378
+3W9I,DDM x1 (2.71 A),B,Binding,1.44,Binding,Binding,yes,27.44,28.52,LMT,35,0.83,39,0.81,yes,1816,2350,3244,4638,1791,2209,3081,4198
+3W9I,DDM x1 (2.71 A),C,Extrusion,1.02,Extrusion,Extrusion,yes,29.30,23.98,none,0,2.15,39,1.37,no,1054,1620,2530,3969,,,,
+3W9I,DDM x1 (2.71 A),D,Access,1.38,Access,Access,yes,25.87,25.45,none,0,1.79,39,-0.24,yes,643,1055,1681,2782,594,865,1519,2437
+3W9I,DDM x1 (2.71 A),E,Binding,1.54,Access,Binding,no,27.39,28.47,none,0,0.67,39,-0.40,yes,1696,2146,2939,4344,1681,2046,2464,3216
+3W9I,DDM x1 (2.71 A),F,Extrusion,0.96,Extrusion,Extrusion,yes,29.29,24.05,none,0,2.18,39,-0.45,yes,1124,1738,2648,4128,1105,1673,2548,3767
+3W9J,pyridopyrimidine EPI (3.15 A),A,Access,1.08,Access,Access,yes,25.96,25.66,none,0,1.68,39,-0.20,yes,682,1052,1671,2841,636,880,1512,2483
+3W9J,pyridopyrimidine EPI (3.15 A),B,Binding,1.41,Binding,Binding,yes,27.53,28.46,P9D,49,0.70,39,-0.09,yes,1494,1973,2783,4072,1479,1868,2709,3862
+3W9J,pyridopyrimidine EPI (3.15 A),C,Extrusion,0.73,Extrusion,Extrusion,yes,29.34,24.23,none,0,2.09,39,-0.51,yes,1176,1760,2637,4034,1131,1693,2540,3750
+3W9J,pyridopyrimidine EPI (3.15 A),D,Access,1.12,Access,Access,yes,26.01,25.57,none,0,1.70,39,-0.10,yes,652,1018,1626,2793,596,805,1349,2104
+3W9J,pyridopyrimidine EPI (3.15 A),E,Binding,1.73,Binding,Binding,yes,27.51,28.15,P9D,49,0.61,39,-0.19,yes,1424,1890,2716,4031,1411,1803,2594,3804
+3W9J,pyridopyrimidine EPI (3.15 A),F,Extrusion,0.79,Extrusion,Extrusion,yes,29.31,24.20,none,0,2.14,39,-0.38,yes,1152,1738,2587,3921,1079,1668,2499,3622
+6IIA,LMNG (2.91 A),A,Access,0.75,Access,Access,yes,25.89,26.05,none,0,1.67,39,-0.44,yes,658,1044,1670,2811,618,870,1470,2335
+6IIA,LMNG (2.91 A),B,Binding,1.51,Binding,Binding,yes,27.50,28.39,AV0,69,0.79,39,0.05,yes,1578,2109,3033,4448,1566,2008,2953,4218
+6IIA,LMNG (2.91 A),C,Extrusion,0.90,Extrusion,Extrusion,yes,29.37,24.03,none,0,2.08,39,1.25,no,1063,1612,2501,3892,,,,
+6IIA,LMNG (2.91 A),D,Access,1.27,Access,Access,yes,25.93,25.50,none,0,1.74,39,-0.32,yes,638,1046,1673,2786,592,861,1520,2449
+6IIA,LMNG (2.91 A),E,Binding,1.70,Binding,Binding,yes,27.44,28.26,AV0,69,0.69,39,-0.25,yes,1618,2045,2790,4128,1608,1956,2685,3890
+6IIA,LMNG (2.91 A),F,Extrusion,0.71,Extrusion,Extrusion,yes,29.42,24.17,none,0,2.13,39,-0.51,yes,1128,1719,2598,4034,1082,1624,2509,3712
+6T7S,apo (4.50 A),J,Binding,1.63,Binding,Access,no,28.13,27.63,none,0,1.30,39,-0.89,yes,1121,1607,2399,3671,1031,1497,2148,3163
+6T7S,apo (4.50 A),K,Access,1.77,Access,Extrusion,no,27.37,25.30,none,0,1.78,39,0.27,no,930,1342,1983,3097,,,,
+6T7S,apo (4.50 A),L,Access,1.73,Access,Access,yes,26.94,27.49,none,0,1.60,39,-0.16,no,1023,1512,2288,3542,,,,

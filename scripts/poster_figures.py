@@ -423,12 +423,110 @@ def panel_ligand_size():
 
 
 
+# ------------------------------------------------------------------- P5
+def panel_protomer_states():
+    """Pocket volume in all 39 protomers, grouped by conformational state."""
+    rows = R("protomer_pockets.csv")
+    if not rows:
+        return
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+    STATES = ("Access", "Binding", "Extrusion")
+
+    def num(r, k):
+        try:
+            return float(r[k])
+        except (KeyError, TypeError, ValueError):
+            return float("nan")
+
+    rows = [r for r in rows if r["state_call"] in STATES
+            and np.isfinite(num(r, "free_volume_r16_A3"))]
+    if not rows:
+        return
+
+    fig = plt.figure(figsize=(10.6, 6.8))
+    title(fig, "Every protomer, not just the ligand-bound one",
+          "Free volume at the substrate site in all three protomers of each "
+          "structure, measured in one common frame.")
+    ax = fig.add_axes([0.095, 0.245, 0.58, 0.44])
+
+    rng = np.random.default_rng(0)
+    stats = {}
+    for i, st in enumerate(STATES):
+        grp = [r for r in rows if r["state_call"] == st]
+        v = np.array([num(r, "free_volume_r16_A3") for r in grp])
+        stats[st] = v
+        pub = [(j, r) for j, r in enumerate(grp) if r["pdb"] not in OURS]
+        mine = [(j, r) for j, r in enumerate(grp) if r["pdb"] in OURS]
+        jit = rng.uniform(-.17, .17, len(grp))
+        col = STATE_COLOR[st]
+        for j, r in pub:
+            ax.scatter([i + jit[j]], [v[j]], s=110, color=col, alpha=.55,
+                       zorder=3, edgecolor="white", linewidth=1.6)
+        # fixed offsets: the six labels sit close to each other and to the
+        # mean bars, so automatic placement collides
+        OFF = {"MexB_DDM_3_20260730|D": (16, -17), "Amp_MexB_20260826|D": (16, -5),
+               "MexB_DDM_3_20260730|E": (10, 15), "Amp_MexB_20260826|E": (16, -14),
+               "MexB_DDM_3_20260730|F": (10, 15), "Amp_MexB_20260826|F": (14, -18)}
+        for j, r in mine:
+            ax.scatter([i + jit[j]], [v[j]], s=230, color=col, zorder=5,
+                       marker="D", edgecolor=INK, linewidth=1.8)
+            dx, dy = OFF.get(f"{r['pdb']}|{r['chain']}", (16, -5))
+            ax.annotate(SHORT.get(r["pdb"], r["pdb"]) + " " + r["chain"],
+                        (i + jit[j], v[j]), textcoords="offset points",
+                        xytext=(dx, dy), ha="left", fontsize=12.5, color=INK,
+                        zorder=7)
+        m = float(v.mean())
+        ax.plot([i - .33, i + .33], [m, m], color=INK, linewidth=4,
+                solid_capstyle="round", zorder=6)
+        ax.annotate(f"{m:.0f}", (i - .33, m), textcoords="offset points",
+                    xytext=(-6, -6), ha="right", fontsize=20,
+                    fontweight="bold", color=col)
+
+    ax.set_xticks(range(len(STATES)))
+    ax.set_xticklabels([f"{st}\n(n = {len(stats[st])})" for st in STATES],
+                       fontsize=18)
+    ax.set_xlim(-.62, len(STATES) - .38)
+    ax.set_ylabel("free volume at the substrate site (\u00c5\u00b3)",
+                  labelpad=10)
+    ax.margins(y=.16)
+    ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+
+    acc, bind, ext = (stats[s] for s in STATES)
+    tx = fig.add_axes([0.715, 0.245, 0.27, 0.44]); tx.axis("off")
+    tx.text(0, 1.0, f"{bind.mean() / acc.mean():.1f}\u00d7",
+            ha="left", va="top", fontsize=46, fontweight="bold",
+            color=BINDING, transform=tx.transAxes)
+    tx.text(0, 0.80,
+            "more room at the site in a\nBinding protomer than in an\n"
+            "Access one. The ordering is\nBinding > Extrusion > Access\n"
+            "in every structure.\n\n"
+            "Our six protomers all fall\ninside the published spread\n"
+            "for their state (largest\ndeparture 2.0 SD).",
+            ha="left", va="top", fontsize=14, color=INK2,
+            transform=tx.transAxes, linespacing=1.55)
+
+    fig.text(0.095, 0.105,
+             "One sphere fixed in the frame of the reference Binding "
+             "protomer; every protomer superposed on its 39 pocket-lining "
+             "C\u03b1, so the sphere sits at the\nsame anatomical position "
+             "throughout. In an Access or Extrusion protomer that is not "
+             "the protomer's own pocket as it would be defined in "
+             "isolation - it\nis how open the substrate site is at the "
+             "same place. 39 protomers from 9 structures; four of them "
+             "carry two trimers in the asymmetric unit. 22XK and 22XM "
+             "excluded -\nall six of their protomers fail the numbering "
+             "check, being engineered chimeras at ~40% identity.",
+             fontsize=13.5, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P5_protomer_states")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
     panel_occlusion()
     panel_exit_route()
     panel_ligand_size()
+    panel_protomer_states()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
