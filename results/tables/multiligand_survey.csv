@@ -1,0 +1,9 @@
+structure,chain,n_ligands,ligands,max_centroid_separation_A,closest_approach_A,one_contiguous_chain
+MexB_DDM_3 (this work),E,3,LMT,17.77,2.83,yes
+AcrB 1T9U,A,2,CPF,33.81,26.71,no
+AcrB 4DX5,A,6,D10+D12+LMT,48.61,7.51,no
+AcrB 4DX5,B,9,C14+D10+D12+LMT+LMU+MIY,72.50,3.80,no
+AcrB 4DX5,C,7,D10+D12+LMT+UND,47.26,3.57,no
+AcrB 4DX7,A,9,D10+D12+DM2+LMT,64.35,2.66,no
+AcrB 4DX7,B,6,D10+D12+DM2+LMT+LMU,67.33,5.81,no
+AcrB 4DX7,C,4,D10+D12+LMT,47.64,14.51,no
