@@ -622,6 +622,87 @@ def panel_path_occupancy():
     save(fig, "P6_path_occupancy")
 
 
+# ------------------------------------------------------------------- P7
+def panel_rotamers():
+    """chi1 of the pocket aromatics in every protomer."""
+    rows = R("aromatic_rotamers.csv")
+    if not rows:
+        return
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+    rows = [r for r in rows if r["chi1_deg"] and r["state_call"] in STATE_COLOR]
+    if not rows:
+        return
+    res = sorted({int(r["resseq"]) for r in rows})
+    nm = {int(r["resseq"]): r["resname"] for r in rows}
+
+    fig = plt.figure(figsize=(10.6, 7.2))
+    title(fig, "The pocket lining does not rearrange either",
+          "\u03c71 of every pocket aromatic, in all 39 protomers of all "
+          "nine structures.")
+    ax = fig.add_axes([0.135, 0.225, 0.60, 0.50])
+
+    for i, rid in enumerate(res):
+        y = len(res) - 1 - i
+        if i % 2 == 0:
+            ax.axhspan(y - .5, y + .5, color="#f4f7f8", zorder=0)
+        grp = [r for r in rows if int(r["resseq"]) == rid]
+        for r in grp:
+            x = float(r["chi1_deg"])
+            mine = r["pdb"] in OURS
+            col = STATE_COLOR[r["state_call"]]
+            if mine:
+                ax.scatter([x], [y], s=130, color=col, marker="D", zorder=5,
+                           edgecolor=INK, linewidth=1.5)
+            else:
+                ax.scatter([x], [y], s=70, color=col, alpha=.6, zorder=3,
+                           edgecolor="white", linewidth=1.1)
+    ax.set_yticks(range(len(res)))
+    ax.set_yticklabels([f"{nm[r]}{r}" for r in reversed(res)], fontsize=15)
+    ax.set_ylim(-.5, len(res) - .5)
+    ax.set_xlim(-185, 185)
+    ax.set_xticks([-180, -120, -60, 0, 60, 120, 180])
+    ax.set_xlabel("\u03c71 (degrees)", labelpad=10)
+    ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
+
+    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=11,
+                          markerfacecolor=c, markeredgecolor="white",
+                          markeredgewidth=1.4, label=s_)
+               for s_, c in STATE_COLOR.items()]
+    handles.append(plt.Line2D([], [], marker="D", linestyle="", markersize=11,
+                              markerfacecolor="#cfd8dc", markeredgecolor=INK,
+                              markeredgewidth=1.5, label="this work"))
+    fig.legend(handles=handles, loc="upper center", ncol=4,
+               bbox_to_anchor=(0.43, 0.815), fontsize=15,
+               handletextpad=0.35, columnspacing=1.5)
+
+    tx = fig.add_axes([0.765, 0.225, 0.225, 0.50]); tx.axis("off")
+    tx.text(0, 1.0, "9 of 10", ha="left", va="top", fontsize=40,
+            fontweight="bold", color=BINDING, transform=tx.transAxes)
+    tx.text(0, 0.855,
+            "pocket aromatics in the\nDDM \u00d73 protomer sit within\n"
+            "19\u00b0 of the published\nBinding mean. Three ligands\n"
+            "at once do not rotate the\nlining.\n\n"
+            "The exception, F664, is\n146\u00b0 out - but the "
+            "ampicillin\nprotomer does the same\nthing, so it tracks our "
+            "data,\nnot the ligand count, and\nneeds a density check.",
+            ha="left", va="top", fontsize=13.5, color=INK2,
+            transform=tx.transAxes, linespacing=1.45)
+
+    fig.text(0.055, 0.095,
+             "\u03c71 = N-CA-CB-CG, straight from the deposited "
+             "coordinates; points near -180 and +180 are the same rotamer, "
+             "split by the wrap-around. Residue 626 is a\nmethionine in "
+             "MexB, so the F626 of Lawrence et al. has no counterpart here. "
+             "F664 is otherwise strictly state-coupled - t in every "
+             "published Access\nprotomer, g+ in every Binding and Extrusion "
+             "one. Pocket volume (P4, P5) and lining rotamers together: the "
+             "site neither resizes nor rearranges for a\ndifferent or a "
+             "larger ligand. What changes is the conformational state, and "
+             "which stations along the path are occupied (P6).",
+             fontsize=13.5, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P7_aromatic_rotamers")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -630,6 +711,7 @@ def main():
     panel_ligand_size()
     panel_protomer_states()
     panel_path_occupancy()
+    panel_rotamers()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
