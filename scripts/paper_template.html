@@ -437,6 +437,129 @@ difference in the opposite direction (5632 against 5341&nbsp;&Aring;<sup>3</sup>
 find no evidence that the substrate pocket differs in size between the two reconstructions, which
 is what the 0.86&nbsp;&Aring; whole-protomer agreement already implied.</p>
 
+<h3>The pocket does not enlarge for larger ligands</h3>
+<p>The two reconstructions agree with each other, but agreement between two models of the same
+protein is a weak test of whether the substrate pocket responds to what is bound in it. We
+therefore extended the common-frame measurement to every MexB-containing entry in the Protein
+Data Bank. A full-text search returns §N_ENTRIES§ entries; 6TA5 contains no MexB chain and the
+engineered MexB&ndash;MexY chimeras 22XK and 22XM fail a residue-identity check at the pocket
+positions, being roughly 40% identical to MexB, leaving §N_STRUCT§ structures and §N_PROT§
+protomers. Each protomer was superposed on the §N_LINING§ pocket-lining C&alpha; of a single
+reference and the free volume measured with a sphere fixed in that reference frame, so the
+sphere occupies the same anatomical position throughout.</p>
+<p>Across the §N_BOUND§ ligand-bound protomers the bound ligands span a §LIG_RANGE§-fold range
+of size, from chloramphenicol at §LIG_MIN§ heavy atoms to three DDM molecules at §LIG_MAX§.
+Pocket volume is uncorrelated with that range (Pearson <i>r</i> = §R_SIZE§ at a 16&nbsp;&Aring;
+sphere; Fig.&nbsp;9). The two independent structures that contain the identical ligand, 2V50 and
+3W9I, differ by §NOISE§&nbsp;&Aring;<sup>3</sup> &mdash; more than any difference attributable to
+ligand size, and a fair estimate of the method's noise floor. Volume is likewise uncorrelated
+with how far into the porter domain the ligand sits (<i>r</i> = §R_DEPTH§).</p>
+
+<figure><img src="§FIG9§" alt="Scatter plot of ligand-free pocket volume against how far into the porter domain each bound ligand sits, for eight ligand-bound MexB structures">
+<figcaption><b>Fig. 9 | Pocket volume against ligand position.</b> Ligand-free site volume at a
+16&nbsp;&Aring; sphere for each ligand-bound MexB protomer, against the depth of the ligand
+centroid measured back along the reference entry channel from its periplasmic mouth. Points are
+coloured by substrate. The proximal and distal pockets both lie at the far end of that channel,
+so depth separates pocket from entry cleft but not one pocket from the other.</figcaption></figure>
+
+<p class="tcap"><b>Table 9 |</b> Ligand-free pocket volume across the published structures, at
+four sphere radii.</p>
+§T_PUB§
+
+<h3>Pocket size is set by the conformational state, not the cargo</h3>
+<p>The same measurement is not insensitive: applied to all §N_PROT§ protomers it separates the
+three conformational states cleanly (Fig.&nbsp;10). Free volume is §V_BIND§&nbsp;&Aring;<sup>3</sup>
+in binding protomers, §V_EXT§ in extrusion and §V_ACC§ in access, a §V_RATIO§-fold range between
+binding and access, and the ordering holds within every structure taken individually. All six
+protomers of our two reconstructions fall inside the published spread for their state, the
+largest departure being §WORST_LAB§ at §WORST_Z§ standard deviations.</p>
+<p>Two volume measures are reported because the first degenerates. A seed-based connected volume
+requires a free grid point at the sphere centre; the midpoint of the two pocket centroids lies
+inside an atom in most protomers, and the fallback to the nearest free voxel lands in an isolated
+cavity in §N_BUBBLE§ of §N_PROT§ protomers, returning a fraction of an &Aring;<sup>3</sup> that
+rounds to a plausible-looking zero. Those rows are flagged rather than reported. Total free
+volume within the sphere requires no seed, is defined for every protomer, and is what
+Fig.&nbsp;10 shows; the two measures give the same ordering.</p>
+
+<figure><img src="§FIG10§" alt="Dot plot of substrate-site free volume grouped by access, binding and extrusion conformational state across 48 protomers">
+<figcaption><b>Fig. 10 | Site volume by conformational state.</b> Free volume at the substrate
+site in every protomer of every MexB-containing PDB entry, grouped by the state called from the
+PN1&ndash;PN2 and PC1&ndash;PC2 cleft separations. Diamonds mark the six protomers of this work;
+bars are state means.</figcaption></figure>
+
+<h3>A multi-ligand structure occupies three stations of one pathway</h3>
+<p>Scoring each bound ligand separately, rather than each structure, makes the multi-ligand
+protomer comparable with the single-ligand ones. The three DDM molecules of the detergent
+structure sit at §ST1§, §ST2§ and §ST3§&nbsp;&Aring; along the entry channel, occupying
+§SPAN§&nbsp;&Aring; of the transport path simultaneously (Fig.&nbsp;11). Every other MexB
+structure, published or ours, holds one ligand at one point. The three engage §N_AROM_DDM§
+aromatic residues between them but largely different ones: only F615, F617 and F628 are shared
+by any two, and none by all three.</p>
+
+<figure><img src="§FIG11§" alt="Strip plot showing the depth of every bound ligand along the entry channel, one row per protomer">
+<figcaption><b>Fig. 11 | Ligand position along the transport path.</b> Every bound ligand in
+every MexB structure placed on the same reference entry channel, one row per protomer. Marker
+area tracks ligand size; colour gives which lining set the ligand contacts at 4.5&nbsp;&Aring;.
+Pocket labels follow the residue lists used here; other reports partition the same contacts
+differently.</figcaption></figure>
+
+<p class="tcap"><b>Table 10 |</b> Position and contact chemistry of every bound ligand.</p>
+§T_LIGENV§
+
+<h3>The lining does not rearrange either</h3>
+<p>A pocket can accept a different ligand by rotating its side chains at constant volume, so the
+&chi;<sub>1</sub> angles of the pocket aromatics were measured in every protomer (Fig.&nbsp;12).
+§W_ROT_OK§ of the §W_ROT§ aromatics in the multi-ligand protomer sit within §ROT_MAX§&deg; of the
+published binding-protomer mean: three ligands at once do not rotate the lining. The exception,
+§ROT_RES§, is §F664_DEV§&deg; away, but the ampicillin protomer departs by a similar amount in the same
+direction, so it tracks these two models rather than the ligand count and should not be quoted
+before a density check. §ROT_RES§ is otherwise strictly state-coupled across the published set.
+Residue 626 is a methionine in MexB, so the F626 that is central to the MdtF hydrophobic nook has
+no counterpart here.</p>
+
+<figure><img src="§FIG12§" alt="Strip plot of chi1 angles for ten pocket aromatic residues across all protomers, coloured by conformational state">
+<figcaption><b>Fig. 12 | Rotamers of the pocket aromatics.</b> &chi;<sub>1</sub> = N&ndash;CA&ndash;CB&ndash;CG
+for each pocket aromatic in every protomer, coloured by conformational state; diamonds mark this
+work. Points near &minus;180&deg; and +180&deg; are one rotamer split by the wrap-around.</figcaption></figure>
+
+<h3>The aromatic core is family scaffold; the outer rim is not</h3>
+<p>If the pocket is pre-organised rather than induced, what the stations are built from becomes
+the question. Aligning MexB to seven RND transporters (Fig.&nbsp;13) shows the pocket aromatics
+to be §C_AROM§% identical across the panel against §C_OTHER§% for everything else lining the
+pocket, with Y327 and F628 invariant in all eight. MexY and AcrD, the two transporters in the
+panel that prefer aminoglycosides &mdash; polar, cationic substrates that MexB exports poorly
+&mdash; are the two that lose the aromatic core, retaining §C_MEXY§ and §C_ACRD§ of MexB's ten
+pocket aromatics as aromatic against §C_BROAD§ for the five broad-spectrum transporters.</p>
+<p>Conservation across the three stations falls as they approach the entrance: §C_DEEP§% at the
+deepest, §C_MID§% at the middle and §C_OUT§% at the outermost, whose F573 is identical in none of
+the seven. The deep site is therefore family scaffold and the outer stations are
+transporter-specific, which is a mechanism for polyspecificity rather than a restatement of it.</p>
+
+<figure><img src="§FIG13§" alt="Two-panel figure comparing identity of aromatic versus other pocket-lining residues, and the number of MexB pocket aromatics retained by each of seven RND transporters">
+<figcaption><b>Fig. 13 | Conservation of the pocket lining.</b> Left, per-position identity to
+MexB across seven RND transporters for the pocket aromatics and for the rest of the lining.
+Right, how many of MexB's ten pocket aromatics remain aromatic in each transporter; the two
+aminoglycoside-preferring pumps are highlighted.</figcaption></figure>
+
+<p class="tcap"><b>Table 11 |</b> Pocket-lining residues across eight RND transporters.</p>
+§T_CONS§
+
+<h3>The site changes chemistry around the cycle</h3>
+<p>Volume is only one descriptor. The lipophilic index of the site surface &mdash; the fraction
+of its lining atoms that are carbon or sulfur &mdash; is §L_BIND§% in binding protomers,
+§L_ACC§% in access and §L_EXT§% in extrusion, so the site is at its most hydrophobic in the state
+that binds substrate and its least in the state that releases it. Poisson&ndash;Boltzmann
+potential over the same sphere is negative in all §N_APBS§ protomers computed, without a single
+exception, and most negative in access (§E_ACC§&nbsp;kT/e) against §E_BIND§ in binding and
+§E_EXT§ in extrusion (Fig.&nbsp;14). An electronegative, less hydrophobic mouth handing to a
+hydrophobic binding site is consistent with the cationic character of many RND substrates,
+although the within-state spread is wide enough that only the ordering should be read.</p>
+
+<figure><img src="§FIG14§" alt="Two-panel dot plot of lipophilic index and mean electrostatic potential of the substrate site grouped by conformational state">
+<figcaption><b>Fig. 14 | Physicochemistry of the site by state.</b> Left, lipophilic index of the
+site surface over all §N_PROT§ protomers. Right, mean Poisson&ndash;Boltzmann potential over the
+free points of the same sphere, for §N_APBS§ protomers. Bars are state means.</figcaption></figure>
+
 <h3>The proton relay is intact except for R971</h3>
 <p>Side-chain functional-atom distances across the transmembrane proton relay are consistent
 with an engaged network at D407/D408 and K939 (Table&nbsp;8). In the ampicillin structure,

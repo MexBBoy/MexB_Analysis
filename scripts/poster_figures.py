@@ -650,6 +650,29 @@ def panel_rotamers():
     res = sorted({int(r["resseq"]) for r in rows})
     nm = {int(r["resseq"]): r["resname"] for r in rows}
 
+    # deviation of the multi-ligand protomer from the published Binding
+    # spread, per residue, so the callout cannot go stale
+    def circmean(a):
+        a = np.radians(np.asarray(a, float))
+        return float(np.degrees(np.arctan2(np.sin(a).mean(),
+                                           np.cos(a).mean())))
+
+    devs = []
+    for rid in res:
+        peers = [float(r["chi1_deg"]) for r in rows
+                 if int(r["resseq"]) == rid and r["state_call"] == "Binding"
+                 and r["pdb"] not in OURS]
+        mine = [float(r["chi1_deg"]) for r in rows
+                if int(r["resseq"]) == rid and r["chain"] == "E"
+                and r["pdb"] == "MexB_DDM_3_20260730"]
+        if len(peers) < 4 or not mine:
+            continue
+        devs.append((abs((mine[0] - circmean(peers) + 180) % 360 - 180),
+                     f"{nm[rid]}{rid}".replace("PHE", "F").replace("TYR", "Y")))
+    devs.sort()
+    worst = devs[-1] if devs else (0.0, "none")
+    rest = devs[-2][0] if len(devs) > 1 else 0.0
+
     fig = plt.figure(figsize=(10.6, 7.2))
     title(fig, "The pocket lining does not rearrange either",
           f"\u03c71 of every pocket aromatic, in all "
@@ -692,15 +715,17 @@ def panel_rotamers():
                handletextpad=0.35, columnspacing=1.5)
 
     tx = fig.add_axes([0.765, 0.225, 0.225, 0.50]); tx.axis("off")
-    tx.text(0, 1.0, "9 of 10", ha="left", va="top", fontsize=40,
-            fontweight="bold", color=BINDING, transform=tx.transAxes)
+    tx.text(0, 1.0, f"{len(devs) - 1} of {len(devs)}", ha="left", va="top",
+            fontsize=40, fontweight="bold", color=BINDING,
+            transform=tx.transAxes)
     tx.text(0, 0.855,
             "pocket aromatics in the\nDDM \u00d73 protomer sit within\n"
-            "19\u00b0 of the published\nBinding mean. Three ligands\n"
-            "at once do not rotate the\nlining.\n\n"
-            "The exception, F664, is\n146\u00b0 out - but the "
-            "ampicillin\nprotomer does the same\nthing, so it tracks our "
-            "data,\nnot the ligand count, and\nneeds a density check.",
+            f"{rest:.0f}\u00b0 of the published\nBinding mean. Three "
+            "ligands\nat once do not rotate the\nlining.\n\n"
+            f"The exception, {worst[1]}, is\n{worst[0]:.0f}\u00b0 out - "
+            "but the ampicillin\nprotomer does the same\nthing, so it "
+            "tracks our data,\nnot the ligand count, and\nneeds a density "
+            "check.",
             ha="left", va="top", fontsize=13.5, color=INK2,
             transform=tx.transAxes, linespacing=1.45)
 
@@ -709,7 +734,7 @@ def panel_rotamers():
              "coordinates; points near -180 and +180 are the same rotamer, "
              "split by the wrap-around. Residue 626 is a\nmethionine in "
              "MexB, so the F626 of Lawrence et al. has no counterpart here. "
-             "F664 is otherwise strictly state-coupled - t in every "
+             f"{worst[1]} is otherwise strictly state-coupled - t in every "
              "published Access\nprotomer, g+ in every Binding and Extrusion "
              "one. Pocket volume (P4, P5) and lining rotamers together: the "
              "site neither resizes nor rearranges for a\ndifferent or a "
@@ -785,13 +810,18 @@ def panel_conservation():
                    f"(of {n})", fontsize=16)
     ax2.grid(axis="y", visible=False); ax2.set_axisbelow(True)
 
+    look = {int(r["resseq"]): float(r["percent_identical"]) for r in rows}
+    st = {k: np.mean([look[i] for i in v if i in look]) for k, v in
+          (("out", [136, 573, 617, 628, 664, 666, 327]),
+           ("mid", [615, 617]), ("deep", [178, 610, 615, 628]))}
     fig.text(0.095, 0.135,
              "*  MexY and AcrD prefer aminoglycosides - polar, cationic "
              "substrates MexB exports poorly - and they are the two that "
              "lose the aromatic core.\nAcross the three stations the DDM "
              "\u00d73 ligands occupy, conservation falls as they approach "
-             "the entrance: deepest 86%, middle 79%, outermost 55%. The "
-             "deep\nstation is built from family-invariant residues (Y327, "
+             f"the entrance: deepest {st['deep']:.0f}%, middle "
+             f"{st['mid']:.0f}%, outermost {st['out']:.0f}%. The deep\n"
+             "station is built from family-invariant residues (Y327, "
              "F628 identical in all seven; F610, F615 in six); the outer "
              "one is not (F573 identical in none).",
              fontsize=13.5, color=INK2, va="top", linespacing=1.5)

@@ -53,6 +53,213 @@ def table_html(rows, cols, headers=None, cls="tbl"):
             f'</thead><tbody>{body}</tbody></table></div>')
 
 
+def cross_structure_block(table_html):
+    """Numbers and figures for the cross-structure Results section.
+
+    Everything is read from the tables the corresponding scripts write, so
+    the prose cannot drift from the data.
+    """
+    import math
+    pub = R("published_pockets.csv")
+    prot = R("protomer_pockets.csv")
+    env = R("ligand_environment.csv")
+    rot = R("aromatic_rotamers.csv")
+    cons = R("lining_conservation.csv")
+    el = R("pocket_electrostatics.csv")
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+    AROM = set("FYWH")
+    D = {}
+
+    def num(r, k):
+        try:
+            return float(r[k])
+        except (KeyError, TypeError, ValueError):
+            return float("nan")
+
+    def ok(x):
+        return isinstance(x, float) and not math.isnan(x)
+
+    # --- Fig 9: volume vs ligand size and depth
+    bound = [r for r in pub if int(r["ligand_heavy_atoms"]) > 0]
+    if bound:
+        L = [float(r["ligand_heavy_atoms"]) for r in bound]
+        Vv = [num(r, "volume_r16_A3") for r in bound]
+        Dp = [num(r, "depth_from_entrance_A") for r in bound]
+
+        def pearson(a, b):
+            pairs = [(x, y) for x, y in zip(a, b) if ok(x) and ok(y)]
+            n = len(pairs)
+            if n < 3:
+                return float("nan")
+            ax = stat.mean(x for x, _ in pairs)
+            ay = stat.mean(y for _, y in pairs)
+            sxy = sum((x - ax) * (y - ay) for x, y in pairs)
+            sx = math.sqrt(sum((x - ax) ** 2 for x, _ in pairs))
+            sy = math.sqrt(sum((y - ay) ** 2 for _, y in pairs))
+            return sxy / (sx * sy) if sx and sy else float("nan")
+
+        D["R_SIZE"] = f"{pearson(L, Vv):+.2f}"
+        D["R_DEPTH"] = f"{pearson(Dp, Vv):+.2f}"
+        D["LIG_MIN"] = f"{min(L):.0f}"
+        D["LIG_MAX"] = f"{max(L):.0f}"
+        D["LIG_RANGE"] = f"{max(L) / min(L):.1f}"
+        D["N_BOUND"] = str(len(bound))
+        same = [num(r, "volume_r16_A3") for r in bound
+                if r["pdb"] in ("2V50", "3W9I")]
+        D["NOISE"] = (f"{abs(same[0] - same[1]):.0f}" if len(same) == 2
+                      else "&mdash;")
+
+    # --- Fig 10: volume by state
+    if prot:
+        D["N_PROT"] = str(len(prot))
+        D["N_STRUCT"] = str(len({r["pdb"] for r in prot}))
+        D["N_BUBBLE"] = str(sum(1 for r in prot
+                                if r["connected_volume_measurable"] == "no"))
+        by = {}
+        for st in ("Access", "Binding", "Extrusion"):
+            v = [num(r, "free_volume_r16_A3") for r in prot
+                 if r["state_call"] == st]
+            v = [x for x in v if ok(x)]
+            by[st] = v
+            D[{"Access": "V_ACC", "Binding": "V_BIND",
+               "Extrusion": "V_EXT"}[st]] = (
+                f"{stat.mean(v):.0f} &plusmn; {stat.stdev(v):.0f}")
+            lp = [num(r, "lipophilic_index_pct") for r in prot
+                  if r["state_call"] == st]
+            lp = [x for x in lp if ok(x)]
+            D[{"Access": "L_ACC", "Binding": "L_BIND",
+               "Extrusion": "L_EXT"}[st]] = f"{stat.mean(lp):.1f}"
+        D["V_RATIO"] = f"{stat.mean(by['Binding']) / stat.mean(by['Access']):.1f}"
+        worst, wlab = 0.0, "&mdash;"
+        for r in prot:
+            if r["pdb"] not in OURS:
+                continue
+            peers = [num(x, "free_volume_r16_A3") for x in prot
+                     if x["state_call"] == r["state_call"]
+                     and x["pdb"] not in OURS]
+            peers = [x for x in peers if ok(x)]
+            if len(peers) > 2 and ok(num(r, "free_volume_r16_A3")):
+                z = abs(num(r, "free_volume_r16_A3")
+                        - stat.mean(peers)) / stat.stdev(peers)
+                if z > worst:
+                    worst = z
+                    nice = ("ampicillin" if r["pdb"].startswith("Amp")
+                            else "DDM &times;3")
+                    wlab = f"{nice} chain {r['chain']}"
+        D["WORST_Z"] = f"{worst:.1f}"
+        D["WORST_LAB"] = wlab
+
+    # --- Fig 11: the multi-ligand protomer
+    multi = [r for r in env if int(r["ligands_in_protomer"]) > 1]
+    if multi:
+        dd = sorted(num(r, "depth_from_entrance_A") for r in multi)
+        for i, x in enumerate(dd[:3], 1):
+            D[f"ST{i}"] = f"{x:.1f}"
+        D["SPAN"] = f"{dd[-1] - dd[0]:.1f}"
+        a = set()
+        for r in multi:
+            a |= {x for x in r["aromatic_residues"].split(";") if x}
+        D["N_AROM_DDM"] = str(len(a))
+
+    # --- Fig 12: rotamers
+    if rot:
+        devs = []
+        for rid in sorted({int(r["resseq"]) for r in rot}):
+            peers = [num(r, "chi1_deg") for r in rot
+                     if int(r["resseq"]) == rid and r["state_call"] == "Binding"
+                     and r["pdb"] not in OURS and r["chi1_deg"]]
+            peers = [x for x in peers if ok(x)]
+            mine = [num(r, "chi1_deg") for r in rot
+                    if int(r["resseq"]) == rid and r["chain"] == "E"
+                    and r["pdb"] == "MexB_DDM_3_20260730" and r["chi1_deg"]]
+            if len(peers) < 4 or not mine or not ok(mine[0]):
+                continue
+            mu = math.degrees(math.atan2(
+                stat.mean(math.sin(math.radians(x)) for x in peers),
+                stat.mean(math.cos(math.radians(x)) for x in peers)))
+            one = {"PHE": "F", "TYR": "Y", "TRP": "W", "HIS": "H"}
+            nmres = next(r["resname"] for r in rot
+                         if int(r["resseq"]) == rid)
+            devs.append((abs((mine[0] - mu + 180) % 360 - 180),
+                         one.get(nmres, nmres) + str(rid)))
+        if devs:
+            devs.sort()
+            D["F664_DEV"] = f"{devs[-1][0]:.0f}"
+            D["ROT_RES"] = devs[-1][1]
+            D["N_ROT"] = str(len(devs))
+            D["N_ROT_OK"] = str(len(devs) - 1)
+            # spelled out, because the sentence opens with it
+            words = ["zero", "One", "Two", "Three", "Four", "Five", "Six",
+                     "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"]
+            low = [w.lower() for w in words]
+            D["W_ROT_OK"] = (words[len(devs) - 1]
+                             if len(devs) - 1 < len(words) else str(len(devs) - 1))
+            D["W_ROT"] = (low[len(devs)] if len(devs) < len(low)
+                          else str(len(devs)))
+            D["ROT_MAX"] = f"{devs[-2][0]:.0f}" if len(devs) > 1 else "&mdash;"
+
+    # --- Fig 13: conservation
+    if cons:
+        key = [k for k in cons[0] if k.startswith("homologues_")
+               and k != "homologues_aromatic"][0]
+        ar = [r for r in cons if r["mexb_aromatic"] == "yes"]
+        other = [r for r in cons if r["mexb_aromatic"] == "no"]
+        D["C_AROM"] = f"{stat.mean(float(r['percent_identical']) for r in ar):.0f}"
+        D["C_OTHER"] = f"{stat.mean(float(r['percent_identical']) for r in other):.0f}"
+        NAMES = ["MexD", "MexF", "MexY", "AcrB", "AcrF", "MdtF", "AcrD"]
+        keep = {nm: sum(1 for r in ar if r[key][k] in AROM)
+                for k, nm in enumerate(NAMES)}
+        n = len(ar)
+        D["C_MEXY"] = f"{keep['MexY']}"
+        D["C_ACRD"] = f"{keep['AcrD']}"
+        broad = [keep[x] for x in ("MexD", "MexF", "AcrB", "AcrF", "MdtF")]
+        D["C_BROAD"] = f"{min(broad)}&ndash;{max(broad)}"
+        look = {int(r["resseq"]): r for r in cons}
+        for lab, ids in (("C_OUT", [136, 573, 617, 628, 664, 666, 327]),
+                         ("C_MID", [615, 617]),
+                         ("C_DEEP", [178, 610, 615, 628])):
+            v = [float(look[i]["percent_identical"]) for i in ids
+                 if i in look]
+            D[lab] = f"{stat.mean(v):.0f}"
+
+    # --- Fig 14: electrostatics
+    if el:
+        D["N_APBS"] = str(len(el))
+        for st in ("Access", "Binding", "Extrusion"):
+            v = [num(r, "mean_potential_kT_e") for r in el
+                 if r["state_call"] == st]
+            v = [x for x in v if ok(x)]
+            if v:
+                D[{"Access": "E_ACC", "Binding": "E_BIND",
+                   "Extrusion": "E_EXT"}[st]] = f"{stat.mean(v):+.1f}"
+
+    D.setdefault("N_ENTRIES", "13")
+    D.setdefault("N_LINING", "39")
+    for i, nm in enumerate(("P4_ligand_size_vs_pocket", "P5_protomer_states",
+                            "P6_path_occupancy", "P7_aromatic_rotamers",
+                            "P8_lining_conservation", "P9_pocket_physchem"), 9):
+        D[f"FIG{i}"] = img(os.path.join("poster", f"{nm}.png"))
+
+    D["T_PUB"] = table_html(
+        pub, ["pdb", "description", "chain", "ligands", "ligand_heavy_atoms",
+              "depth_from_entrance_A", "volume_r14_A3", "volume_r16_A3",
+              "volume_r18_A3", "volume_r20_A3"],
+        ["PDB", "Description", "Protomer", "Ligands", "Heavy atoms",
+         "Depth (Å)", "14 Å", "16 Å", "18 Å", "20 Å"])
+    D["T_LIGENV"] = table_html(
+        env, ["pdb", "chain", "ligand", "ligand_index", "heavy_atoms",
+              "depth_from_entrance_A", "site", "residues_contacted",
+              "percent_apolar", "aromatic_residues"],
+        ["PDB", "Protomer", "Ligand", "#", "Heavy atoms", "Depth (Å)",
+         "Site", "Residues", "Apolar (%)", "Aromatics engaged"])
+    D["T_CONS"] = table_html(
+        cons, ["resseq", "mexb_residue", "site", key if cons else "",
+               "percent_identical"],
+        ["Residue", "MexB", "Site", "MexD MexF MexY AcrB AcrF MdtF AcrD",
+         "Identity (%)"]) if cons else "<p><em>(no rows)</em></p>"
+    return D
+
+
 def main():
     states = {(r["structure"], r["chain"]): r for r in R("states.csv")}
     cross = {r["chain"]: r for r in R("cross_structure.csv")}
@@ -218,6 +425,7 @@ def main():
     }
 
     V.update(CD)
+    V.update(cross_structure_block(table_html))
     html = open(TPL, encoding="utf-8").read()
     for k, v in V.items():
         html = html.replace(f"§{k}§", str(v))
