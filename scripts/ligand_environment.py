@@ -19,6 +19,16 @@ The point of doing this per ligand rather than per structure is the DDM x3
 model: three ligands in one porter domain can only be compared with the
 one-ligand structures if each is scored separately.
 
+Note on pocket labels. The `site` column partitions contacts using this
+project's DBP/PBP residue lists (PROTOCOL section 0). Those lists do not
+match every paper's usage: Ueda et al. (J Biochem 2026, 21FP) describe the
+same chloramphenicol contacts - Q125, R128, F178, G179, S180, Q273, all of
+which this script reproduces exactly - as "the deep end of the DBP groove",
+whereas four of those six fall in the PBP list used here. The coordinates
+agree completely; only the nomenclature differs. Read `site` as "which of
+this project's two residue sets does it touch more of", not as a claim about
+which pocket a given paper would call it.
+
 Writes results/tables/ligand_environment.csv.
 """
 from __future__ import annotations

@@ -43,6 +43,8 @@ LABEL = {
     "2V50": "DDM x1 (3.00 A)", "3W9I": "DDM x1 (2.71 A)",
     "3W9J": "pyridopyrimidine EPI (3.15 A)", "6IIA": "LMNG (2.91 A)",
     "22XK": "apo (3.60 A)", "22XM": "apo (3.55 A)", "6T7S": "apo (4.50 A)",
+    "6IOK": "apo, MexAB-OprM (3.64 A)", "6IOL": "apo, MexAB-OprM (3.76 A)",
+    "6TA6": "apo, MexAB nanodisc (3.20 A)",
     "Amp_MexB_20260826": "ampicillin (2.19 A, this work)",
     "MexB_DDM_3_20260730": "DDM x3 (2.11 A, this work)",
 }
@@ -142,8 +144,12 @@ class Frozen:
         self.hetatm = False; self.is_hydrogen = False
 
 
+# every MexB-containing entry in the PDB (13 hits for "MexB Pseudomonas
+# aeruginosa multidrug efflux", of which 6TA5 is OprM-MexA only and has no
+# MexB chain). The four assembly entries are apo, but they are the only apo
+# MexB above 4 A - 6T7S, the single apo in the ligand survey, is 4.5 A.
 ENTRIES = ["2V50", "3W9I", "3W9J", "6IIA", "21FO", "21FP", "22XK", "22XM",
-           "6T7S"]
+           "6T7S", "6IOK", "6IOL", "6TA6"]
 
 
 def ensure_pdbs():

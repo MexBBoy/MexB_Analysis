@@ -35,6 +35,15 @@ MexB_DDM_3_20260730,"DDM x3 (2.11 A, this work)",F,Extrusion,0.24,Extrusion,Extr
 6IIA,LMNG (2.91 A),D,Access,1.27,Access,Access,yes,25.93,25.50,none,0,1.74,39,-0.32,yes,638,1046,1673,2786,592,861,1520,2449
 6IIA,LMNG (2.91 A),E,Binding,1.70,Binding,Binding,yes,27.44,28.26,AV0,69,0.69,39,-0.25,yes,1618,2045,2790,4128,1608,1956,2685,3890
 6IIA,LMNG (2.91 A),F,Extrusion,0.71,Extrusion,Extrusion,yes,29.42,24.17,none,0,2.13,39,-0.51,yes,1128,1719,2598,4034,1082,1624,2509,3712
+6IOK,"apo, MexAB-OprM (3.64 A)",F,Access,0.36,Access,Access,yes,26.15,26.21,none,0,1.67,39,0.14,yes,671,962,1562,2687,631,817,1389,2236
+6IOK,"apo, MexAB-OprM (3.64 A)",G,Access,2.23,Binding,Access,no,27.77,27.16,none,0,0.67,39,-0.10,yes,1215,1572,2294,3526,1200,1460,2076,3011
+6IOK,"apo, MexAB-OprM (3.64 A)",E,Extrusion,1.19,Binding,Extrusion,no,28.64,24.47,none,0,1.99,39,-0.15,yes,845,1245,2009,3400,817,1206,1856,3037
+6IOL,"apo, MexAB-OprM (3.76 A)",F,Access,0.37,Access,Access,yes,26.20,26.27,none,0,1.69,39,-0.12,yes,603,863,1388,2443,567,795,1200,1927
+6IOL,"apo, MexAB-OprM (3.76 A)",G,Binding,2.35,Binding,Access,no,27.88,27.17,none,0,0.63,39,0.14,yes,1141,1490,2134,3339,1112,1348,1923,3081
+6IOL,"apo, MexAB-OprM (3.76 A)",E,Extrusion,1.18,Binding,Extrusion,no,28.63,24.51,none,0,1.94,39,0.18,yes,801,1176,1892,3197,760,1129,1745,2858
 6T7S,apo (4.50 A),J,Binding,1.63,Binding,Access,no,28.13,27.63,none,0,1.30,39,-0.89,yes,1121,1607,2399,3671,1031,1497,2148,3163
 6T7S,apo (4.50 A),K,Access,1.77,Access,Extrusion,no,27.37,25.30,none,0,1.78,39,0.27,no,930,1342,1983,3097,,,,
 6T7S,apo (4.50 A),L,Access,1.73,Access,Access,yes,26.94,27.49,none,0,1.60,39,-0.16,no,1023,1512,2288,3542,,,,
+6TA6,"apo, MexAB nanodisc (3.20 A)",J,Binding,1.77,Binding,Access,no,27.99,27.64,none,0,0.56,39,-0.07,yes,1403,1878,2688,4020,1363,1704,2387,3778
+6TA6,"apo, MexAB nanodisc (3.20 A)",K,Extrusion,1.92,Binding,Extrusion,no,27.98,24.60,none,0,1.83,39,-0.01,yes,979,1418,2164,3407,939,1315,1934,2830
+6TA6,"apo, MexAB nanodisc (3.20 A)",L,Access,0.78,Access,Access,yes,26.37,26.85,none,0,1.56,39,-0.41,yes,924,1368,2050,3209,863,1161,1790,2646

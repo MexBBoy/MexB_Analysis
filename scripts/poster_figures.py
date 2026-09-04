@@ -447,9 +447,11 @@ def panel_protomer_states():
         return
 
     fig = plt.figure(figsize=(10.6, 6.8))
+    nprot = len(rows)
+    nstruct = len({r["pdb"] for r in rows})
     title(fig, "Every protomer, not just the ligand-bound one",
-          "Free volume at the substrate site in all three protomers of each "
-          "structure, measured in one common frame.")
+          f"Free volume at the substrate site in all {nprot} protomers of "
+          f"{nstruct} structures, measured in one common frame.")
     ax = fig.add_axes([0.095, 0.245, 0.58, 0.44])
 
     rng = np.random.default_rng(0)
@@ -467,7 +469,7 @@ def panel_protomer_states():
                        zorder=3, edgecolor="white", linewidth=1.6)
         # fixed offsets: the six labels sit close to each other and to the
         # mean bars, so automatic placement collides
-        OFF = {"MexB_DDM_3_20260730|D": (16, -17), "Amp_MexB_20260826|D": (16, -5),
+        OFF = {"MexB_DDM_3_20260730|D": (16, -17), "Amp_MexB_20260826|D": (16, -18),
                "MexB_DDM_3_20260730|E": (10, 15), "Amp_MexB_20260826|E": (16, -14),
                "MexB_DDM_3_20260730|F": (10, 15), "Amp_MexB_20260826|F": (14, -18)}
         for j, r in mine:
@@ -495,6 +497,17 @@ def panel_protomer_states():
     ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
 
     acc, bind, ext = (stats[s] for s in STATES)
+    # largest departure of one of ours from the published spread for its state
+    worst = 0.0
+    for r in rows:
+        if r["pdb"] not in OURS:
+            continue
+        same = [num(x, "free_volume_r16_A3") for x in rows
+                if x["state_call"] == r["state_call"] and x["pdb"] not in OURS]
+        if len(same) > 2:
+            z = abs(num(r, "free_volume_r16_A3") - np.mean(same)) / \
+                np.std(same, ddof=1)
+            worst = max(worst, float(z))
     tx = fig.add_axes([0.715, 0.245, 0.27, 0.44]); tx.axis("off")
     tx.text(0, 1.0, f"{bind.mean() / acc.mean():.1f}\u00d7",
             ha="left", va="top", fontsize=46, fontweight="bold",
@@ -504,7 +517,7 @@ def panel_protomer_states():
             "Access one. The ordering is\nBinding > Extrusion > Access\n"
             "in every structure.\n\n"
             "Our six protomers all fall\ninside the published spread\n"
-            "for their state (largest\ndeparture 2.0 SD).",
+            f"for their state (largest\ndeparture {worst:.1f} SD).",
             ha="left", va="top", fontsize=14, color=INK2,
             transform=tx.transAxes, linespacing=1.55)
 
@@ -515,10 +528,10 @@ def panel_protomer_states():
              "throughout. In an Access or Extrusion protomer that is not "
              "the protomer's own pocket as it would be defined in "
              "isolation - it\nis how open the substrate site is at the "
-             "same place. 39 protomers from 9 structures; four of them "
-             "carry two trimers in the asymmetric unit. 22XK and 22XM "
-             "excluded -\nall six of their protomers fail the numbering "
-             "check, being engineered chimeras at ~40% identity.",
+             "same place. Every MexB-containing entry in the PDB except "
+             "22XK and 22XM, whose protomers fail the\nnumbering check as "
+             "engineered chimeras at ~40% identity; four entries carry two "
+             "trimers in the asymmetric unit.",
              fontsize=13.5, color=INK2, va="top", linespacing=1.5)
     save(fig, "P5_protomer_states")
 
@@ -617,7 +630,9 @@ def panel_path_occupancy():
              "the far end of this channel, so depth alone does not separate "
              "them. Ligands are scored one at a time, which is what makes\n"
              "the multi-ligand protomer comparable with the single-ligand "
-             "ones. Analyses after Lawrence et al., Nat Commun 2025;16:10601.",
+             "ones. Pocket labels follow this project's residue lists; other "
+             "papers partition\nthe same contacts differently. Analyses "
+             "after Lawrence et al., Nat Commun 2025;16:10601.",
              fontsize=13.5, color=INK2, va="top", linespacing=1.5)
     save(fig, "P6_path_occupancy")
 
@@ -637,8 +652,9 @@ def panel_rotamers():
 
     fig = plt.figure(figsize=(10.6, 7.2))
     title(fig, "The pocket lining does not rearrange either",
-          "\u03c71 of every pocket aromatic, in all 39 protomers of all "
-          "nine structures.")
+          f"\u03c71 of every pocket aromatic, in all "
+          f"{len({(r['pdb'], r['chain']) for r in rows})} protomers of "
+          f"{len({r['pdb'] for r in rows})} structures.")
     ax = fig.add_axes([0.135, 0.225, 0.60, 0.50])
 
     for i, rid in enumerate(res):
