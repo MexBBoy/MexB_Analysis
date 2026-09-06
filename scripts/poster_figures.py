@@ -569,12 +569,16 @@ def panel_path_occupancy():
     if not rows:
         return
     OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
-    NAME = {"21FP": "chloramphenicol", "Amp_MexB_20260826": "ampicillin",
+    NAME = {"21FP": "Chloramphenicol", "Amp_MexB_20260826": "Ampicillin",
             "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
             "3W9J": "EPI", "6IIA": "LMNG",
             "MexB_DDM_3_20260730": "DDM \u00d73"}
     SITECOL = {"DBP": APOLAR, "PBP": POLAR, "both": "#7a8891",
                "neither": "#b9c3c8"}
+    ONE = {"PHE": "F", "TYR": "Y", "TRP": "W", "ILE": "I", "VAL": "V",
+           "ALA": "A", "ASN": "N", "GLU": "E", "SER": "S", "ARG": "R",
+           "GLN": "Q", "LYS": "K", "MET": "M", "LEU": "L", "THR": "T",
+           "GLY": "G", "PRO": "P", "ASP": "D", "HIS": "H", "CYS": "C"}
 
     prot = {}
     for r in rows:
@@ -1078,12 +1082,16 @@ def panel_mexb_rows():
     if not env:
         return
     OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
-    NAME = {"21FP": "chloramphenicol", "Amp_MexB_20260826": "ampicillin",
+    NAME = {"21FP": "Chloramphenicol", "Amp_MexB_20260826": "Ampicillin",
             "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
             "3W9J": "EPI", "6IIA": "LMNG",
             "MexB_DDM_3_20260730": "DDM \u00d73"}
     SITECOL = {"DBP": APOLAR, "PBP": POLAR, "both": "#7a8891",
                "neither": "#b9c3c8"}
+    ONE = {"PHE": "F", "TYR": "Y", "TRP": "W", "ILE": "I", "VAL": "V",
+           "ALA": "A", "ASN": "N", "GLU": "E", "SER": "S", "ARG": "R",
+           "GLN": "Q", "LYS": "K", "MET": "M", "LEU": "L", "THR": "T",
+           "GLY": "G", "PRO": "P", "ASP": "D", "HIS": "H", "CYS": "C"}
 
     prot = {}
     for r in env:
@@ -1103,7 +1111,7 @@ def panel_mexb_rows():
     title(fig, "One channel, every substrate-bound MexB protomer",
           "Each row is one protomer of the same channel, drawn at its "
           "measured radius, with its ligands placed on it.")
-    y0, htop = 1.55 / H, 1.55 / H
+    y0, htop = 1.55 / H, 2.50 / H
     ax = fig.add_axes([0.245, y0, 0.735, 1.0 - y0 - htop])
     ax.set_xlim(25, 70); ax.set_ylim(-1.15, n - 0.15)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
@@ -1139,7 +1147,7 @@ def panel_mexb_rows():
                        color=SITECOL.get(r["site"], "#b9c3c8"), zorder=4,
                        edgecolor=INK if mine else "white",
                        linewidth=1.9 if mine else 1.5)
-        lab = f"{NAME.get(k[0], k[0])}   {k[0] if k[0] not in OURS else 'this work'}  {k[1]}"
+        lab = NAME.get(k[0], k[0])
         ax.annotate(lab, (0, y), xycoords=("axes fraction", "data"),
                     xytext=(-12, -5), textcoords="offset points", ha="right",
                     fontsize=13.5, color=BINDING if mine else INK2,
@@ -1148,6 +1156,36 @@ def panel_mexb_rows():
     ax.set_xlabel("depth into the porter domain (\u00c5 from the "
                   "periplasmic entrance)", labelpad=10)
     ax.xaxis.label.set_size(16)
+
+    # a residue scale above the axis. Only side chains that actually lie
+    # near the centreline can be placed on it, and the deep end is crowded
+    # enough that the labels alternate between two heights.
+    res = R("channel_residues.csv")
+    look = {int(r["resseq"]): r for r in res}
+    ROWS = [[617, 79, 615, 178], [676, 628, 620]]
+    for lvl, pick in enumerate(ROWS):
+        for rid in pick:
+            r = look.get(rid)
+            if r is None or float(r["offset_from_channel_A"]) > 8.0:
+                continue
+            x = float(r["depth_from_entrance_A"])
+            site = r["site"].split(";")[0]
+            col = WARN if site == "switch" else SITECOL.get(site, "#7a8891")
+            ax.annotate("", (x, 1.0), xycoords=("data", "axes fraction"),
+                        xytext=(x, 1.0 + 0.012 + 0.030 * lvl),
+                        textcoords=("data", "axes fraction"),
+                        arrowprops=dict(arrowstyle="-", color=col, lw=1.6),
+                        annotation_clip=False)
+            ax.annotate(f"{ONE.get(r['resname'], r['resname'])}{rid}",
+                        (x, 1.0), xycoords=("data", "axes fraction"),
+                        xytext=(0, 11 + 22 * lvl), textcoords="offset points",
+                        ha="center", fontsize=12.5, fontweight="bold",
+                        color=col, annotation_clip=False)
+    ax.annotate("pocket-lining residues, coloured by which pocket they "
+                "belong to", (0.5, 1.0), xycoords="axes fraction",
+                xytext=(0, 56), textcoords="offset points", ha="center",
+                fontsize=14, color=INK2, annotation_clip=False)
+
     if rad is not None:
         ax.plot([25.9, 25.9], [-0.88 - KY * 4, -0.88 + KY * 4], color=INK2,
                 linewidth=2.4, solid_capstyle="butt")
@@ -1163,16 +1201,19 @@ def panel_mexb_rows():
                                  "both": "spans both"}[q])
                for q in ("DBP", "PBP", "both")]
     fig.legend(handles=handles, loc="upper center", ncol=3,
-               bbox_to_anchor=(0.62, 1.0 - 0.90 / H), fontsize=14,
+               bbox_to_anchor=(0.62, 1.0 - 0.78 / H), fontsize=14,
                handletextpad=0.35, columnspacing=1.6)
 
     fig.text(0.045, 0.072,
              "Channel drawn at its measured radius (2.2\u20134.4 \u00c5); "
              "the vertical scale is not the horizontal one. Marker area "
-             "tracks ligand size, colour gives which lining set\nthe ligand "
-             "contacts at 4.5 \u00c5. Only the DDM \u00d73 protomer carries "
-             "more than one ligand; every other MexB structure, published or "
-             "ours, holds one at one point.",
+             "tracks ligand size, colour gives which lining set the ligand "
+             "contacts\nat 4.5 \u00c5. Only the DDM \u00d73 protomer "
+             "carries more than one ligand. The two pockets are not two "
+             "stretches of this axis - both have residues at 26\u201335 and "
+             "again at\n62\u201363 \u00c5, because depth is arc length "
+             "along a winding path - so they are marked by residue rather "
+             "than shaded as bands; switch-loop residues in orange.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P11_mexb_rows")
 
