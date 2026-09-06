@@ -21,10 +21,68 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from published_pockets import channel_depth, load_channel
-from mexb_common import (DBP, PBP, STRUCT_DIR, SWITCH_LOOP, TABLES, Structure,
-                         fmt, write_csv)
+from scipy.spatial import cKDTree
+
+from mexb_common import (DBP, PBP, STRUCT_DIR, SUBDOMAINS, SWITCH_LOOP,
+                         TABLES, Structure, coords, fmt, write_csv)
 
 BACKBONE = {"N", "CA", "C", "O", "OXT"}
+KEYS = ["PN1", "PN2", "PC1", "PC2"]
+NEAR = 9.0     # a channel point is "lined by" atoms within this radius
+SMOOTH = 25    # trace points, about 5 A of path
+
+
+def write_subdomains(s, chan):
+    """Which porter subdomain lines the channel, as a function of depth.
+
+    For every point on the trace, the porter-subdomain membership of the
+    protein atoms around it, smoothed along the path. The raw per-point
+    assignment flips between neighbours; smoothed it resolves into a clean
+    gradient from the PC1/PC2 cleft at the mouth to PN2/PC1 at the deep end,
+    which is the anatomy the channel is usually described by.
+    """
+    import collections
+    P, arc, total = chan
+    at = [a for a in s.protein_atoms if a.chain == "E" and not a.is_hydrogen]
+    tree = cKDTree(coords(at))
+    sub = {}
+    for k, v in SUBDOMAINS.items():
+        for r in v:
+            sub.setdefault(r, []).append(k)
+
+    F = np.zeros((len(P), len(KEYS)))
+    for i, pt in enumerate(P):
+        c = collections.Counter()
+        for j in tree.query_ball_point(pt, NEAR):
+            for k in sub.get(at[j].resseq, []):
+                c[k] += 1
+        tot = sum(c.values()) or 1
+        F[i] = [c[k] / tot for k in KEYS]
+
+    depth = total - arc
+    o = np.argsort(depth)
+    d, F = depth[o], F[o]
+    ker = np.ones(SMOOTH) / SMOOTH
+    Sm = np.vstack([np.convolve(F[:, j], ker, mode="same")
+                    for j in range(len(KEYS))]).T
+    Sm = Sm / np.maximum(Sm.sum(1, keepdims=True), 1e-9)
+
+    rows = [[fmt(d[i])] + [fmt(Sm[i, j], 3) for j in range(len(KEYS))]
+            for i in range(len(d))]
+    write_csv(os.path.join(TABLES, "channel_subdomains.csv"),
+              ["depth_from_entrance_A"] + [f"fraction_{k}" for k in KEYS],
+              rows)
+
+    print("\n  --- which subdomain lines the channel, by depth ---")
+    for lo in range(0, 65, 10):
+        m = (d >= lo) & (d < lo + 10)
+        if m.sum() < 3:
+            continue
+        v = Sm[m].mean(0)
+        rank = sorted(zip(KEYS, v), key=lambda x: -x[1])
+        print(f"    {lo:2d}-{lo + 10:2d} A: "
+              + "  ".join(f"{k} {100 * x:3.0f}%" for k, x in rank[:3]))
+    print("  wrote results/tables/channel_subdomains.csv")
 
 
 def main():
@@ -69,6 +127,7 @@ def main():
           "from the\n    periplasmic mouth along a winding path; it is not a "
           "pocket coordinate.\n    Pocket identity has to come from contacts, "
           "as it does in the panels.")
+    write_subdomains(s, chan)
     print("\nwrote results/tables/channel_residues.csv")
 
 

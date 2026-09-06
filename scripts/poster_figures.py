@@ -38,6 +38,9 @@ ACCESS, BINDING, EXTRUSION = "#0A9DA0", "#CA0FC1", "#0F9C1B"
 # the poster's own hydrophobic/hydrophilic ramp
 APOLAR, POLAR = "#C68B3C", "#0E9AA0"
 WARN = "#B26A00"
+# the poster's porter subdomains, sampled from its consensus-structure panel
+SUBCOL = {"PN1": "#FF0000", "PN2": "#FFBC00",
+          "PC1": "#2DB72C", "PC2": "#33FEFE"}
 
 OUT = os.path.join(FIGURES, "poster")
 os.makedirs(OUT, exist_ok=True)
@@ -74,9 +77,12 @@ LIGCOL = {
 
 
 def tint(hexcol, f):
-    """Blend a colour towards white; f=0 keeps it, f=1 is white."""
+    """Blend a colour towards white (f>0) or towards black (f<0)."""
     r, g, b = (int(hexcol[i:i + 2], 16) for i in (1, 3, 5))
-    return "#%02X%02X%02X" % tuple(round(c + (255 - c) * f) for c in (r, g, b))
+    if f >= 0:
+        return "#%02X%02X%02X" % tuple(round(c + (255 - c) * f)
+                                       for c in (r, g, b))
+    return "#%02X%02X%02X" % tuple(round(c * (1 + f)) for c in (r, g, b))
 
 
 STATE_COLOR = {"Access": ACCESS, "Binding": BINDING, "Extrusion": EXTRUSION}
@@ -1122,14 +1128,14 @@ def panel_mexb_rows():
         -float(prot[k][-1]["depth_from_entrance_A"])))
 
     n = len(order)
-    H = 2.9 + 0.52 * n
+    H = 4.4 + 0.52 * n
     fig = plt.figure(figsize=(10.6, H))
     title(fig, "One channel, every substrate-bound MexB protomer",
           "Each row is one protomer of the same channel, drawn at its "
           "measured radius, with its ligands placed on it.")
-    y0, htop = 1.55 / H, 2.85 / H
+    y0, htop = 1.80 / H, 2.85 / H
     ax = fig.add_axes([0.245, y0, 0.735, 1.0 - y0 - htop])
-    ax.set_xlim(-1.5, 66); ax.set_ylim(-1.15, n - 0.15)
+    ax.set_xlim(-1.5, 66); ax.set_ylim(-3.00, n - 0.15)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
@@ -1199,15 +1205,39 @@ def panel_mexb_rows():
                 fontsize=14, color=INK2, annotation_clip=False)
 
     if rad is not None:
-        ax.plot([1.2, 1.2], [-0.88 - KY * 4, -0.88 + KY * 4], color=INK2,
+        ax.plot([1.2, 1.2], [-2.62 - KY * 4, -2.62 + KY * 4], color=INK2,
                 linewidth=2.4, solid_capstyle="butt")
-        ax.annotate("8 \u00c5 across", (1.2, -0.88),
+        ax.annotate("8 \u00c5 across", (1.2, -2.62),
                     textcoords="offset points", xytext=(9, -5), ha="left",
                     fontsize=12, color=INK2)
 
-    ax.annotate("entry cleft", (16.5, -0.88), ha="center", va="center",
+    # which porter subdomain lines the channel, as a stacked strip. This is
+    # what identifies where along the route you are: the PC1/PC2 cleft at the
+    # mouth, PN1 taking over mid-path, PN2 and PC1 forming the deep site.
+    sd = R("channel_subdomains.csv")
+    if sd:
+        xd = np.array([float(r["depth_from_entrance_A"]) for r in sd])
+        base = np.zeros_like(xd)
+        y_s, h_s = -1.10, 0.42
+        for key in ("PC1", "PC2", "PN1", "PN2"):
+            f = np.array([float(r[f"fraction_{key}"]) for r in sd])
+            ax.fill_between(xd, y_s + h_s * base, y_s + h_s * (base + f),
+                            color=SUBCOL[key], alpha=.55, linewidth=0,
+                            zorder=2)
+            base = base + f
+        ax.annotate("porter subdomain\nlining the channel", (0, y_s + h_s / 2),
+                    xycoords=("axes fraction", "data"), xytext=(-12, -4),
+                    textcoords="offset points", ha="right", va="center",
+                    fontsize=12, color=INK2, linespacing=1.25)
+        for key, xpos in (("PC1", 8.0), ("PC2", 31.0), ("PN1", 45.5),
+                          ("PN2", 61.0)):
+            ax.annotate(key, (xpos, y_s + h_s / 2), ha="center", va="center",
+                        fontsize=12.5, fontweight="bold",
+                        color=tint(SUBCOL[key], -0.45) if key == "PC2"
+                        else "#1b2429")
+    ax.annotate("entry cleft", (16.5, -2.62), ha="center", va="center",
                 fontsize=12.5, color=INK2, fontstyle="italic")
-    ax.annotate("porter pocket", (48.0, -0.88), ha="center", va="center",
+    ax.annotate("porter pocket", (52.0, -2.62), ha="center", va="center",
                 fontsize=12.5, color=INK2, fontstyle="italic")
 
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=11,
@@ -1237,7 +1267,10 @@ def panel_mexb_rows():
              "switch loop in orange.\nThe channel is drawn over its whole "
              "traced length, 0\u201363 \u00c5. No pocket-lining residue "
              "and no modelled ligand lies shallower than 26 \u00c5; that "
-             "stretch is the open entry cleft.",
+             "stretch is the open entry cleft.\nThe strip beneath gives the "
+             "porter subdomain lining the channel at each depth, from the "
+             "atoms within 9 \u00c5 of the trace: PC1 and PC2 at the mouth, "
+             "PN1 mid-path,\nPN2 and PC1 forming the deep site.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P11_mexb_rows")
 
