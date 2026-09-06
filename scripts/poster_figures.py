@@ -1071,6 +1071,112 @@ def panel_mechanism():
     save(fig, "P10_mechanism_contrast")
 
 
+# ------------------------------------------------------------------ P11
+def panel_mexb_rows():
+    """Every MexB ligand-bound protomer on its own row of the same channel."""
+    env = R("ligand_environment.csv")
+    if not env:
+        return
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+    NAME = {"21FP": "chloramphenicol", "Amp_MexB_20260826": "ampicillin",
+            "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
+            "3W9J": "EPI", "6IIA": "LMNG",
+            "MexB_DDM_3_20260730": "DDM \u00d73"}
+    SITECOL = {"DBP": APOLAR, "PBP": POLAR, "both": "#7a8891",
+               "neither": "#b9c3c8"}
+
+    prot = {}
+    for r in env:
+        prot.setdefault((r["pdb"], r["chain"]), []).append(r)
+    for v in prot.values():
+        v.sort(key=lambda r: float(r["depth_from_entrance_A"]))
+    # ours first, then by how much of the path each one covers
+    order = sorted(prot, key=lambda k: (
+        k[0] not in OURS,
+        -(float(prot[k][-1]["depth_from_entrance_A"])
+          - float(prot[k][0]["depth_from_entrance_A"])),
+        -float(prot[k][-1]["depth_from_entrance_A"])))
+
+    n = len(order)
+    H = 2.9 + 0.52 * n
+    fig = plt.figure(figsize=(10.6, H))
+    title(fig, "One channel, every substrate-bound MexB protomer",
+          "Each row is one protomer of the same channel, drawn at its "
+          "measured radius, with its ligands placed on it.")
+    y0, htop = 1.55 / H, 1.55 / H
+    ax = fig.add_axes([0.245, y0, 0.735, 1.0 - y0 - htop])
+    ax.set_xlim(25, 70); ax.set_ylim(-1.15, n - 0.15)
+    ax.set_yticks([]); ax.grid(axis="y", visible=False)
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+
+    prof = tunnel_profile()
+    KY = 0.10
+    dep = rad = None
+    if prof is not None:
+        dep, rad = prof
+        keep = (dep >= 25) & (dep <= 70)
+        dep, rad = dep[keep], rad[keep]
+
+    for i, k in enumerate(order):
+        y = n - 1 - i
+        grp = prot[k]
+        mine = k[0] in OURS
+        if dep is not None:
+            ax.fill_between(dep, y - KY * rad, y + KY * rad,
+                            color="#eef4f6" if not mine else "#fdeffb",
+                            zorder=0, linewidth=0)
+            for sgn in (1, -1):
+                ax.plot(dep, y + sgn * KY * rad,
+                        color="#bdccd2" if not mine else "#e6b4e0",
+                        linewidth=1.3, zorder=1)
+        d = [float(r["depth_from_entrance_A"]) for r in grp]
+        if len(grp) > 1:
+            ax.plot([min(d), max(d)], [y, y], color=BINDING, linewidth=6,
+                    alpha=.35, solid_capstyle="round", zorder=2)
+        for r, x in zip(grp, d):
+            ax.scatter([x], [y], s=70 + 2.2 * int(r["heavy_atoms"]),
+                       color=SITECOL.get(r["site"], "#b9c3c8"), zorder=4,
+                       edgecolor=INK if mine else "white",
+                       linewidth=1.9 if mine else 1.5)
+        lab = f"{NAME.get(k[0], k[0])}   {k[0] if k[0] not in OURS else 'this work'}  {k[1]}"
+        ax.annotate(lab, (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-12, -5), textcoords="offset points", ha="right",
+                    fontsize=13.5, color=BINDING if mine else INK2,
+                    fontweight="bold" if mine else "normal")
+
+    ax.set_xlabel("depth into the porter domain (\u00c5 from the "
+                  "periplasmic entrance)", labelpad=10)
+    ax.xaxis.label.set_size(16)
+    if rad is not None:
+        ax.plot([25.9, 25.9], [-0.88 - KY * 4, -0.88 + KY * 4], color=INK2,
+                linewidth=2.4, solid_capstyle="butt")
+        ax.annotate("8 \u00c5 across", (25.9, -0.88),
+                    textcoords="offset points", xytext=(9, -5), ha="left",
+                    fontsize=12, color=INK2)
+
+    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=11,
+                          markerfacecolor=SITECOL[q], markeredgecolor="white",
+                          markeredgewidth=1.5,
+                          label={"DBP": "distal pocket",
+                                 "PBP": "proximal pocket",
+                                 "both": "spans both"}[q])
+               for q in ("DBP", "PBP", "both")]
+    fig.legend(handles=handles, loc="upper center", ncol=3,
+               bbox_to_anchor=(0.62, 1.0 - 0.90 / H), fontsize=14,
+               handletextpad=0.35, columnspacing=1.6)
+
+    fig.text(0.045, 0.072,
+             "Channel drawn at its measured radius (2.2\u20134.4 \u00c5); "
+             "the vertical scale is not the horizontal one. Marker area "
+             "tracks ligand size, colour gives which lining set\nthe ligand "
+             "contacts at 4.5 \u00c5. Only the DDM \u00d73 protomer carries "
+             "more than one ligand; every other MexB structure, published or "
+             "ours, holds one at one point.",
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P11_mexb_rows")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -1083,6 +1189,7 @@ def main():
     panel_conservation()
     panel_pocket_physchem()
     panel_mechanism()
+    panel_mexb_rows()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
