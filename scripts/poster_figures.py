@@ -57,6 +57,28 @@ plt.rcParams.update({
     "lines.linewidth": 3.4,
 })
 
+# each substrate in the colour the poster gives it, sampled from the
+# conserved-residues legend and table header of Combio_Poster_20260828.pdf,
+# then darkened at constant hue to clear 4.5:1 on white. 3W9I is not on the
+# poster; it takes the pink the legend uses for DDM generally.
+LIGCOL = {
+    "Amp_MexB_20260826": "#078A08",    # poster #1EFF21 ampicillin green
+    "MexB_DDM_3_20260730": "#CF13CF",  # poster #FF29FF DDM #1 magenta
+    "2V50": "#986598",                 # poster #FFB0FF DDM #2 pink
+    "3W9I": "#C24A8B",                 # poster #FF6DBC legend DDM pink
+    "6IIA": "#2F54FF",                 # poster #3E61FF LMNG blue
+    "21FO": "#A1685E",                 # poster #FFAB9C CYMAL-7 salmon
+    "3W9J": "#767676",                 # poster #A3A3A3 EPI grey
+    "21FP": "#000000",                 # poster black chloramphenicol
+}
+
+
+def tint(hexcol, f):
+    """Blend a colour towards white; f=0 keeps it, f=1 is white."""
+    r, g, b = (int(hexcol[i:i + 2], 16) for i in (1, 3, 5))
+    return "#%02X%02X%02X" % tuple(round(c + (255 - c) * f) for c in (r, g, b))
+
+
 STATE_COLOR = {"Access": ACCESS, "Binding": BINDING, "Extrusion": EXTRUSION}
 SHORT = {"Amp_MexB_20260826": "Ampicillin", "MexB_DDM_3_20260730": "DDM"}
 
@@ -351,22 +373,6 @@ def panel_ligand_size():
             "3W9J": "EPI", "6IIA": "LMNG",
             "MexB_DDM_3_20260730": "DDM \u00d73", "6T7S": "apo"}
     OURS = {"Amp_MexB_20260826", "MexB_DDM_3_20260730"}
-    # each substrate in the colour the poster already gives it, sampled from
-    # the conserved-residues legend and table header of
-    # Combio_Poster_20260828.pdf, then darkened at constant hue to clear
-    # 4.5:1 on white (the poster's own colours are set on dark panels and
-    # run 1.4-2.5:1 here). 3W9I is not on the poster; it takes the pink the
-    # poster legend uses for DDM generally.
-    LIGCOL = {
-        "Amp_MexB_20260826": "#078A08",    # poster #1EFF21 ampicillin green
-        "MexB_DDM_3_20260730": "#CF13CF",  # poster #FF29FF DDM #1 magenta
-        "2V50": "#986598",                 # poster #FFB0FF DDM #2 pink
-        "3W9I": "#C24A8B",                 # poster #FF6DBC legend DDM pink
-        "6IIA": "#2F54FF",                 # poster #3E61FF LMNG blue
-        "21FO": "#A1685E",                 # poster #FFAB9C CYMAL-7 salmon
-        "3W9J": "#767676",                 # poster #A3A3A3 EPI grey
-        "21FP": "#000000",                 # poster black chloramphenicol
-    }
 
     def num(r, k):
         try:
@@ -1098,6 +1104,19 @@ def panel_mexb_rows():
         prot.setdefault((r["pdb"], r["chain"]), []).append(r)
     for v in prot.values():
         v.sort(key=lambda r: float(r["depth_from_entrance_A"]))
+
+    # one protomer per ligand: several structures contribute two copies of
+    # the same ligand and 2V50 and 3W9I both contribute DDM. Keep the
+    # best-defined site - the copy contacting the most lining residues,
+    # then the larger one - so the row set is one row per chemistry.
+    best = {}
+    for k, v in prot.items():
+        nm = NAME.get(k[0], k[0])
+        score = (sum(int(r["residues_contacted"]) for r in v),
+                 sum(int(r["heavy_atoms"]) for r in v))
+        if nm not in best or score > best[nm][0]:
+            best[nm] = (score, k)
+    prot = {k: prot[k] for _, k in best.values()}
     # ours first, then by how much of the path each one covers
     order = sorted(prot, key=lambda k: (
         k[0] not in OURS,
@@ -1130,27 +1149,25 @@ def panel_mexb_rows():
         y = n - 1 - i
         grp = prot[k]
         mine = k[0] in OURS
+        lc = LIGCOL.get(k[0], TEAL)
         if dep is not None:
             ax.fill_between(dep, y - KY * rad, y + KY * rad,
-                            color="#eef4f6" if not mine else "#fdeffb",
-                            zorder=0, linewidth=0)
+                            color=tint(lc, 0.90), zorder=0, linewidth=0)
             for sgn in (1, -1):
-                ax.plot(dep, y + sgn * KY * rad,
-                        color="#bdccd2" if not mine else "#e6b4e0",
-                        linewidth=1.3, zorder=1)
+                ax.plot(dep, y + sgn * KY * rad, color=tint(lc, 0.45),
+                        linewidth=1.5, zorder=1)
         d = [float(r["depth_from_entrance_A"]) for r in grp]
         if len(grp) > 1:
-            ax.plot([min(d), max(d)], [y, y], color=BINDING, linewidth=6,
+            ax.plot([min(d), max(d)], [y, y], color=lc, linewidth=6,
                     alpha=.35, solid_capstyle="round", zorder=2)
         for r, x in zip(grp, d):
             ax.scatter([x], [y], s=70 + 2.2 * int(r["heavy_atoms"]),
                        color=SITECOL.get(r["site"], "#b9c3c8"), zorder=4,
-                       edgecolor=INK if mine else "white",
-                       linewidth=1.9 if mine else 1.5)
+                       edgecolor=lc, linewidth=2.2)
         lab = NAME.get(k[0], k[0])
         ax.annotate(lab, (0, y), xycoords=("axes fraction", "data"),
                     xytext=(-12, -5), textcoords="offset points", ha="right",
-                    fontsize=13.5, color=BINDING if mine else INK2,
+                    fontsize=13.5, color=lc,
                     fontweight="bold" if mine else "normal")
 
     ax.set_xlabel("depth into the porter domain (\u00c5 from the "
@@ -1207,13 +1224,17 @@ def panel_mexb_rows():
     fig.text(0.045, 0.072,
              "Channel drawn at its measured radius (2.2\u20134.4 \u00c5); "
              "the vertical scale is not the horizontal one. Marker area "
-             "tracks ligand size, colour gives which lining set the ligand "
-             "contacts\nat 4.5 \u00c5. Only the DDM \u00d73 protomer "
-             "carries more than one ligand. The two pockets are not two "
-             "stretches of this axis - both have residues at 26\u201335 and "
-             "again at\n62\u201363 \u00c5, because depth is arc length "
-             "along a winding path - so they are marked by residue rather "
-             "than shaded as bands; switch-loop residues in orange.",
+             "tracks ligand size, its fill gives which lining set the "
+             "ligand contacts at 4.5 \u00c5, and each channel is\ntinted "
+             "its ligand's poster colour. One row per ligand: where a "
+             "structure or a pair of structures gave more than one copy, "
+             "the copy contacting the most\nlining residues is kept. Only "
+             "the DDM \u00d73 protomer carries more than one ligand at "
+             "once. The two pockets are not two stretches of this axis - "
+             "both have\nresidues at 26\u201335 and again at 62\u201363 "
+             "\u00c5, because depth is arc length along a winding path - "
+             "so they are marked by residue rather than shaded as bands; "
+             "switch loop in orange.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P11_mexb_rows")
 
