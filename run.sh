@@ -72,6 +72,8 @@ python3 scripts/lining_conservation.py || echo "(skipped - no network?)"
 
 python3 scripts/multiligand_survey.py || echo "(skipped - no network?)"
 
+python3 scripts/acrb_ligands.py || echo "(skipped - no network?)"
+
 python3 scripts/poster_figures.py
 
 echo

@@ -1,0 +1,16 @@
+pdb,chain,ligand,name,heavy_atoms,depth_from_entrance_A,offset_from_channel_A,site,fit_rmsd_A,n_lining_CA_mapped,drugs_in_this_protomer
+2DRD,A,MIY,minocycline,33,62.27,3.31,PBP,1.34,39,1
+2DR6,A,DM2,doxorubicin,39,52.80,2.55,DBP,1.37,39,1
+3AOB,C,RFP,rifampicin,59,32.13,2.71,PBP,3.03,39,1
+3AOC,C,ERY,erythromycin,51,40.60,2.31,PBP,2.94,39,1
+3AOD,A,MIY,minocycline,33,62.13,3.91,PBP,1.46,39,1
+3AOD,C,RFP,rifampicin,59,32.13,2.91,PBP,3.02,39,1
+4DX5,B,MIY,minocycline,33,62.80,3.93,PBP,1.83,39,1
+4DX7,A,DM2,doxorubicin,39,33.67,1.05,PBP,2.96,39,2
+4DX7,A,DM2,doxorubicin,39,28.25,1.68,PBP,2.96,39,2
+4DX7,B,DM2,doxorubicin,39,61.24,2.13,DBP,1.86,39,1
+5ENO,C,5QG,MBX inhibitor,29,55.91,4.45,DBP,0.91,36,1
+5ENP,C,5QF,MBX inhibitor,37,55.91,3.26,DBP,0.83,36,1
+5ENQ,C,5QE,MBX inhibitor,35,58.93,3.93,DBP,0.83,36,1
+5ENR,C,MBX,MBX,36,58.93,3.87,DBP,0.88,36,1
+5ENS,C,RHQ,RHQ,33,58.93,1.72,DBP,1.01,35,1
