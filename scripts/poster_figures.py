@@ -982,7 +982,7 @@ def panel_mechanism():
             size=38)
 
     ax = fig.add_axes([0.075, 0.245, 0.90, 0.46])
-    ax.set_xlim(25, 70); ax.set_ylim(-1.30, 4.15)
+    ax.set_xlim(-1.5, 66); ax.set_ylim(-1.30, 4.15)
     ax.set_yticks([])
     ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
     for sp in ("left",):
@@ -993,8 +993,6 @@ def panel_mechanism():
     KY = 0.15                      # plot units per Angstrom of radius
     if prof is not None:
         dep, rad = prof
-        keep = (dep >= 25) & (dep <= 70)
-        dep, rad = dep[keep], rad[keep]
         for y0 in (2.30, 0.40):
             ax.fill_between(dep, y0 - KY * rad, y0 + KY * rad,
                             color="#eef4f6", zorder=0, linewidth=0)
@@ -1002,15 +1000,14 @@ def panel_mechanism():
                 ax.plot(dep, y0 + sgn * KY * rad, color="#bdccd2",
                         linewidth=1.5, zorder=1)
         # a scale bar, because the vertical axis is otherwise unitless
-        ax.plot([25.9, 25.9], [-0.98 - KY * 4, -0.98 + KY * 4], color=INK2,
+        ax.plot([1.2, 1.2], [-0.98 - KY * 4, -0.98 + KY * 4], color=INK2,
                 linewidth=2.6, solid_capstyle="butt")
-        ax.annotate("8 \u00c5 across", (25.9, -0.98),
+        ax.annotate("8 \u00c5 across", (1.2, -0.98),
                     textcoords="offset points", xytext=(9, -5), ha="left",
                     fontsize=12.5, color=INK2)
-        ax.annotate(f"channel drawn at its measured radius "
-                    f"({rad.min():.1f}\u2013{rad.max():.1f} \u00c5); the "
+        ax.annotate(f"radius {rad.min():.1f}\u2013{rad.max():.1f} \u00c5; "
                     f"vertical scale is not the horizontal one",
-                    (69.4, -0.98), ha="right", va="center", fontsize=12.5,
+                    (65.4, -0.98), ha="right", va="center", fontsize=12.5,
                     color=INK2, fontstyle="italic")
 
     # ---- top row: AcrB drugs, one point per bound copy
@@ -1023,14 +1020,14 @@ def panel_mechanism():
     # two label rows: doxorubicin at 28 and rifampicin at 32 are too close
     # to sit on one
     LAB = {"doxorubicin \u00d72": (31.0, 2.30, 0, 48, "center"),
-           "erythromycin": (40.6, 2.30, 0, 48, "center"),
            "minocycline": (62.8, 2.30, 0, 48, "center"),
            "rifampicin": (32.1, 2.30, 0, 76, "center"),
+           "erythromycin": (40.6, 2.30, 0, 76, "center"),
            "MBX inhibitor": (55.9, 2.30, 0, 76, "center")}
     for nm, (x, y, dx, dy, ha) in LAB.items():
         ax.annotate(nm, (x, y), textcoords="offset points", xytext=(dx, dy),
                     ha=ha, fontsize=13, color=INK2)
-    ax.text(25.4, 3.98, f"AcrB \u2014 {len(acr)} bound drugs, "
+    ax.text(-1.0, 3.98, f"AcrB \u2014 {len(acr)} bound drugs, "
             f"{len(per)} protomers, {len({r['pdb'] for r in acr})} structures",
             fontsize=17, fontweight="bold", color=ACCESS, va="center")
 
@@ -1044,7 +1041,7 @@ def panel_mechanism():
         ax.annotate(f"{d:.0f} \u00c5", (d, 0.40), textcoords="offset points",
                     xytext=(0, 22), ha="center", fontsize=13.5,
                     color=BINDING, fontweight="bold")
-    ax.text(25.4, 1.32, "MexB with three DDM bound (this work), one protomer",
+    ax.text(-1.0, 1.32, "MexB with three DDM bound (this work), one protomer",
             fontsize=17, fontweight="bold", color=BINDING, va="center")
     ax.annotate(f"in van der Waals contact, closest approach "
                 f"{touch:.1f} \u00c5", (float(np.mean(xs)), 0.40),
@@ -1130,9 +1127,9 @@ def panel_mexb_rows():
     title(fig, "One channel, every substrate-bound MexB protomer",
           "Each row is one protomer of the same channel, drawn at its "
           "measured radius, with its ligands placed on it.")
-    y0, htop = 1.55 / H, 2.50 / H
+    y0, htop = 1.55 / H, 2.85 / H
     ax = fig.add_axes([0.245, y0, 0.735, 1.0 - y0 - htop])
-    ax.set_xlim(25, 70); ax.set_ylim(-1.15, n - 0.15)
+    ax.set_xlim(-1.5, 66); ax.set_ylim(-1.15, n - 0.15)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
@@ -1142,8 +1139,6 @@ def panel_mexb_rows():
     dep = rad = None
     if prof is not None:
         dep, rad = prof
-        keep = (dep >= 25) & (dep <= 70)
-        dep, rad = dep[keep], rad[keep]
 
     for i, k in enumerate(order):
         y = n - 1 - i
@@ -1179,7 +1174,7 @@ def panel_mexb_rows():
     # enough that the labels alternate between two heights.
     res = R("channel_residues.csv")
     look = {int(r["resseq"]): r for r in res}
-    ROWS = [[617, 79, 615, 178], [676, 628, 620]]
+    ROWS = [[617, 79, 628, 178], [676, 615], [620]]
     for lvl, pick in enumerate(ROWS):
         for rid in pick:
             r = look.get(rid)
@@ -1196,19 +1191,24 @@ def panel_mexb_rows():
             ax.annotate(f"{ONE.get(r['resname'], r['resname'])}{rid}",
                         (x, 1.0), xycoords=("data", "axes fraction"),
                         xytext=(0, 11 + 22 * lvl), textcoords="offset points",
-                        ha="center", fontsize=12.5, fontweight="bold",
+                        ha="center", fontsize=11.5, fontweight="bold",
                         color=col, annotation_clip=False)
     ax.annotate("pocket-lining residues, coloured by which pocket they "
                 "belong to", (0.5, 1.0), xycoords="axes fraction",
-                xytext=(0, 56), textcoords="offset points", ha="center",
+                xytext=(0, 78), textcoords="offset points", ha="center",
                 fontsize=14, color=INK2, annotation_clip=False)
 
     if rad is not None:
-        ax.plot([25.9, 25.9], [-0.88 - KY * 4, -0.88 + KY * 4], color=INK2,
+        ax.plot([1.2, 1.2], [-0.88 - KY * 4, -0.88 + KY * 4], color=INK2,
                 linewidth=2.4, solid_capstyle="butt")
-        ax.annotate("8 \u00c5 across", (25.9, -0.88),
+        ax.annotate("8 \u00c5 across", (1.2, -0.88),
                     textcoords="offset points", xytext=(9, -5), ha="left",
                     fontsize=12, color=INK2)
+
+    ax.annotate("entry cleft", (16.5, -0.88), ha="center", va="center",
+                fontsize=12.5, color=INK2, fontstyle="italic")
+    ax.annotate("porter pocket", (48.0, -0.88), ha="center", va="center",
+                fontsize=12.5, color=INK2, fontstyle="italic")
 
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=11,
                           markerfacecolor=SITECOL[q], markeredgecolor="white",
@@ -1218,7 +1218,7 @@ def panel_mexb_rows():
                                  "both": "spans both"}[q])
                for q in ("DBP", "PBP", "both")]
     fig.legend(handles=handles, loc="upper center", ncol=3,
-               bbox_to_anchor=(0.62, 1.0 - 0.78 / H), fontsize=14,
+               bbox_to_anchor=(0.62, 1.0 - 0.74 / H), fontsize=14,
                handletextpad=0.35, columnspacing=1.6)
 
     fig.text(0.045, 0.072,
@@ -1234,7 +1234,10 @@ def panel_mexb_rows():
              "both have\nresidues at 26\u201335 and again at 62\u201363 "
              "\u00c5, because depth is arc length along a winding path - "
              "so they are marked by residue rather than shaded as bands; "
-             "switch loop in orange.",
+             "switch loop in orange.\nThe channel is drawn over its whole "
+             "traced length, 0\u201363 \u00c5. No pocket-lining residue "
+             "and no modelled ligand lies shallower than 26 \u00c5; that "
+             "stretch is the open entry cleft.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P11_mexb_rows")
 
