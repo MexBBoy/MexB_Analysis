@@ -104,6 +104,32 @@ def save(fig, name):
     print(f"  wrote results/figures/poster/{name}.png / .svg")
 
 
+def tunnel_profile():
+    """(depth, radius) along the reference entry channel, in Angstrom.
+
+    Straight from the tunnel trace tunnels.py writes: the B-factor column is
+    the local radius and depth is arc length back from the periplasmic mouth,
+    the same coordinate the ligands are placed on.
+    """
+    p = os.path.join(CXDIR,
+                     "Amp_MexB_20260826_protein_E_ZZ72000_t1_tunnel.pdb")
+    if not os.path.exists(p):
+        return None
+    P, B = [], []
+    for ln in open(p):
+        if ln.startswith(("ATOM", "HETATM")):
+            P.append([float(ln[30:38]), float(ln[38:46]), float(ln[46:54])])
+            B.append(float(ln[60:66]))
+    if len(P) < 10:
+        return None
+    P = np.asarray(P, float)
+    arc = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(P, axis=0),
+                                                          axis=1))])
+    depth = arc[-1] - arc
+    o = np.argsort(depth)
+    return depth[o], np.asarray(B, float)[o]
+
+
 def state_of(struct, chain, states):
     for r in states:
         if r["structure"] == struct and r["chain"] == chain:
@@ -933,59 +959,86 @@ def panel_mechanism():
                     - float(biggest[-1]["depth_from_entrance_A"]))
                 if n_max > 1 else 0.0)
 
-    fig = plt.figure(figsize=(10.6, 8.2))
+    fig = plt.figure(figsize=(10.6, 9.0))
     title(fig, "One substrate at a time, or a chain across the path?",
           "Every AcrB drug and our three DDM, superposed on one reference "
           "and measured on the same channel.")
-    callout(fig, 0.055, 0.865, f"{span:.0f} \u00c5",
+    callout(fig, 0.055, 0.875, f"{span:.0f} \u00c5",
             "of the path occupied at once, as one\ncontiguous chain of "
             "three molecules", BINDING, size=38)
-    callout(fig, 0.535, 0.865, f"{n_max} at most",
+    callout(fig, 0.535, 0.875, f"{n_max} at most",
             f"drugs in any one AcrB protomer, and\nthose two "
             f"{pair_gap:.0f} \u00c5 apart in the same pocket", ACCESS,
             size=38)
 
-    ax = fig.add_axes([0.075, 0.245, 0.90, 0.42])
-    ax.set_xlim(25, 70); ax.set_ylim(-0.95, 2.70)
+    ax = fig.add_axes([0.075, 0.245, 0.90, 0.46])
+    ax.set_xlim(25, 70); ax.set_ylim(-1.30, 4.15)
     ax.set_yticks([])
     ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
     for sp in ("left",):
         ax.spines[sp].set_visible(False)
 
+    # the channel itself, drawn at its measured radius rather than sketched
+    prof = tunnel_profile()
+    KY = 0.15                      # plot units per Angstrom of radius
+    if prof is not None:
+        dep, rad = prof
+        keep = (dep >= 25) & (dep <= 70)
+        dep, rad = dep[keep], rad[keep]
+        for y0 in (2.30, 0.40):
+            ax.fill_between(dep, y0 - KY * rad, y0 + KY * rad,
+                            color="#eef4f6", zorder=0, linewidth=0)
+            for sgn in (1, -1):
+                ax.plot(dep, y0 + sgn * KY * rad, color="#bdccd2",
+                        linewidth=1.5, zorder=1)
+        # a scale bar, because the vertical axis is otherwise unitless
+        ax.plot([25.9, 25.9], [-0.98 - KY * 4, -0.98 + KY * 4], color=INK2,
+                linewidth=2.6, solid_capstyle="butt")
+        ax.annotate("8 \u00c5 across", (25.9, -0.98),
+                    textcoords="offset points", xytext=(9, -5), ha="left",
+                    fontsize=12.5, color=INK2)
+        ax.annotate(f"channel drawn at its measured radius "
+                    f"({rad.min():.1f}\u2013{rad.max():.1f} \u00c5); the "
+                    f"vertical scale is not the horizontal one",
+                    (69.4, -0.98), ha="right", va="center", fontsize=12.5,
+                    color=INK2, fontstyle="italic")
+
     # ---- top row: AcrB drugs, one point per bound copy
     rng = np.random.default_rng(1)
     for r in acr:
         x = float(r["depth_from_entrance_A"])
-        y = 1.75 + rng.uniform(-.13, .13)
+        y = 2.30 + rng.uniform(-.16, .16)
         ax.scatter([x], [y], s=150, color=SITECOL.get(r["site"], "#b9c3c8"),
                    zorder=4, edgecolor="white", linewidth=1.7, alpha=.9)
-    LAB = {"rifampicin": (32.1, 1.75, 0, -26, "center"),
-           "erythromycin": (40.6, 1.75, 0, -26, "center"),
-           "doxorubicin": (28.3, 1.75, 0, 22, "center"),
-           "MBX inhibitor": (55.9, 1.75, 0, -26, "center"),
-           "minocycline": (62.8, 1.75, 0, 22, "center")}
+    # two label rows: doxorubicin at 28 and rifampicin at 32 are too close
+    # to sit on one
+    LAB = {"doxorubicin \u00d72": (31.0, 2.30, 0, 48, "center"),
+           "erythromycin": (40.6, 2.30, 0, 48, "center"),
+           "minocycline": (62.8, 2.30, 0, 48, "center"),
+           "rifampicin": (32.1, 2.30, 0, 76, "center"),
+           "MBX inhibitor": (55.9, 2.30, 0, 76, "center")}
     for nm, (x, y, dx, dy, ha) in LAB.items():
         ax.annotate(nm, (x, y), textcoords="offset points", xytext=(dx, dy),
                     ha=ha, fontsize=13, color=INK2)
-    ax.text(25.4, 2.52, f"AcrB \u2014 {len(acr)} bound drugs, "
+    ax.text(25.4, 3.98, f"AcrB \u2014 {len(acr)} bound drugs, "
             f"{len(per)} protomers, {len({r['pdb'] for r in acr})} structures",
             fontsize=17, fontweight="bold", color=ACCESS, va="center")
 
     # ---- bottom row: the three DDM, in contact
     xs = [d for d, _ in multi]
-    ax.plot([min(xs), max(xs)], [0.35, 0.35], color=BINDING, linewidth=7,
+    ax.plot([min(xs), max(xs)], [0.40, 0.40], color=BINDING, linewidth=7,
             alpha=.30, solid_capstyle="round", zorder=2)
     for d, r in multi:
-        ax.scatter([d], [0.35], s=330, color=SITECOL.get(r["site"], "#7a8891"),
+        ax.scatter([d], [0.40], s=330, color=SITECOL.get(r["site"], "#7a8891"),
                    zorder=5, marker="D", edgecolor=BINDING, linewidth=2.6)
-        ax.annotate(f"{d:.0f} \u00c5", (d, 0.35), textcoords="offset points",
+        ax.annotate(f"{d:.0f} \u00c5", (d, 0.40), textcoords="offset points",
                     xytext=(0, 22), ha="center", fontsize=13.5,
                     color=BINDING, fontweight="bold")
-    ax.text(25.4, 1.06, "MexB with three DDM bound (this work), one protomer",
+    ax.text(25.4, 1.32, "MexB with three DDM bound (this work), one protomer",
             fontsize=17, fontweight="bold", color=BINDING, va="center")
     ax.annotate(f"in van der Waals contact, closest approach "
-                f"{touch:.1f} \u00c5", (float(np.mean(xs)), 0.35),
-                textcoords="offset points", xytext=(0, -32), ha="center",
+                f"{touch:.1f} \u00c5", (float(np.mean(xs)), 0.40),
+                textcoords="offset points", xytext=(0, -46), ha="center",
                 fontsize=14, color=BINDING, fontweight="bold")
 
     ax.set_xlabel("depth into the porter domain (\u00c5 from the "
@@ -999,7 +1052,7 @@ def panel_mechanism():
                                  "both": "spans both"}[k])
                for k in ("DBP", "PBP", "both")]
     fig.legend(handles=handles, loc="upper center", ncol=3,
-               bbox_to_anchor=(0.53, 0.745), fontsize=15,
+               bbox_to_anchor=(0.53, 0.755), fontsize=15,
                handletextpad=0.35, columnspacing=1.8)
 
     fig.text(0.055, 0.115,
