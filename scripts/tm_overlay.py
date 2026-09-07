@@ -30,11 +30,14 @@ from mexb_common import (FIGURES, REGIONS, STRUCT_DIR, TABLES, WORK_DIR,
 
 R1 = sorted(set(REGIONS["TM1"]) | set(REGIONS["TM2"]) | set(REGIONS["Ialpha"])
             | set(REGIONS["TM3-6"]) | set(REGIONS["TM6b"]))
-R2 = sorted(REGIONS["TM7-12"])
+# TM7 starts at ~861, before the TM7-12 region boundary, so R2 is extended
+# back through the junction to keep that helix whole
+R2 = sorted(set(REGIONS["junction859-875"]) | set(REGIONS["TM7-12"]))
 TM = sorted(set(R1) | set(R2))
 OUT = os.path.join(FIGURES, "tm_overlay")
 WORK = os.path.join(WORK_DIR, "tmoverlay")
 MEXB_COL, ACRB_COL = "0x2E5FE8", "0xE59BD8"   # blue / pink, as the paper
+SWING_COL = "0xD11149"                        # the helix that moves most
 
 
 def states_of(s):
@@ -131,6 +134,24 @@ def main():
               ["state", "repeat", "mexb", "acrb", "n_TM_CA_fitted",
                "tm_fit_rmsd_A", "mexb_atoms", "acrb_atoms"], rows)
 
+
+    # the helix that swings furthest between states, measured rather than
+    # picked by eye - helix_displacement.py writes it
+    swing = None
+    hd = os.path.join(TABLES, "helix_displacement.csv")
+    if os.path.exists(hd):
+        import csv as _csv
+        cand = [r for r in _csv.DictReader(open(hd))
+                if r["comparison"].startswith("MexB") and "vs Access"
+                in r["comparison"] and r["helix"]]
+        if cand:
+            b = max(cand, key=lambda r: float(r["centroid_shift_A"]))
+            swing = (b["helix"], int(b["first_res"]), int(b["last_res"]),
+                     float(b["centroid_shift_A"]), b["state"])
+            print(f"\n  highlighting {swing[0]} ({swing[1]}-{swing[2]}), "
+                  f"which moves {swing[3]:.1f} A from access to "
+                  f"{swing[4].lower()}")
+
     # one PyMOL session, one camera per repeat
     pml = os.path.join(WORK, "render.pml")
     with open(pml, "w") as fh:
@@ -144,6 +165,12 @@ def main():
         for st, rep, tag, f in objs:
             col = MEXB_COL if tag == "mexb" else ACRB_COL
             fh.write(f"color {col}, {st}_{rep}_{tag}\n")
+        if swing:
+            _, lo, hi, _, _ = swing
+            for st, rep, tag, f in objs:
+                if tag == "mexb":
+                    fh.write(f"color {SWING_COL}, {st}_{rep}_{tag} "
+                             f"and resi {lo}-{hi}\n")
         # one rotation for all six panels: orient on the whole TM domain so
         # the membrane normal is vertical, then only re-centre per repeat
         fh.write("show cartoon\norient all\nturn z, 90\n")

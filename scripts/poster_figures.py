@@ -1377,7 +1377,11 @@ def panel_tm_overlay():
     if len(have) < 6:
         return
     fit = {r["state"]: r["tm_fit_rmsd_A"] for r in R("tm_overlay.csv")}
-    MEXB, ACRB = "#2E5FE8", "#E59BD8"
+    MEXB, ACRB, SWING = "#2E5FE8", "#E59BD8", "#D11149"
+    hd = [r for r in R("helix_displacement.csv")
+          if "vs Access" in r["comparison"] and r["helix"]]
+    top = (max(hd, key=lambda r: float(r["centroid_shift_A"]))
+           if hd else None)
 
     fig = plt.figure(figsize=(10.6, 8.4))
     title(fig, "MexB and AcrB transmembrane domains, state by state",
@@ -1387,6 +1391,11 @@ def panel_tm_overlay():
              color=MEXB, va="top")
     fig.text(0.175, 0.876, "AcrB (4DX5)", fontsize=20, fontweight="bold",
              color=ACRB, va="top")
+    if top:
+        fig.text(0.395, 0.876,
+                 f"{top['helix']} \u2014 moves {float(top['centroid_shift_A']):.1f} "
+                 f"\u00c5 from access to {top['state'].lower()}",
+                 fontsize=18, fontweight="bold", color=SWING, va="top")
 
     def crop(a):
         """Trim the white margin PyMOL leaves around the cartoon."""
@@ -1425,13 +1434,18 @@ def panel_tm_overlay():
     fig.text(0.055, 0.108,
              "R1 is TM1\u20136 with the I\u03b1 helix, R2 is TM7\u201312. "
              "Each MexB protomer of the DDM \u00d73 model is superposed on "
-             "the AcrB 4DX5 protomer in the same state over\ntheir ~390 "
+             "the AcrB 4DX5\nprotomer in the same state over their ~390 "
              "shared transmembrane C\u03b1, then that rigid pair is moved "
-             "onto the AcrB access protomer, so all six panels share one "
-             "camera and differences between\nthem are real. AcrB states "
-             "are assigned by ranking 4DX5's own protomers on their "
+             "onto the AcrB access\nprotomer, so all six panels share one "
+             "camera and differences between them are real. AcrB states are "
+             "assigned by ranking\n4DX5's own protomers on their "
              "PN1\u2013PN2 and PC1\u2013PC2 separations. Rendered in "
-             "PyMOL as cylindrical helices.",
+             "PyMOL as cylindrical helices, with helix\nboundaries from its "
+             "secondary-structure assignment rather than hard-coded. The "
+             "highlighted helix is the one measured to\nmove furthest "
+             "between MexB protomer states, not one picked by eye; every "
+             "helix's displacement and axis rotation is in\n"
+             "helix_displacement.csv.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P13_tm_overlay")
 

@@ -1,0 +1,61 @@
+comparison,state,helix,first_res,last_res,n_CA,centroid_shift_A,axis_angle_deg,rmsd_A
+MexB vs AcrB,Access,TM1,9,29,21,0.81,3.4,1.00
+MexB vs AcrB,Access,Iα,362,386,25,0.46,2.5,0.88
+MexB vs AcrB,Access,TM3,392,423,32,1.77,5.4,2.33
+MexB vs AcrB,Access,TM4,427,458,32,1.56,4.1,1.99
+MexB vs AcrB,Access,TM5,462,496,35,0.67,2.5,0.99
+MexB vs AcrB,Access,TM6,512,536,25,1.61,1.6,1.85
+MexB vs AcrB,Access,TM6b,538,558,21,1.30,2.1,1.53
+MexB vs AcrB,Access,TM7,861,891,31,1.63,2.5,2.06
+MexB vs AcrB,Access,TM8,895,918,24,0.62,1.7,0.79
+MexB vs AcrB,Access,TM9,924,954,31,0.60,2.6,1.73
+MexB vs AcrB,Access,TM10,958,989,32,0.37,3.1,1.11
+MexB vs AcrB,Access,TM11/12,995,1029,35,0.99,1.6,1.12
+MexB vs AcrB,Binding,TM1,9,29,21,0.46,1.8,0.58
+MexB vs AcrB,Binding,Iα,362,386,25,0.27,0.2,0.44
+MexB vs AcrB,Binding,TM3,392,423,32,0.40,0.5,0.54
+MexB vs AcrB,Binding,TM4,427,458,32,0.15,0.9,0.39
+MexB vs AcrB,Binding,TM5,462,496,35,0.37,0.9,0.50
+MexB vs AcrB,Binding,TM6,512,536,25,0.48,2.6,0.76
+MexB vs AcrB,Binding,TM6b,538,558,21,0.69,0.9,0.83
+MexB vs AcrB,Binding,TM7,861,891,31,0.38,2.5,1.15
+MexB vs AcrB,Binding,TM8,895,918,24,0.20,0.2,0.28
+MexB vs AcrB,Binding,TM9,924,954,31,0.39,1.0,1.17
+MexB vs AcrB,Binding,TM10,958,989,32,0.14,1.0,0.39
+MexB vs AcrB,Binding,TM11/12,995,1029,35,0.29,0.9,0.51
+MexB vs AcrB,Extrusion,TM1,9,29,21,0.51,2.6,0.70
+MexB vs AcrB,Extrusion,Iα,362,386,25,0.27,1.7,0.51
+MexB vs AcrB,Extrusion,TM3,392,423,32,0.54,1.8,0.76
+MexB vs AcrB,Extrusion,TM4,427,458,32,0.47,2.1,0.75
+MexB vs AcrB,Extrusion,TM5,462,496,35,0.24,1.8,0.61
+MexB vs AcrB,Extrusion,TM6,512,536,25,0.82,1.9,0.95
+MexB vs AcrB,Extrusion,TM6b,538,558,21,0.65,1.8,0.82
+MexB vs AcrB,Extrusion,TM7,861,891,31,0.15,0.4,0.38
+MexB vs AcrB,Extrusion,TM8,895,918,24,0.30,2.2,0.64
+MexB vs AcrB,Extrusion,TM9,924,954,31,0.40,2.2,1.41
+MexB vs AcrB,Extrusion,TM10,958,989,32,0.22,2.2,0.67
+MexB vs AcrB,Extrusion,TM11/12,995,1029,35,0.19,1.1,0.54
+MexB Binding vs Access,Binding,TM1,9,29,21,1.52,5.8,1.82
+MexB Binding vs Access,Binding,Iα,362,386,25,0.17,0.9,0.60
+MexB Binding vs Access,Binding,TM3,392,423,32,2.12,5.2,2.56
+MexB Binding vs Access,Binding,TM4,427,458,32,1.97,5.3,2.52
+MexB Binding vs Access,Binding,TM5,462,496,35,0.90,2.9,1.32
+MexB Binding vs Access,Binding,TM6,512,536,25,1.19,3.9,1.58
+MexB Binding vs Access,Binding,TM6b,538,558,21,1.50,3.7,1.66
+MexB Binding vs Access,Binding,TM7,861,891,31,2.77,4.2,3.62
+MexB Binding vs Access,Binding,TM8,895,918,24,0.69,2.6,0.94
+MexB Binding vs Access,Binding,TM9,924,954,31,0.40,1.1,1.14
+MexB Binding vs Access,Binding,TM10,958,989,32,0.77,3.0,1.34
+MexB Binding vs Access,Binding,TM11/12,995,1029,35,0.78,3.5,1.24
+MexB Extrusion vs Access,Extrusion,TM1,9,29,21,1.36,4.6,1.58
+MexB Extrusion vs Access,Extrusion,Iα,362,386,25,0.33,2.0,0.73
+MexB Extrusion vs Access,Extrusion,TM3,392,423,32,1.20,4.5,1.80
+MexB Extrusion vs Access,Extrusion,TM4,427,458,32,2.04,4.5,2.61
+MexB Extrusion vs Access,Extrusion,TM5,462,496,35,0.70,1.6,1.03
+MexB Extrusion vs Access,Extrusion,TM6,512,536,25,1.27,4.4,1.71
+MexB Extrusion vs Access,Extrusion,TM6b,538,558,21,1.37,3.7,1.55
+MexB Extrusion vs Access,Extrusion,TM7,861,891,31,1.35,8.8,3.24
+MexB Extrusion vs Access,Extrusion,TM8,895,918,24,0.63,3.7,1.34
+MexB Extrusion vs Access,Extrusion,TM9,924,954,31,0.86,2.5,1.55
+MexB Extrusion vs Access,Extrusion,TM10,958,989,32,0.80,2.5,1.16
+MexB Extrusion vs Access,Extrusion,TM11/12,995,1029,35,0.90,1.7,1.11
