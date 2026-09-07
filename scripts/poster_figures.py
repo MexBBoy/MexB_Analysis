@@ -1450,6 +1450,103 @@ def panel_tm_overlay():
     save(fig, "P13_tm_overlay")
 
 
+# ------------------------------------------------------------------ P14
+def panel_caver():
+    """Our widest-path bottlenecks against CAVER 3.0.3."""
+    cav = R("caver_tunnels.csv")
+    own = {r["ligand"]: r for r in R("per_structure_tunnel_summary.csv")}
+    if not cav:
+        return
+    NAME2PDB = {"Ampicillin": "Amp_MexB_20260826",
+                "DDM x3": "MexB_DDM_3_20260730", "DDM \u00d73":
+                "MexB_DDM_3_20260730", "Chloramphenicol": "21FP",
+                "DDM": "2V50", "EPI": "3W9J", "LMNG": "6IIA",
+                "CYMAL-7": "21FO"}
+    rows = []
+    for r in cav:
+        nm = r["ligand"]
+        o = float(r["our_bottleneck_A"])
+        c = float(r["caver_bottleneck_A"])
+        clen = float(r["caver_length_A"])
+        olen = (float(own[nm]["trace_points"]) * 0.15
+                if nm in own else float("nan"))
+        rows.append((nm, o, c, clen, olen, c - o))
+    rows.sort(key=lambda x: abs(x[5]))
+
+    fig = plt.figure(figsize=(11.0, 6.8))
+    title(fig, "An independent tool agrees where it measures the same route",
+          "CAVER 3.0.3 against this project's widest-path search, on the "
+          "same protomers, seeded on the same points.")
+
+    ax = fig.add_axes([0.155, 0.28, 0.42, 0.44])
+    for i, (nm, o, c, clen, olen, d) in enumerate(rows):
+        y = len(rows) - 1 - i
+        col = LIGCOL.get(NAME2PDB.get(nm, ""), TEAL)
+        ax.plot([o, c], [y, y], color=col, linewidth=3, alpha=.45, zorder=2,
+                solid_capstyle="round")
+        ax.scatter([o], [y], s=150, facecolor="white", edgecolor=col,
+                   linewidth=2.4, zorder=4)
+        ax.scatter([c], [y], s=150, color=col, zorder=4,
+                   edgecolor="white", linewidth=1.6)
+        ax.annotate(nm, (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-10, -5), textcoords="offset points",
+                    ha="right", fontsize=13.5, color=col)
+        ax.annotate(f"{d:+.2f}", (1, y), xycoords=("axes fraction", "data"),
+                    xytext=(8, -5), textcoords="offset points", ha="left",
+                    fontsize=12.5, color=INK2, annotation_clip=False)
+    ax.set_yticks([]); ax.set_ylim(-0.7, len(rows) - 0.3)
+    ax.set_xlim(1.0, 2.9)
+    ax.set_xlabel("Bottleneck radius (\u00c5)", labelpad=10, fontsize=15)
+    ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    ax.annotate("\u0394", (1, len(rows) - 0.35),
+                xycoords=("axes fraction", "data"), xytext=(8, -5),
+                textcoords="offset points", ha="left", fontsize=13,
+                color=INK2, annotation_clip=False)
+    h = [plt.Line2D([], [], marker="o", linestyle="", markersize=11,
+                    markerfacecolor="white", markeredgecolor=INK2,
+                    markeredgewidth=2, label="this work"),
+         plt.Line2D([], [], marker="o", linestyle="", markersize=11,
+                    markerfacecolor=INK2, markeredgecolor="white",
+                    markeredgewidth=1.5, label="CAVER")]
+    ax.legend(handles=h, loc="upper left", fontsize=13.5, ncol=1)
+
+    # how much of our route CAVER's best-ranked tunnel actually spans
+    ax2 = fig.add_axes([0.735, 0.28, 0.235, 0.44])
+    rat = np.array([r[3] / r[4] for r in rows])
+    dif = np.array([abs(r[5]) for r in rows])
+    for (nm, o, c, clen, olen, d), x in zip(rows, rat):
+        col = LIGCOL.get(NAME2PDB.get(nm, ""), TEAL)
+        ax2.scatter([100 * x], [abs(d)], s=150, color=col, zorder=4,
+                    edgecolor="white", linewidth=1.6)
+    r_p = float(np.corrcoef(rat, dif)[0, 1])
+    ax2.set_xlabel("CAVER tunnel as % of our route", labelpad=10,
+                   fontsize=14)
+    ax2.set_ylabel("|difference| (\u00c5)", labelpad=8, fontsize=14)
+    ax2.margins(0.18)
+    ax2.set_axisbelow(True)
+    ax2.annotate(f"r = {r_p:+.2f}, n = {len(rows)}", (0.96, 0.94),
+                 xycoords="axes fraction", ha="right", va="top",
+                 fontsize=13.5, color=INK2)
+
+    fig.text(0.055, 0.135,
+             "Both tools were given the same protomer with ligands stripped "
+             "and the same seed. They agree to 0.01 and 0.03 \u00c5 on "
+             "ampicillin and DDM \u00d73, and\ndiverge by up to 1.16 "
+             "\u00c5 elsewhere \u2014 but CAVER's best-ranked cluster is "
+             "always far shorter than our route (14\u201334 \u00c5 against "
+             "59\u201386 \u00c5), so the two are not\nalways measuring the "
+             "same passage. The right panel is the pattern that suggests: "
+             "the more of our route CAVER's tunnel spans, the closer the "
+             "bottlenecks. With\nseven points that is suggestive, not "
+             "established. CAVER ranks clustered candidate tunnels by "
+             "bottleneck; ours takes the single widest path from the seed "
+             "to bulk\nsolvent. Per-tunnel profiles are in "
+             "caver_tunnel_profiles.csv for a route-by-route comparison.",
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P14_caver_crosscheck")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -1465,6 +1562,7 @@ def main():
     panel_mexb_rows()
     panel_regional_rmsd()
     panel_tm_overlay()
+    panel_caver()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
