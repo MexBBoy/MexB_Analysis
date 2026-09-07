@@ -15,8 +15,22 @@ fraction of the reference axis they cover is written out, so a row whose
 tunnel genuinely goes elsewhere shows up as poor coverage rather than as a
 confident-looking profile.
 
-Writes results/tables/per_structure_tunnels.csv (one row per depth bin) and
-results/tables/per_structure_tunnel_summary.csv (one row per protomer).
+Relaxing MAX_OFFSET does not rescue the coverage - it plateaus at 40-54% by
+8 A and does not move out to 20 A, while the median offset of the points that
+do project is only 2-4 A. So the gaps are not a cutoff artefact: each
+structure's own tunnel simply spans about half the reference axis, because
+the projection is many-to-one where a route runs alongside the reference.
+
+A full-length view therefore has to use each tunnel's own arc length, so this
+also writes that: each tunnel from its own periplasmic mouth to its own deep
+terminus, with its ligands placed on its own axis.
+
+Writes, on the reference axis:
+  results/tables/per_structure_tunnels.csv         one row per depth bin
+  results/tables/per_structure_tunnel_summary.csv  one row per protomer
+and on each structure's own axis:
+  results/tables/own_axis_tunnels.csv              full-length radius profile
+  results/tables/own_axis_ligands.csv              ligand depths on that axis
 """
 from __future__ import annotations
 
@@ -119,6 +133,61 @@ def find_trace(s, chain, chan):
     return os.path.join(CXDIR, best) if best else None
 
 
+def write_own_axis(want, chan):
+    """Each tunnel over its whole length, on its own arc-length axis.
+
+    Depth is measured from that tunnel's own periplasmic mouth, the same
+    convention the reference uses, so the shallow end of every row means the
+    same thing. The deep ends do not align, because the tunnels are not the
+    same length - that is the honest cost of drawing them in full.
+    """
+    prof, ligs = [], []
+    for (pid, ch), nm in sorted(want.items(), key=lambda x: x[1]):
+        path = os.path.join(STRUCT_DIR, f"{pid}.pdb")
+        if not os.path.exists(path):
+            path = os.path.join(PDBDIR, f"{pid}.pdb")
+        if not os.path.exists(path):
+            continue
+        s = Structure(path)
+        trace = find_trace(s, ch, chan)
+        if trace is None:
+            continue
+        P, rad = read_trace(trace)
+        if len(P) < 10:
+            continue
+        arc = np.concatenate([[0.0], np.cumsum(
+            np.linalg.norm(np.diff(P, axis=0), axis=1))])
+        # the trace runs deep terminus -> bulk exit, so depth = total - arc
+        depth = arc[-1] - arc
+        for d, r in zip(depth, rad):
+            prof.append([pid, ch, nm, fmt(d), fmt(r)])
+        for (c, rn, h) in pocket_ligands(s):
+            if c != ch:
+                continue
+            cen = coords(h).mean(0)
+            k = int(np.argmin(np.linalg.norm(P - cen, axis=1)))
+            ligs.append([pid, ch, nm, rn, len(h), fmt(depth[k]),
+                         fmt(float(np.linalg.norm(P[k] - cen))),
+                         fmt(arc[-1])])
+
+    write_csv(os.path.join(TABLES, "own_axis_tunnels.csv"),
+              ["pdb", "chain", "ligand", "depth_from_own_mouth_A",
+               "radius_A"], prof)
+    write_csv(os.path.join(TABLES, "own_axis_ligands.csv"),
+              ["pdb", "chain", "ligand", "resname", "heavy_atoms",
+               "depth_from_own_mouth_A", "offset_from_own_tunnel_A",
+               "tunnel_length_A"], ligs)
+    print("\n  --- full length, on each tunnel's own axis ---")
+    seen = set()
+    for r in prof:
+        if r[2] in seen:
+            continue
+        seen.add(r[2])
+        same = [float(x[3]) for x in prof if x[2] == r[2]]
+        print(f"    {r[2]:16} tunnel {max(same):5.1f} A long")
+    print("  wrote own_axis_tunnels.csv and own_axis_ligands.csv")
+
+
 def main():
     chan = load_channel()
     if chan is None:
@@ -194,6 +263,8 @@ def main():
         summary.append([pid, ch, nm, len(P), int(keep.sum()), fmt(cover, 0),
                         fmt(rr.min()), fmt(rad.min()),
                         "yes" if cover >= 50 else "partial"])
+
+    write_own_axis(want, chan)
 
     write_csv(os.path.join(TABLES, "per_structure_tunnels.csv"),
               ["pdb", "chain", "ligand", "depth_from_entrance_A",

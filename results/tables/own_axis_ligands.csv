@@ -1,0 +1,10 @@
+pdb,chain,ligand,resname,heavy_atoms,depth_from_own_mouth_A,offset_from_own_tunnel_A,tunnel_length_A
+Amp_MexB_20260826,E,Ampicillin,ZZ7,25,62.80,0.43,62.80
+21FO,B,CYMAL-7,CA7,36,153.64,0.78,153.64
+21FP,B,Chloramphenicol,CLM,20,66.11,0.32,66.11
+2V50,B,DDM,LMT,35,51.51,0.54,51.51
+MexB_DDM_3_20260730,E,DDM x3,LMT,35,61.89,0.11,62.03
+MexB_DDM_3_20260730,E,DDM x3,LMT,35,27.05,3.34,62.03
+MexB_DDM_3_20260730,E,DDM x3,LMT,35,51.40,1.09,62.03
+3W9J,B,EPI,P9D,49,71.86,0.92,72.13
+6IIA,B,LMNG,AV0,69,64.83,0.36,64.96
