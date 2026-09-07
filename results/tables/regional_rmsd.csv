@@ -1,0 +1,113 @@
+comparison,state,structure_a,structure_b,region,rmsd_A,n_CA_in_region,global_rmsd_A,n_CA_total
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,TM1,0.48,26,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,PN1,0.97,91,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,PN2,0.89,94,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,DN,0.96,97,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,TM2,1.38,23,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,Ialpha,1.26,21,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,TM3-6,1.41,115,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,loop496-515,6.88,20,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,TM6b,3.24,50,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,PC1,1.31,96,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,PC2,2.70,82,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,DC,1.72,96,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,junction859-875,2.14,17,1.97,1032
+MexB (DDM) vs AcrB,Access,MexB_DDM_3_20260730:D,4DX5:A,TM7-12,1.86,155,1.97,1032
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,TM1,1.84,26,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,PN1,1.47,91,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,PN2,3.94,94,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,DN,2.23,97,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,TM2,1.57,23,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,Ialpha,1.25,21,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,TM3-6,2.17,115,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,loop496-515,7.55,20,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,TM6b,2.77,50,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,PC1,1.56,96,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,PC2,1.73,82,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,DC,1.68,96,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,junction859-875,2.33,17,2.49,1031
+MexB (ampicillin) vs AcrB,Binding,Amp_MexB_20260826:D,4DX5:B,TM7-12,2.17,155,2.49,1031
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,TM1,1.01,26,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,PN1,1.00,91,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,PN2,1.04,94,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,DN,1.10,96,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,TM2,0.71,23,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,Ialpha,0.67,20,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,TM3-6,0.60,115,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,loop496-515,1.29,20,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,TM6b,0.97,50,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,PC1,1.57,96,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,PC2,1.06,82,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,DC,1.16,96,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,junction859-875,1.44,17,1.12,1028
+MexB (DDM) vs AcrB,Binding,MexB_DDM_3_20260730:E,4DX5:B,TM7-12,0.76,155,1.12,1028
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,TM1,2.41,26,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,PN1,2.13,91,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,PN2,1.88,94,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,DN,1.93,97,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,TM2,1.46,23,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,Ialpha,2.05,21,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,TM3-6,1.59,115,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,loop496-515,2.45,20,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,TM6b,1.87,50,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,PC1,1.58,95,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,PC2,1.88,82,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,DC,1.94,96,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,junction859-875,2.22,17,1.88,1030
+MexB (ampicillin) vs AcrB,Extrusion,Amp_MexB_20260826:F,4DX5:C,TM7-12,1.87,155,1.88,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,TM1,0.69,26,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,PN1,0.92,91,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,PN2,1.00,94,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,DN,1.20,97,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,TM2,0.73,23,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,Ialpha,0.70,21,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,TM3-6,0.68,115,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,loop496-515,2.42,20,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,TM6b,1.24,50,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,PC1,0.88,95,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,PC2,1.12,82,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,DC,0.98,96,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,junction859-875,0.57,17,1.04,1030
+MexB (DDM) vs AcrB,Extrusion,MexB_DDM_3_20260730:F,4DX5:C,TM7-12,1.00,155,1.04,1030
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,TM1,0.92,26,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,PN1,0.36,91,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,PN2,0.23,94,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,DN,0.33,97,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,TM2,1.27,23,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,Ialpha,0.77,21,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,TM3-6,1.84,115,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,loop496-515,1.91,20,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,TM6b,2.62,50,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,PC1,0.87,96,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,PC2,1.83,82,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,DC,0.37,96,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,junction859-875,1.95,17,1.32,1032
+"ampicillin vs DDM, chain D",Binding vs Access,Amp_MexB_20260826:D,MexB_DDM_3_20260730:D,TM7-12,1.51,155,1.32,1032
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,TM1,0.80,26,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,PN1,0.40,91,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,PN2,0.46,94,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,DN,1.51,96,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,TM2,0.46,23,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,Ialpha,0.61,20,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,TM3-6,0.95,115,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,loop496-515,1.73,20,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,TM6b,1.47,50,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,PC1,0.45,96,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,PC2,0.47,82,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,DC,0.40,96,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,junction859-875,0.76,17,0.86,1028
+"ampicillin vs DDM, chain E",Binding,Amp_MexB_20260826:E,MexB_DDM_3_20260730:E,TM7-12,0.71,155,0.86,1028
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,TM1,2.05,26,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,PN1,1.87,91,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,PN2,1.53,94,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,DN,1.45,97,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,TM2,1.25,23,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,Ialpha,1.79,21,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,TM3-6,1.38,115,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,loop496-515,1.58,20,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,TM6b,1.17,50,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,PC1,1.42,95,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,PC2,1.54,82,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,DC,1.58,96,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,junction859-875,2.04,17,1.53,1032
+"ampicillin vs DDM, chain F",Extrusion,Amp_MexB_20260826:F,MexB_DDM_3_20260730:F,TM7-12,1.48,155,1.53,1032

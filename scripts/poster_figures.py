@@ -1285,6 +1285,85 @@ def panel_mexb_rows():
     save(fig, "P11_mexb_rows")
 
 
+# ------------------------------------------------------------------ P12
+def panel_regional_rmsd():
+    """Localised backbone RMSD by region, after Lawrence et al. Fig. 2B."""
+    rows = R("regional_rmsd.csv")
+    if not rows:
+        return
+    ORDER = ["TM1", "PN1", "PN2", "DN", "TM2", "Ialpha", "TM3-6",
+             "loop496-515", "TM6b", "PC1", "PC2", "DC", "junction859-875",
+             "TM7-12"]
+    STATES = ("Access", "Binding", "Extrusion")
+
+    vs_acrb = {}
+    for r in rows:
+        if r["comparison"] == "MexB (DDM) vs AcrB":
+            vs_acrb.setdefault(r["state"], {})[r["region"]] = float(r["rmsd_A"])
+    ours = {}
+    for r in rows:
+        if r["comparison"].startswith("ampicillin vs DDM"):
+            ours.setdefault(r["comparison"][-1], {})[r["region"]] = \
+                float(r["rmsd_A"])
+    if not vs_acrb:
+        return
+    regions = [g for g in ORDER if any(g in v for v in vs_acrb.values())]
+
+    fig = plt.figure(figsize=(11.4, 7.6))
+    title(fig, "Where MexB differs from AcrB, region by region",
+          "Backbone C\u03b1 RMSD per region after superposing whole "
+          "protomers, for each state of the functional rotation.")
+    ax = fig.add_axes([0.075, 0.365, 0.63, 0.375])
+    x = np.arange(len(regions))
+    w = 0.26
+    for k, st in enumerate(STATES):
+        v = [vs_acrb.get(st, {}).get(g, np.nan) for g in regions]
+        ax.bar(x + (k - 1) * w, v, width=w, color=STATE_COLOR[st],
+               alpha=.85, label=st, zorder=3)
+    ax.set_xticks(x)
+    ax.set_xticklabels(regions, rotation=38, ha="right", fontsize=13)
+    ax.set_ylabel("C\u03b1 RMSD to AcrB (\u00c5)", labelpad=8, fontsize=16)
+    ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+    ax.legend(loc="upper left", fontsize=14, ncol=3)
+
+    glob = {st: float(next(r["global_rmsd_A"] for r in rows
+                           if r["comparison"] == "MexB (DDM) vs AcrB"
+                           and r["state"] == st))
+            for st in STATES if st in vs_acrb}
+    worst = max(((v, g, st) for st, d in vs_acrb.items()
+                 for g, v in d.items()), key=lambda t: t[0])
+
+    tx = fig.add_axes([0.765, 0.335, 0.22, 0.405]); tx.axis("off")
+    tx.text(0, 1.0, f"{worst[0]:.1f} \u00c5", ha="left", va="top",
+            fontsize=42, fontweight="bold", color=STATE_COLOR[worst[2]],
+            transform=tx.transAxes)
+    body = (f"at {worst[1]}, the largest\nregional difference.\n\n"
+            + "Global RMSD to AcrB:\n"
+            + "\n".join(f"  {st}  {glob[st]:.2f} \u00c5"
+                         for st in STATES if st in glob)
+            + "\n\nOur two models, mean\nover regions:\n"
+            + "  " + ",  ".join(
+                f"{c} {np.nanmean(list(d.values())):.2f}"
+                for c, d in sorted(ours.items())) + " \u00c5")
+    tx.text(0, 0.80, body, ha="left", va="top", fontsize=13.5, color=INK2,
+            transform=tx.transAxes, linespacing=1.5)
+
+    fig.text(0.055, 0.105,
+             "Each MexB protomer of the DDM \u00d73 model is superposed on "
+             "the AcrB 4DX5 protomer in the same state over all ~1030 shared "
+             "C\u03b1, then RMSD is\ntaken per region on that one fit, so a "
+             "region's value is how far it sits from where the global "
+             "superposition puts it. MexB residues map onto AcrB by the same "
+             "global\nBLOSUM62 alignment used for the conservation panel "
+             "(1045 of 1046 map). AcrB states are assigned by ranking 4DX5's "
+             "own three protomers on their PN1\u2013PN2 and\nPC1\u2013PC2"
+             " separations, not by this project's absolute cutoffs, which are "
+             "calibrated on MexB and put two of AcrB's chains in the same "
+             "state.",
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P12_regional_rmsd")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -1298,6 +1377,7 @@ def main():
     panel_pocket_physchem()
     panel_mechanism()
     panel_mexb_rows()
+    panel_regional_rmsd()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
