@@ -1128,8 +1128,8 @@ def panel_mexb_rows():
     H = 4.6 + 0.52 * n
     fig = plt.figure(figsize=(10.6, H))
     title(fig, "One channel, every substrate-bound MexB protomer",
-          "Each structure's own tunnel, traced separately and projected onto "
-          "one shared axis, with its ligands placed on it.")
+          "Each structure's own tunnel, traced separately and drawn in "
+          "full, aligned on the pocket, with its ligands placed on it.")
 
     # the two numbers this panel exists to make, in P10's callout style
     multi = [r for r in env if int(r["ligands_in_protomer"]) > 1]
@@ -1151,7 +1151,8 @@ def panel_mexb_rows():
 
     y0, htop = 1.80 / H, 3.95 / H
     ax = fig.add_axes([0.245, y0, 0.660, 1.0 - y0 - htop])
-    ax.set_xlim(-1.5, 66); ax.set_ylim(-1.85, n + 0.10)
+    ax.set_xlim(-15.5, 66); ax.set_ylim(-1.85, n + 0.10)
+    ax.set_xticks(list(range(0, 70, 10)))
     ax.annotate("Bottleneck", (1.0, n - 0.35),
                 xycoords=("axes fraction", "data"), xytext=(8, -4),
                 textcoords="offset points", ha="left", fontsize=12,
@@ -1166,14 +1167,25 @@ def panel_mexb_rows():
     if prof is not None:
         dep, rad = prof
 
-    # each structure's own tunnel, traced separately and re-expressed on the
-    # reference axis. Coverage is partial for every one but the reference
-    # itself, so the reference outline stays behind each row as the frame and
-    # the row's own profile is drawn only where its tunnel actually goes.
-    own = {}
-    for r in R("per_structure_tunnels.csv"):
-        own.setdefault((r["pdb"], r["chain"]), []).append(
-            (float(r["depth_from_entrance_A"]), float(r["radius_min_A"])))
+    # Each structure's own tunnel over its whole length. Projecting a trace
+    # onto the reference centreline leaves gaps - a route running alongside
+    # the reference maps many of its points onto one stretch of it and none
+    # onto the next - and those gaps are an artefact of the projection, not
+    # blockages. So each row is drawn on its own arc length instead, unbroken
+    # from its periplasmic mouth to its deep terminus, and slid along the
+    # axis until its deepest ligand sits at that ligand's reference depth.
+    # Every row is then continuous and the pockets still line up; the cost is
+    # that the shallow ends no longer do, since the tunnels differ in length.
+    ownp = {}
+    for r in R("own_axis_tunnels.csv"):
+        ownp.setdefault((r["pdb"], r["chain"]), []).append(
+            (float(r["depth_from_own_mouth_A"]), float(r["radius_A"])))
+    ownlig = {}
+    for r in R("own_axis_ligands.csv"):
+        k = (r["pdb"], r["chain"])
+        d = float(r["depth_from_own_mouth_A"])
+        if d > ownlig.get(k, (-1.0,))[0]:
+            ownlig[k] = (d, float(r["tunnel_length_A"]))
     cover = {(r["pdb"], r["chain"]): r
              for r in R("per_structure_tunnel_summary.csv")}
 
@@ -1186,20 +1198,23 @@ def panel_mexb_rows():
             for sgn in (1, -1):
                 ax.plot(dep, y + sgn * KY * rad, color="#d3dde1",
                         linewidth=1.1, zorder=0)
-        pts = sorted(own.get(k, []))
-        if pts:                                  # this structure's own tunnel
-            od = np.array([p[0] for p in pts])
+        d = [float(r["depth_from_entrance_A"]) for r in grp]
+        pts = sorted(ownp.get(k, []))
+        if pts and k in ownlig:                  # this structure's own tunnel
+            od = np.array([p[0] for p in pts]) + (max(d) - ownlig[k][0])
             orr = np.array([p[1] for p in pts])
-            # break the fill wherever the projection has a gap
-            cut = np.where(np.diff(od) > 2.5)[0] + 1
-            for seg_d, seg_r in zip(np.split(od, cut), np.split(orr, cut)):
-                if len(seg_d) < 2:
-                    continue
-                ax.fill_between(seg_d, y - KY * seg_r, y + KY * seg_r,
-                                color=tint(lc, 0.85), zorder=1, linewidth=0)
-                for sgn in (1, -1):
-                    ax.plot(seg_d, y + sgn * KY * seg_r, color=tint(lc, 0.30),
-                            linewidth=1.6, zorder=2)
+            ax.fill_between(od, y - KY * orr, y + KY * orr,
+                            color=tint(lc, 0.85), zorder=1, linewidth=0)
+            for sgn in (1, -1):
+                ax.plot(od, y + sgn * KY * orr, color=tint(lc, 0.30),
+                        linewidth=1.6, zorder=2)
+            if od[0] < ax.get_xlim()[0] + 0.5:   # runs off the shallow end
+                ax.annotate(f"continues \u2014 {ownlig[k][1]:.0f} \u00c5 "
+                            "in all", (0.0, y),
+                            xycoords=("axes fraction", "data"),
+                            xytext=(6, -7), textcoords="offset points",
+                            ha="left", va="top", fontsize=10.5,
+                            color=tint(lc, 0.25))
             c = cover.get(k)
             if c and c.get("route_bottleneck_A"):
                 ax.annotate(f"{float(c['route_bottleneck_A']):.1f} \u00c5",
@@ -1207,7 +1222,6 @@ def panel_mexb_rows():
                             xytext=(8, -4), textcoords="offset points",
                             ha="left", fontsize=12, color=lc,
                             annotation_clip=False)
-        d = [float(r["depth_from_entrance_A"]) for r in grp]
         if len(grp) > 1:
             ax.plot([min(d), max(d)], [y, y], color=lc, linewidth=6,
                     alpha=.35, solid_capstyle="round", zorder=2)
@@ -1255,9 +1269,9 @@ def panel_mexb_rows():
                 fontsize=14, color=INK2, annotation_clip=False)
 
     if rad is not None:
-        ax.plot([1.2, 1.2], [-1.42 - KY * 4, -1.42 + KY * 4], color=INK2,
-                linewidth=2.4, solid_capstyle="butt")
-        ax.annotate("8 \u00c5 across", (1.2, -1.42),
+        ax.plot([-14.2, -14.2], [-1.42 - KY * 4, -1.42 + KY * 4],
+                color=INK2, linewidth=2.4, solid_capstyle="butt")
+        ax.annotate("8 \u00c5 across", (-14.2, -1.42),
                     textcoords="offset points", xytext=(9, -5), ha="left",
                     fontsize=12, color=INK2)
 
@@ -1279,20 +1293,24 @@ def panel_mexb_rows():
 
     fig.text(0.045, 0.085,
              "Each row is that structure's own tunnel, traced from its own "
-             "coordinates and re-expressed on the reference axis.\n"
-             "The faint grey outline behind every row is the reference "
-             "channel, the widest ligand-free route out of ampicillin\n"
-             "chain E. A tunnel is drawn only where it follows that route "
-             "within 6 \u00c5; coverage runs 22\u2013100%, so a gap is "
-             "where a\nstructure's widest route goes elsewhere, not where "
-             "it is blocked. Tube half-width is the local radius, on a "
-             "vertical\nscale that is not the horizontal one. The "
-             "bottleneck at the right is the narrowest point on the route "
-             "itself, taken\nwith the terminal 3 \u00c5 at each end "
+             "coordinates and drawn unbroken from its periplasmic mouth to "
+             "its deep\nterminus, then slid along the axis until its "
+             "deepest ligand sits at that ligand's depth on the reference "
+             "channel \u2014 the widest\nligand-free route out of "
+             "ampicillin chain E, the faint grey outline behind every row. "
+             "The pockets therefore line up and the shallow\nends do not: "
+             "a tunnel longer than the reference starts left of zero, a "
+             "shorter one starts right of it, and CYMAL-7's 154 \u00c5 "
+             "route runs\noff the panel. Depth is arc length along each "
+             "structure's own route, the same measurement on every row but "
+             "not the same path.\nTube half-width is the local radius, on "
+             "a vertical scale that is not the horizontal one. The "
+             "bottleneck at the right is the narrowest\npoint on the "
+             "route itself, taken with the terminal 3 \u00c5 at each end "
              "trimmed off: the trace is seeded beside the ligand, so its "
-             "deep cap measures the\nclearance of the pocket the ligand "
+             "deep cap\nmeasures the clearance of the pocket the ligand "
              "sits in rather than any constriction the route passes "
-             "through. Both numbers\nare tabulated "
+             "through. Both numbers are\ntabulated "
              "(per_structure_tunnel_summary.csv); they differ by up to "
              "1.0 \u00c5.\n\n"
              "Marker area tracks ligand size and its fill gives which "
