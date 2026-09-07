@@ -1,0 +1,8 @@
+pdb,chain,ligand,trace_points,points_on_reference_route,axis_coverage_pct,radius_min_on_route_A,tunnel_bottleneck_A,projectable
+Amp_MexB_20260826,E,Ampicillin,488,488,100,2.21,2.21,yes
+21FO,B,CYMAL-7,573,149,22,1.21,1.21,partial
+21FP,B,Chloramphenicol,488,341,41,2.35,2.01,partial
+2V50,B,DDM,391,333,38,2.37,2.37,partial
+MexB_DDM_3_20260730,E,DDM x3,498,417,52,2.43,2.43,yes
+3W9J,B,EPI,540,378,44,1.48,1.48,partial
+6IIA,B,LMNG,485,291,46,2.19,2.19,partial

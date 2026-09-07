@@ -1,0 +1,9 @@
+REMARK  tunnel trace; B-factor column = local radius (A)
+HETATM    1  O   TUN T   1       5.246 -73.146  40.823  1.00  2.95           O
+HETATM    2  O   TUN T   2       5.113 -73.146  40.823  1.00  3.01           O
+HETATM    3  O   TUN T   3       4.979 -73.146  40.823  1.00  3.07           O
+HETATM    4  O   TUN T   4       4.846 -73.146  40.823  1.00  3.13           O
+HETATM    5  O   TUN T   5       4.713 -73.146  40.823  1.00  3.20           O
+HETATM    6  O   TUN T   6       4.579 -73.146  40.823  1.00  3.27           O
+HETATM    7  O   TUN T   7       4.446 -73.146  40.823  1.00  3.34           O
+END

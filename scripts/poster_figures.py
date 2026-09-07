@@ -1128,12 +1128,15 @@ def panel_mexb_rows():
     H = 3.5 + 0.52 * n
     fig = plt.figure(figsize=(10.6, H))
     title(fig, "One channel, every substrate-bound MexB protomer",
-          "One reference channel repeated on every row \u2014 the widest "
-          "ligand-free route out of ampicillin chain E \u2014 with each "
-          "structure's ligands placed on it.")
+          "Each structure's own tunnel, traced separately and projected onto "
+          "one shared axis, with its ligands placed on it.")
     y0, htop = 1.80 / H, 2.85 / H
-    ax = fig.add_axes([0.245, y0, 0.735, 1.0 - y0 - htop])
-    ax.set_xlim(-1.5, 66); ax.set_ylim(-1.85, n - 0.15)
+    ax = fig.add_axes([0.245, y0, 0.660, 1.0 - y0 - htop])
+    ax.set_xlim(-1.5, 66); ax.set_ylim(-1.85, n + 0.10)
+    ax.annotate("Bottleneck", (1.0, n - 0.35),
+                xycoords=("axes fraction", "data"), xytext=(8, -4),
+                textcoords="offset points", ha="left", fontsize=12,
+                color=INK2, annotation_clip=False)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
@@ -1144,17 +1147,47 @@ def panel_mexb_rows():
     if prof is not None:
         dep, rad = prof
 
+    # each structure's own tunnel, traced separately and re-expressed on the
+    # reference axis. Coverage is partial for every one but the reference
+    # itself, so the reference outline stays behind each row as the frame and
+    # the row's own profile is drawn only where its tunnel actually goes.
+    own = {}
+    for r in R("per_structure_tunnels.csv"):
+        own.setdefault((r["pdb"], r["chain"]), []).append(
+            (float(r["depth_from_entrance_A"]), float(r["radius_min_A"])))
+    cover = {(r["pdb"], r["chain"]): r
+             for r in R("per_structure_tunnel_summary.csv")}
+
     for i, k in enumerate(order):
         y = n - 1 - i
         grp = prot[k]
         mine = k[0] in OURS
         lc = LIGCOL.get(k[0], TEAL)
-        if dep is not None:
-            ax.fill_between(dep, y - KY * rad, y + KY * rad,
-                            color=tint(lc, 0.90), zorder=0, linewidth=0)
+        if dep is not None:                      # reference channel, faint
             for sgn in (1, -1):
-                ax.plot(dep, y + sgn * KY * rad, color=tint(lc, 0.45),
-                        linewidth=1.5, zorder=1)
+                ax.plot(dep, y + sgn * KY * rad, color="#d3dde1",
+                        linewidth=1.1, zorder=0)
+        pts = sorted(own.get(k, []))
+        if pts:                                  # this structure's own tunnel
+            od = np.array([p[0] for p in pts])
+            orr = np.array([p[1] for p in pts])
+            # break the fill wherever the projection has a gap
+            cut = np.where(np.diff(od) > 2.5)[0] + 1
+            for seg_d, seg_r in zip(np.split(od, cut), np.split(orr, cut)):
+                if len(seg_d) < 2:
+                    continue
+                ax.fill_between(seg_d, y - KY * seg_r, y + KY * seg_r,
+                                color=tint(lc, 0.85), zorder=1, linewidth=0)
+                for sgn in (1, -1):
+                    ax.plot(seg_d, y + sgn * KY * seg_r, color=tint(lc, 0.30),
+                            linewidth=1.6, zorder=2)
+            c = cover.get(k)
+            if c and c["radius_min_on_route_A"]:
+                ax.annotate(f"{float(c['tunnel_bottleneck_A']):.1f} \u00c5",
+                            (1.0, y), xycoords=("axes fraction", "data"),
+                            xytext=(8, -4), textcoords="offset points",
+                            ha="left", fontsize=12, color=lc,
+                            annotation_clip=False)
         d = [float(r["depth_from_entrance_A"]) for r in grp]
         if len(grp) > 1:
             ax.plot([min(d), max(d)], [y, y], color=lc, linewidth=6,
@@ -1225,25 +1258,29 @@ def panel_mexb_rows():
                bbox_to_anchor=(0.62, 1.0 - 0.74 / H), fontsize=14,
                handletextpad=0.35, columnspacing=1.6)
 
-    fig.text(0.045, 0.072,
-             "The same reference channel is drawn on every row at its "
-             "measured radius (2.2\u20134.4 \u00c5); these are not seven "
-             "separately traced tunnels. The vertical scale is not the "
-             "horizontal one. Marker area "
-             "tracks ligand size, its fill gives which lining set the "
-             "ligand contacts at 4.5 \u00c5, and each channel is\ntinted "
-             "its ligand's poster colour. One row per ligand: where a "
-             "structure or a pair of structures gave more than one copy, "
-             "the copy contacting the most\nlining residues is kept. Only "
-             "the DDM \u00d73 protomer carries more than one ligand at "
-             "once. The two pockets are not two stretches of this axis - "
-             "both have\nresidues at 26\u201335 and again at 62\u201363 "
-             "\u00c5, because depth is arc length along a winding path - "
-             "so they are marked by residue rather than shaded as bands; "
-             "switch loop in orange.\nThe channel is drawn over its whole "
-             "traced length, 0\u201363 \u00c5. No pocket-lining residue "
-             "and no modelled ligand lies shallower than 26 \u00c5; that "
-             "stretch is the open entry cleft.",
+    fig.text(0.045, 0.085,
+             "Each row is that structure's own tunnel, traced from its own "
+             "coordinates and re-expressed on the reference axis.\n"
+             "The faint grey outline behind every row is the reference "
+             "channel, the widest ligand-free route out of ampicillin\n"
+             "chain E. A tunnel is drawn only where it follows that route "
+             "within 6 \u00c5; coverage runs 22\u2013100%, so a gap is "
+             "where a\nstructure's widest route goes elsewhere, not where "
+             "it is blocked. Tube half-width is the local radius, on a "
+             "vertical\nscale that is not the horizontal one; each row's "
+             "own bottleneck is given at the right.\n\n"
+             "Marker area tracks ligand size and its fill gives which "
+             "lining set the ligand contacts at 4.5 \u00c5. One row per "
+             "ligand:\nwhere a structure or a pair of structures gave more "
+             "than one copy, the copy contacting the most lining residues "
+             "is\nkept. Only the DDM \u00d73 protomer carries more than "
+             "one ligand at once. The two pockets are not two stretches of "
+             "this\naxis \u2014 both have residues at 26\u201335 and "
+             "again at 62\u201363 \u00c5, since depth is arc length along "
+             "a winding path \u2014 so they are\nmarked by residue rather "
+             "than shaded as bands, with the switch loop in orange. No "
+             "lining residue and no modelled\nligand lies shallower than "
+             "26 \u00c5; that stretch is the open entry cleft.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P11_mexb_rows")
 
