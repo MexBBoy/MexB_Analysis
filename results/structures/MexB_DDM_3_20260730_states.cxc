@@ -1,0 +1,27 @@
+# ChimeraX: open this file, keeping it beside
+#   MexB_DDM_3_20260730_states.pdb and MexB_DDM_3_20260730_states.bild
+open MexB_DDM_3_20260730_states.pdb
+hide atoms
+show cartoon
+color #1/D #0A9DA0   # Access
+color #1/E #CA0FC1   # Binding
+color #1/F #0F9C1B   # Extrusion
+transparency #1 70 target c
+open MexB_DDM_3_20260730_states.bild
+# chain D [Access] cluster 1: up - funnel and docking domain
+# chain D [Access] cluster 4: out - periplasmic cleft
+# chain D [Access] cluster 5: down - towards the membrane
+# chain E [Binding] cluster 5: up - funnel and docking domain
+# chain E [Binding] cluster 1: out - periplasmic cleft
+# chain E [Binding] cluster 2: down - towards the membrane
+# chain F [Extrusion] cluster 3: up - funnel and docking domain
+# chain F [Extrusion] cluster 1: out - periplasmic cleft
+# chain F [Extrusion] cluster 4: down - towards the membrane
+select ligand
+style sel ball
+color sel byhetero
+~select
+set bgColor white
+lighting soft
+graphics silhouettes true
+view
