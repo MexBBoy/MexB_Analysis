@@ -1129,7 +1129,7 @@ def panel_mexb_rows():
     fig = plt.figure(figsize=(10.6, H))
     title(fig, "One channel, every substrate-bound MexB protomer",
           "Each structure's own tunnel, traced separately and drawn in "
-          "full, aligned on the pocket, with its ligands placed on it.")
+          "full from its own periplasmic mouth, with its ligands on it.")
 
     # the two numbers this panel exists to make, in P10's callout style
     multi = [r for r in env if int(r["ligands_in_protomer"]) > 1]
@@ -1151,8 +1151,9 @@ def panel_mexb_rows():
 
     y0, htop = 1.80 / H, 3.95 / H
     ax = fig.add_axes([0.245, y0, 0.660, 1.0 - y0 - htop])
-    ax.set_xlim(-15.5, 66); ax.set_ylim(-1.85, n + 0.10)
-    ax.set_xticks(list(range(0, 70, 10)))
+    XMAX = 76.0
+    ax.set_xlim(-1.5, XMAX); ax.set_ylim(-1.85, n + 0.10)
+    ax.set_xticks(list(range(0, 80, 10)))
     ax.annotate("Bottleneck", (1.0, n - 0.35),
                 xycoords=("axes fraction", "data"), xytext=(8, -4),
                 textcoords="offset points", ha="left", fontsize=12,
@@ -1173,19 +1174,21 @@ def panel_mexb_rows():
     # onto the next - and those gaps are an artefact of the projection, not
     # blockages. So each row is drawn on its own arc length instead, unbroken
     # from its periplasmic mouth to its deep terminus, and slid along the
-    # axis until its deepest ligand sits at that ligand's reference depth.
-    # Every row is then continuous and the pockets still line up; the cost is
-    # that the shallow ends no longer do, since the tunnels differ in length.
+    # axis at its own periplasmic mouth. Every row therefore starts at zero
+    # and runs its own full length, and the ligands sit wherever that route
+    # puts them - which is 51-72 A in, for every structure but 21FO, whose
+    # route wanders 154 A and is cut off at the edge of the panel.
     ownp = {}
     for r in R("own_axis_tunnels.csv"):
         ownp.setdefault((r["pdb"], r["chain"]), []).append(
             (float(r["depth_from_own_mouth_A"]), float(r["radius_A"])))
-    ownlig = {}
+    ownlig, ownlen = {}, {}
     for r in R("own_axis_ligands.csv"):
         k = (r["pdb"], r["chain"])
-        d = float(r["depth_from_own_mouth_A"])
-        if d > ownlig.get(k, (-1.0,))[0]:
-            ownlig[k] = (d, float(r["tunnel_length_A"]))
+        ownlig.setdefault(k, []).append(float(r["depth_from_own_mouth_A"]))
+        ownlen[k] = float(r["tunnel_length_A"])
+    for v in ownlig.values():
+        v.sort()
     cover = {(r["pdb"], r["chain"]): r
              for r in R("per_structure_tunnel_summary.csv")}
 
@@ -1198,22 +1201,28 @@ def panel_mexb_rows():
             for sgn in (1, -1):
                 ax.plot(dep, y + sgn * KY * rad, color="#d3dde1",
                         linewidth=1.1, zorder=0)
+        # ligand positions on that structure's own axis. grp is sorted by
+        # depth and so is the own-axis list, so they pair off in order; if
+        # the two disagree on how many ligands the protomer has, fall back
+        # to the reference-axis depths rather than mispair them.
         d = [float(r["depth_from_entrance_A"]) for r in grp]
+        if len(ownlig.get(k, [])) == len(grp):
+            d = list(ownlig[k])
         pts = sorted(ownp.get(k, []))
-        if pts and k in ownlig:                  # this structure's own tunnel
-            od = np.array([p[0] for p in pts]) + (max(d) - ownlig[k][0])
+        if pts:                                  # this structure's own tunnel
+            od = np.array([p[0] for p in pts])
             orr = np.array([p[1] for p in pts])
             ax.fill_between(od, y - KY * orr, y + KY * orr,
                             color=tint(lc, 0.85), zorder=1, linewidth=0)
             for sgn in (1, -1):
                 ax.plot(od, y + sgn * KY * orr, color=tint(lc, 0.30),
                         linewidth=1.6, zorder=2)
-            if od[0] < ax.get_xlim()[0] + 0.5:   # runs off the shallow end
-                ax.annotate(f"continues \u2014 {ownlig[k][1]:.0f} \u00c5 "
-                            "in all", (0.0, y),
+            if ownlen.get(k, 0.0) > XMAX:        # runs off the deep end
+                ax.annotate(f"cut off \u2014 {ownlen[k]:.0f} \u00c5 in "
+                            "all, ligand at the far end", (1.0, y),
                             xycoords=("axes fraction", "data"),
-                            xytext=(6, -7), textcoords="offset points",
-                            ha="left", va="top", fontsize=10.5,
+                            xytext=(-6, -7), textcoords="offset points",
+                            ha="right", va="top", fontsize=10.5,
                             color=tint(lc, 0.25))
             c = cover.get(k)
             if c and c.get("route_bottleneck_A"):
@@ -1269,15 +1278,15 @@ def panel_mexb_rows():
                 fontsize=14, color=INK2, annotation_clip=False)
 
     if rad is not None:
-        ax.plot([-14.2, -14.2], [-1.42 - KY * 4, -1.42 + KY * 4],
-                color=INK2, linewidth=2.4, solid_capstyle="butt")
-        ax.annotate("8 \u00c5 across", (-14.2, -1.42),
+        ax.plot([1.2, 1.2], [-1.42 - KY * 4, -1.42 + KY * 4], color=INK2,
+                linewidth=2.4, solid_capstyle="butt")
+        ax.annotate("8 \u00c5 across", (1.2, -1.42),
                     textcoords="offset points", xytext=(9, -5), ha="left",
                     fontsize=12, color=INK2)
 
-    ax.annotate("Entry cleft", (16.5, -1.42), ha="center", va="center",
+    ax.annotate("Entry cleft", (22.0, -1.42), ha="center", va="center",
                 fontsize=12.5, color=INK2, fontstyle="italic")
-    ax.annotate("Porter pocket", (52.0, -1.42), ha="center", va="center",
+    ax.annotate("Porter pocket", (55.0, -1.42), ha="center", va="center",
                 fontsize=12.5, color=INK2, fontstyle="italic")
 
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=11,
@@ -1293,25 +1302,29 @@ def panel_mexb_rows():
 
     fig.text(0.045, 0.085,
              "Each row is that structure's own tunnel, traced from its own "
-             "coordinates and drawn unbroken from its periplasmic mouth to "
-             "its deep\nterminus, then slid along the axis until its "
-             "deepest ligand sits at that ligand's depth on the reference "
-             "channel \u2014 the widest\nligand-free route out of "
-             "ampicillin chain E, the faint grey outline behind every row. "
-             "The pockets therefore line up and the shallow\nends do not: "
-             "a tunnel longer than the reference starts left of zero, a "
-             "shorter one starts right of it, and CYMAL-7's 154 \u00c5 "
-             "route runs\noff the panel. Depth is arc length along each "
-             "structure's own route, the same measurement on every row but "
-             "not the same path.\nTube half-width is the local radius, on "
-             "a vertical scale that is not the horizontal one. The "
-             "bottleneck at the right is the narrowest\npoint on the "
-             "route itself, taken with the terminal 3 \u00c5 at each end "
-             "trimmed off: the trace is seeded beside the ligand, so its "
-             "deep cap\nmeasures the clearance of the pocket the ligand "
-             "sits in rather than any constriction the route passes "
-             "through. Both numbers are\ntabulated "
-             "(per_structure_tunnel_summary.csv); they differ by up to "
+             "coordinates and drawn unbroken over its whole length, from "
+             "its own\nperiplasmic mouth at zero to its deep terminus. "
+             "Depth is arc length along that route: the same measurement on "
+             "every row, but each\nalong its own path, so the rows are "
+             "not a common coordinate. The tunnels differ in length "
+             "(52\u201372 \u00c5) and their ligands sit at the deep end "
+             "of\neach, which is why the markers do not line up. 21FO is "
+             "the exception \u2014 its widest ligand-free route wanders "
+             "154 \u00c5 before reaching\nCYMAL-7, so the row is cut off "
+             "at the edge of the panel and its ligand is not shown. The "
+             "faint grey outline behind every row is the\nreference "
+             "channel, the widest route out of ampicillin chain E, and the "
+             "residue scale above the axis is measured on it; ampicillin's "
+             "own\ntunnel is that channel, so the scale is exact on that "
+             "row and approximate on the others. Tube half-width is the "
+             "local radius, on a\nvertical scale that is not the "
+             "horizontal one. The bottleneck at the right is the narrowest "
+             "point on the route itself, taken with the\nterminal 3 "
+             "\u00c5 at each end trimmed off: the trace is seeded beside "
+             "the ligand, so its deep cap measures the clearance of the "
+             "pocket the\nligand sits in rather than any constriction the "
+             "route passes through. Both numbers are tabulated "
+             "(per_structure_tunnel_summary.csv);\nthey differ by up to "
              "1.0 \u00c5.\n\n"
              "Marker area tracks ligand size and its fill gives which "
              "lining set the ligand contacts at 4.5 \u00c5. One row per "
