@@ -1618,8 +1618,7 @@ def panel_caver():
 
 # ------------------------------------------------------------------ P15
 def panel_common_exit():
-    """Every route cut where it is equally enclosed, not where it first
-    touched bulk solvent."""
+    """Every route drawn in full, marked where it becomes equally exposed."""
     summ = R("common_exit_summary.csv")
     prof = R("common_exit_profiles.csv")
     if not summ or not prof:
@@ -1630,108 +1629,127 @@ def panel_common_exit():
     by = {}
     for r in prof:
         by.setdefault(r["ligand"], []).append(
-            (float(r["depth_from_ligand_A"]), int(r["enclosure_atoms_12A"]),
-             r["kept"] == "yes"))
+            (float(r["depth_from_ligand_A"]), float(r["radius_A"]),
+             int(r["enclosure_atoms_12A"])))
     for v in by.values():
         v.sort()
 
     rows = sorted(summ, key=lambda r: float(r["matched_length_A"]))
     matched = [float(r["matched_length_A"]) for r in rows
                if r["ligand"] != "CYMAL-7"]
+    n = len(rows)
 
-    fig = plt.figure(figsize=(11.6, 8.6))
+    H = 4.9 + 0.60 * n
+    fig = plt.figure(figsize=(12.4, H))
     title(fig, "Cut where they are equally enclosed, the routes still differ",
-          "Each tunnel re-cut at a matched enclosure, so path length no "
-          "longer depends on where the search happened to stop.")
-    callout(fig, 0.055, 0.865,
+          "Each tunnel traced in full from its ligand, and marked where it "
+          "stops being inside the protein.")
+    callout(fig, 0.055, 1.0 - 1.00 / H,
             f"{min(matched):.0f}\u2013{max(matched):.0f} \u00c5",
             "from the pocket to an equally exposed\npoint, across the six "
-            "porter-domain routes", TEAL, size=34)
-    callout(fig, 0.545, 0.865, f"{thresh}",
-            "protein heavy atoms within 12 \u00c5:\nthe matched enclosure",
-            APOLAR, size=34)
+            "porter-domain routes", TEAL, size=36)
+    callout(fig, 0.545, 1.0 - 1.00 / H, f"{thresh} atoms",
+            "within 12 \u00c5 \u2014 the matched enclosure\nevery route "
+            "is cut at", APOLAR, size=36)
 
-    # enclosure along each route, from the ligand outwards
-    ax = fig.add_axes([0.075, 0.325, 0.50, 0.355])
-    ax.axhline(thresh, color=APOLAR, linestyle=(0, (5, 4)), linewidth=2,
-               zorder=2)
-    ax.annotate(f"matched enclosure, {thresh} atoms", (0.99, thresh),
-                xycoords=("axes fraction", "data"), xytext=(0, 7),
-                textcoords="offset points", ha="right", fontsize=12,
-                color=APOLAR)
-    for r in rows:
+    y0, htop = 2.45 / H, 3.05 / H
+    ax = fig.add_axes([0.135, y0, 0.775, 1.0 - y0 - htop])
+    ax.set_xlim(-2.0, 158.0); ax.set_ylim(-1.55, n + 0.05)
+    ax.set_yticks([]); ax.grid(axis="y", visible=False)
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    KY = 0.085                     # plot units per Angstrom of tunnel radius
+
+    for i, r in enumerate(rows):
+        y = n - 1 - i
         nm = r["ligand"]
         col = LIGCOL.get(PDB[nm], TEAL)
         d = np.array([p[0] for p in by[nm]])
-        e = np.array([p[1] for p in by[nm]])
-        ax.plot(d, e, color=tint(col, 0.55), linewidth=1.4, zorder=3)
+        rad = np.array([p[1] for p in by[nm]])
+        enc = np.array([p[2] for p in by[nm]])
         cut = float(r["matched_length_A"])
         k = int(np.argmin(np.abs(d - cut)))
-        ax.plot(d[:k + 1], e[:k + 1], color=col, linewidth=2.4, zorder=4)
-        ax.scatter([d[k]], [e[k]], s=110, color=col, edgecolor="white",
-                   linewidth=1.6, zorder=5)
-    ax.set_xlim(0, 130)
+
+        # beyond the cut the route is out of the protein: drawn, but pale
+        ax.fill_between(d[k:], y - KY * rad[k:], y + KY * rad[k:],
+                        color="#e7edf0", zorder=1, linewidth=0)
+        for sgn in (1, -1):
+            ax.plot(d[k:], y + sgn * KY * rad[k:], color="#b9c8cf",
+                    linewidth=1.2, zorder=2)
+        # inside the protein
+        ax.fill_between(d[:k + 1], y - KY * rad[:k + 1], y + KY * rad[:k + 1],
+                        color=tint(col, 0.85), zorder=2, linewidth=0)
+        for sgn in (1, -1):
+            ax.plot(d[:k + 1], y + sgn * KY * rad[:k + 1],
+                    color=tint(col, 0.30), linewidth=1.7, zorder=3)
+
+        ax.plot([cut, cut], [y - 0.34, y + 0.34], color=col, linewidth=2.6,
+                zorder=5, solid_capstyle="butt")
+        ax.annotate(f"{cut:.0f} \u00c5", (cut, y),
+                    textcoords="offset points", xytext=(-7, -5),
+                    ha="right", fontsize=12.5, color=tint(col, 0.15),
+                    fontweight="bold", zorder=6)
+        # the ligand, at the deep end of its own route
+        ax.scatter([0.0], [y], s=200, marker="D", color=tint(col, 0.55),
+                   edgecolor=col, linewidth=2.2, zorder=6)
+        # how exposed the trace was where it stopped, the reason for the cut
+        ax.annotate(f"{enc[-1]}", (d[-1], y), textcoords="offset points",
+                    xytext=(9, -4), ha="left", fontsize=11.5, color="#8a99a2",
+                    zorder=5)
+        ax.annotate(nm, (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-12, -5), textcoords="offset points", ha="right",
+                    fontsize=13.5, color=col,
+                    fontweight="bold" if PDB[nm] in
+                    ("Amp_MexB_20260826", "MexB_DDM_3_20260730") else "normal")
+
+    ax.plot([1.2, 1.2], [-1.15 - KY * 4, -1.15 + KY * 4], color=INK2,
+            linewidth=2.6, solid_capstyle="butt")
+    ax.annotate("8 \u00c5 across", (1.2, -1.15), textcoords="offset points",
+                xytext=(9, -5), ha="left", fontsize=12.5, color=INK2)
+    ax.annotate("grey number: protein atoms within 12 \u00c5 where the "
+                "trace stopped", (157.0, -1.15), ha="right", va="center",
+                fontsize=12.5, color=INK2, fontstyle="italic")
     ax.set_xlabel("Distance from the ligand along the route (\u00c5)",
-                  labelpad=9, fontsize=14.5)
-    ax.set_ylabel("Enclosure (heavy atoms within 12 \u00c5)", labelpad=8,
-                  fontsize=14.5)
-    ax.set_axisbelow(True)
+                  labelpad=11)
+    ax.xaxis.label.set_size(16)
 
-    # full length against matched length
-    ax2 = fig.add_axes([0.715, 0.325, 0.235, 0.355])
-    for i, r in enumerate(rows):
-        y = len(rows) - 1 - i
-        nm = r["ligand"]
-        col = LIGCOL.get(PDB[nm], TEAL)
-        full = float(r["full_length_A"])
-        cut = float(r["matched_length_A"])
-        ax2.plot([cut, full], [y, y], color=col, linewidth=3, alpha=.45,
-                 zorder=2, solid_capstyle="round")
-        ax2.scatter([full], [y], s=130, facecolor="white", edgecolor=col,
-                    linewidth=2.2, zorder=4)
-        ax2.scatter([cut], [y], s=130, color=col, zorder=4,
-                    edgecolor="white", linewidth=1.5)
-        ax2.annotate(nm, (0, y), xycoords=("axes fraction", "data"),
-                     xytext=(-9, -5), textcoords="offset points", ha="right",
-                     fontsize=12.5, color=col)
-    ax2.set_yticks([]); ax2.set_ylim(-2.0, len(rows) - 0.3)
-    ax2.set_xlim(20, 165)
-    ax2.set_xticks([50, 100, 150])
-    ax2.set_xlabel("Path length (\u00c5)", labelpad=9, fontsize=14.5)
-    ax2.grid(axis="y", visible=False); ax2.set_axisbelow(True)
-    ax2.spines["left"].set_visible(False)
-    h = [plt.Line2D([], [], marker="o", linestyle="", markersize=10,
-                    markerfacecolor="white", markeredgecolor=INK2,
-                    markeredgewidth=2, label="as traced"),
-         plt.Line2D([], [], marker="o", linestyle="", markersize=10,
-                    markerfacecolor=INK2, markeredgecolor="white",
-                    markeredgewidth=1.5, label="cut at the matched exit")]
-    ax2.legend(handles=h, loc="lower left", fontsize=11.5,
-               framealpha=0.9)
+    handles = [
+        plt.Line2D([], [], color=INK2, linewidth=9, solid_capstyle="butt",
+                   alpha=.35, label="inside the protein"),
+        plt.Line2D([], [], color="#c9d5da", linewidth=9,
+                   solid_capstyle="butt", label="past the matched exit"),
+        plt.Line2D([], [], color=INK2, linewidth=2.6,
+                   label="matched exit")]
+    fig.legend(handles=handles, loc="upper center", ncol=3,
+               bbox_to_anchor=(0.60, 1.0 - 2.15 / H), fontsize=14,
+               handletextpad=0.6, columnspacing=2.0)
 
-    fig.text(0.055, 0.205,
-             "The tunnel search stops at the first point of the "
-             "bulk-connected open region, which is a uniform rule but not a "
-             "comparable place: ampicillin's\nroute ends with 31 protein "
-             f"heavy atoms within 12 \u00c5 of its last point, "
-             f"chloramphenicol's with {thresh}. One has come out into the "
-             "open, the other has only\njust broken the surface, so raw "
-             "path length mixes how far a route runs inside the protein "
-             "with how far past it the search carried on. Every\ntrace is "
-             f"therefore re-cut at enclosure {thresh}, the largest "
-             "end-of-trace value in the set, so all seven reach it. "
-             "Enclosure is counted on that\nprotomer's own trimer, so a "
-             "second trimer in the asymmetric unit is not read as burial, "
-             "and on heavy atoms only, since our models carry\nhydrogens "
-             "and the deposited ones do not. The cut is each route's point "
-             "of no return, the last place it drops below the threshold for "
-             "good \u2014 3W9J\nand 21FO both open into a vestibule and "
-             "then run back into the protein. Matched this way the six "
-             "porter-domain routes span "
+    fig.text(0.055, 0.125,
+             "Each row is one structure's tunnel, drawn at its measured "
+             "radius from its ligand outwards. The search stops at the first "
+             "point of the\nbulk-connected open region \u2014 a uniform "
+             "rule, but not a comparable place: ampicillin's route ends with "
+             "31 protein heavy atoms within\n12 \u00c5 of its last point, "
+             f"chloramphenicol's with {thresh} (grey numbers at the right of "
+             "each row). One has come out into the open, the other has\n"
+             "only just broken the surface, so raw path length mixes how far "
+             "a route runs inside the protein with how far past it the "
+             "search carried\non. The bar on each row is that route cut at "
+             f"enclosure {thresh}, the largest of those end values, so all "
+             "seven reach it. Enclosure is counted on\nthat protomer's own "
+             "trimer, so a second trimer in the asymmetric unit is not read "
+             "as burial, and on heavy atoms only, since our models\ncarry "
+             "hydrogens and the deposited ones do not. The cut is each "
+             "route's point of no return, the last place it drops below the "
+             "threshold for\ngood \u2014 3W9J and 21FO open into a "
+             "vestibule and then run back into the protein. Matched this "
+             f"way the six porter-domain routes span\n"
              f"{min(matched):.0f}\u2013{max(matched):.0f} \u00c5, so the "
-             "length\ndifferences in P11 are geometry, not an artefact of "
-             "where each search stopped. 21FO is again the outlier at 122 "
-             "\u00c5. Full profiles are in\ncommon_exit_profiles.csv.",
+             "length differences in P11 are geometry, not an artefact of "
+             "where each search stopped; 21FO is again the outlier, "
+             "reaching\nCYMAL-7 only after 122 \u00c5. Tube half-width is "
+             "the local radius, on a vertical scale that is not the "
+             "horizontal one. Profiles are in\ncommon_exit_profiles.csv.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P15_common_exit")
 
