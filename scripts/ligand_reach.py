@@ -32,6 +32,31 @@ NEAR = 6.0          # a trace point this close to the ligand is "beside" it
 WINDOW = 20.0       # arc length either side of the ligand its atoms may map to
 
 
+def depths(Q, RP, rarc, rtot, win, end, u):
+    """Depth from the periplasmic mouth for points already in the reference
+    frame, continued past the end of the trace.
+
+    The trace stops where its search was seeded, beside the ampicillin
+    molecule, which is not the deep end of anything: the distal pocket is a
+    chamber and it carries on past that point. Atoms in it would otherwise
+    all pile onto the terminal point and read as the same depth. So beyond
+    the terminus, depth continues as the distance past it measured along the
+    trace's final direction. Nothing before the terminus is affected.
+    """
+    d = np.linalg.norm(Q[:, None, :] - RP[None, :, :], axis=2)
+    d = np.where(win[None, :], d, np.inf)
+    j = d.argmin(1)
+    dep = rtot - rarc[j]
+    beyond = (Q - end) @ u
+    # an atom counts as past the end if it lies beyond the plane through the
+    # terminus, and its nearest point on the trace is in the deepest 10 A of
+    # it - so a molecule sitting 30 A out cannot be dragged past the end by a
+    # plane that a winding route crosses more than once
+    past = (rarc[j] <= 10.0) & (beyond > 0)
+    dep[past] = np.maximum(dep[past], rtot + beyond[past])
+    return dep, d[np.arange(len(Q)), j], past
+
+
 def clearance(points, atoms):
     """min over atoms of (|p - x| - vdw), the same clearance used throughout."""
     X = coords(atoms)
@@ -52,6 +77,9 @@ def main():
         print("  reference channel missing - run tunnels.py first")
         return
     RP, rarc, rtot = chan
+    end = RP[0]                                   # deep terminus of the trace
+    u = RP[0] - RP[20]
+    u = u / float(np.linalg.norm(u))              # the direction it was going
     ref = Structure(os.path.join(STRUCT_DIR, "Amp_MexB_20260826.pdb"))
     rca = ref.ca("E")
 
@@ -88,22 +116,23 @@ def main():
                 continue
             X = coords(heavy)
             Q = apply_rt(R, t, X)
-            d = np.linalg.norm(Q[:, None, :] - RP[None, :, :], axis=2)
             # A ligand atom is matched to the stretch of channel around its
             # own molecule, not to the whole path. Depth is arc length along
             # a route that folds back on itself, so an atom a few Angstrom
             # off the centreline can otherwise project onto a coil 30 A away
             # and stretch the span into nonsense.
             cen = X.mean(0)
-            kc = int(np.linalg.norm(apply_rt(R, t, cen[None, :]) - RP,
-                                    axis=1).argmin())
+            QC = apply_rt(R, t, cen[None, :])
+            kc = int(np.linalg.norm(QC - RP, axis=1).argmin())
             win = np.abs(rarc - rarc[kc]) <= WINDOW
-            d = np.where(win[None, :], d, np.inf)
-            j = d.argmin(1)
-            dep = rtot - rarc[j]
-            off = d[np.arange(len(Q)), j]
+            dep, off, past = depths(Q, RP, rarc, rtot, win, end, u)
             if float(off.min()) > 12.0:           # not on this channel at all
                 continue
+            # the marker is the mean of the atom depths rather than the
+            # depth of the centroid: past the trace's end the two coordinates
+            # are not the same, and only the first is coherent with the bar
+            # drawn from the shallowest atom to the deepest
+            cdep = float(dep.mean())
 
             # the free radius left beside it, in the structure's own frame
             free = ""
@@ -113,20 +142,21 @@ def main():
                     free = fmt(float(clearance(P[near],
                                                prot + heavy).max()))
             rows.append([pid, ch, f"{lname}{lres}", lname, len(heavy),
-                         fmt(rtot - rarc[kc]), fmt(dep.min()), fmt(dep.max()),
+                         fmt(cdep), fmt(dep.min()), fmt(dep.max()),
                          fmt(dep.max() - dep.min()), fmt(float(off.mean())),
-                         free])
-            print(f"  {pid:20} {ch} {lname}{lres:>5}: centroid "
-                  f"{rtot - rarc[kc]:5.1f} A, spans {dep.min():5.1f}"
+                         free, int(past.sum()), fmt(rtot)])
+            print(f"  {pid:20} {ch} {lname}{lres:>5}: mean depth "
+                  f"{cdep:5.1f} A, spans {dep.min():5.1f}"
                   f"–{dep.max():5.1f} A "
                   f"({dep.max() - dep.min():4.1f} A of the path), free "
                   f"radius beside it {free or '-'} A")
 
     write_csv(os.path.join(TABLES, "ligand_reach.csv"),
               ["pdb", "chain", "ligand", "resname", "heavy_atoms",
-               "depth_centroid_A", "depth_shallowest_A", "depth_deepest_A",
+               "depth_mean_A", "depth_shallowest_A", "depth_deepest_A",
                "span_A", "mean_offset_from_channel_A",
-               "free_radius_beside_A"], rows)
+               "free_radius_beside_A", "atoms_past_the_trace_end",
+               "trace_end_depth_A"], rows)
     print("\nwrote results/tables/ligand_reach.csv")
 
 

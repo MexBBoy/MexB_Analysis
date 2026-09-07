@@ -1782,28 +1782,22 @@ def panel_ligand_reach():
             best[nm] = (score, k)
     rows = []
     for nm, (_, k) in best.items():
-        v = sorted(by[k], key=lambda r: float(r["depth_centroid_A"]))
+        v = sorted(by[k], key=lambda r: float(r["depth_mean_A"]))
         rows.append((nm, k[0], v))
     # ranked by centroid, not by deepest atom: the deepest-atom number
     # saturates at the end of the channel - five of the seven reach it - so
     # it separates nothing.
-    rows.sort(key=lambda t: -max(float(r["depth_centroid_A"]) for r in t[2]))
+    rows.sort(key=lambda t: -max(float(r["depth_mean_A"]) for r in t[2]))
     n = len(rows)
 
-    cens = sorted(float(r["depth_centroid_A"]) for _, _, v in rows
+    cens = sorted(float(r["depth_mean_A"]) for _, _, v in rows
                   for r in v)
-    # where the ligands sit: groups separated by a gap of more than 5 A
-    groups, cur = [], [cens[0]]
-    for a, b in zip(cens, cens[1:]):
-        if b - a <= 5.0:
-            cur.append(b)
-        else:
-            groups.append(cur)
-            cur = [b]
-    groups.append(cur)
-    stations = [float(np.mean(g)) for g in groups]
+    tend0 = float(rows[0][2][0].get("trace_end_depth_A") or 0.0)
+    past = [(nm, max(float(r["depth_deepest_A"]) for r in v) - tend0)
+            for nm, _, v in rows if any(int(r["atoms_past_the_trace_end"])
+                                        for r in v)]
 
-    H = 4.7 + 0.60 * n
+    H = 5.3 + 0.60 * n
     fig = plt.figure(figsize=(11.0, H))
     title(fig, "How far in does each substrate actually sit?",
           "Every bound ligand projected onto one reference channel, drawn as "
@@ -1812,17 +1806,29 @@ def panel_ligand_reach():
             f"{max(cens) - min(cens):.0f} \u00c5",
             "between the shallowest ligand and\nthe deepest, on one "
             "channel", TEAL, size=36)
-    callout(fig, 0.545, 1.0 - 1.00 / H, f"{len(stations)} stations",
-            "at " + ", ".join(f"{x:.0f}" for x in stations)
-            + " \u00c5 \u2014 every ligand\nsits at one of them",
-            APOLAR, size=36)
+    callout(fig, 0.545, 1.0 - 1.00 / H, f"{len(past)} of {n}",
+            f"reach past the end of the trace,\nby "
+            f"{min(p[1] for p in past):.0f}\u2013"
+            f"{max(p[1] for p in past):.0f} \u00c5", APOLAR, size=36)
 
     y0, htop = 2.05 / H, 2.75 / H
     ax = fig.add_axes([0.225, y0, 0.685, 1.0 - y0 - htop])
-    ax.set_xlim(-1.5, 66); ax.set_ylim(-1.35, n + 0.05)
+    ax.set_xlim(-1.5, 76); ax.set_ylim(-1.35, n + 0.05)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
+
+    # where the trace stops. Past this the depth coordinate is continued
+    # along the trace's final direction, because the distal pocket carries
+    # on and the trace does not - it was seeded beside ampicillin.
+    tend = float(reach[0].get("trace_end_depth_A") or 0.0)
+    if tend:
+        ax.axvspan(tend, 76, color="#f4f7f8", zorder=0, linewidth=0)
+        ax.plot([tend, tend], [-1.35, n + 0.05], color="#9fb0b8",
+                linestyle=(0, (4, 3)), linewidth=1.6, zorder=2)
+        ax.annotate("trace ends", (tend, n - 0.05),
+                    xytext=(6, 0), textcoords="offset points", ha="left",
+                    va="top", fontsize=11.5, color="#7a8b93")
 
     prof = tunnel_profile()
     KY = 0.11
@@ -1838,13 +1844,13 @@ def panel_ligand_reach():
                         linewidth=1.1, zorder=1)
         for r in v:
             a, b = float(r["depth_shallowest_A"]), float(r["depth_deepest_A"])
-            c = float(r["depth_centroid_A"])
+            c = float(r["depth_mean_A"])
             ax.plot([a, b], [y, y], color=col, linewidth=13, alpha=.42,
                     solid_capstyle="round", zorder=3)
             ax.scatter([c], [y], s=70 + 2.2 * int(r["heavy_atoms"]),
                        color=tint(col, 0.45), edgecolor=col, linewidth=2.2,
                        zorder=5)
-        d = max(float(r["depth_centroid_A"]) for r in v)
+        d = max(float(r["depth_mean_A"]) for r in v)
         ax.annotate(f"{d:.0f} \u00c5", (1.0, y),
                     xycoords=("axes fraction", "data"), xytext=(8, -4),
                     textcoords="offset points", ha="left", fontsize=12.5,
@@ -1853,7 +1859,7 @@ def panel_ligand_reach():
                     xytext=(-12, -5), textcoords="offset points", ha="right",
                     fontsize=13.5, color=col,
                     fontweight="bold" if pid in OURS else "normal")
-    ax.annotate("Centroid", (1.0, n - 0.35),
+    ax.annotate("Mean depth", (1.0, n - 0.35),
                 xycoords=("axes fraction", "data"), xytext=(8, -4),
                 textcoords="offset points", ha="left", fontsize=12,
                 color=INK2, annotation_clip=False)
@@ -1867,7 +1873,7 @@ def panel_ligand_reach():
                     fontsize=12, color=INK2)
     ax.annotate("Entry cleft", (22.0, -0.95), ha="center", va="center",
                 fontsize=12.5, color=INK2, fontstyle="italic")
-    ax.annotate("Porter pocket", (55.0, -0.95), ha="center", va="center",
+    ax.annotate("Porter pocket", (52.0, -0.95), ha="center", va="center",
                 fontsize=12.5, color=INK2, fontstyle="italic")
     ax.set_xlabel("Depth into the porter domain (\u00c5 from the "
                   "periplasmic entrance)", labelpad=10)
@@ -1876,26 +1882,33 @@ def panel_ligand_reach():
     fig.text(0.045, 0.105,
              "Every ligand is projected atom by atom onto one channel "
              "\u2014 the widest ligand-free route out of ampicillin chain "
-             "E, drawn faintly behind each\nrow \u2014 after superposing "
-             "its protomer on the reference by the pocket-lining CA. The "
-             "bar is the stretch of channel that molecule occupies, from "
-             "its\nshallowest heavy atom to its deepest; the marker is its "
-             "centroid, sized by heavy-atom count. So the bar answers how "
-             "far in a ligand reaches\nand how much of the path it takes "
-             "up, which for a detergent 25 \u00c5 long is not the same "
-             "question. An atom is matched to the stretch of channel "
-             "around\nits own molecule (\u00b120 \u00c5 of arc), since "
-             "depth is arc length along a route that folds back on itself. "
-             "A ligand lying off the centreline projects short:\n"
-             "chloramphenicol sits 7.8 \u00c5 to the side of it, so its "
-             "1 \u00c5 bar means side-on, not small. Rows are ranked by "
-             "centroid, and the number at the\nright is the centroid too: "
-             "the deepest-atom depth saturates at the end of the channel, "
-             "which five of the seven reach, so it separates nothing.\nOne "
-             "row per chemistry, the copy with the most atoms on the "
-             "channel; only the DDM \u00d73 protomer carries more than one "
-             "ligand at once. Depths\nand the free radius left beside each "
-             "ligand are in ligand_reach.csv.",
+             "E, drawn faintly behind each row \u2014\nafter superposing "
+             "its protomer on the reference by the pocket-lining CA. The bar "
+             "runs from its shallowest heavy atom to its deepest and the "
+             "marker is\nthe mean of its atom depths, sized by heavy-atom "
+             "count. So the bar answers both how far in a ligand reaches and "
+             "how much of the path it takes\nup, which for a detergent 25 "
+             "\u00c5 long is not the same question.\n\n"
+             f"Past {tend:.0f} \u00c5 the trace has stopped: it was seeded "
+             "beside the ampicillin molecule, and the distal pocket carries "
+             "on where the trace does not.\nEvery ligand but CYMAL-7 has "
+             "atoms in that stretch, 4\u20139 \u00c5 beyond the end, and "
+             "chloramphenicol lies entirely within it. In the shaded zone "
+             "depth is\ncontinued as the distance past the terminus along "
+             "the trace's final direction \u2014 an extrapolation of the "
+             "coordinate, not a measured route, since a\nchamber has no "
+             "centreline to follow. That is why deep values here run past "
+             f"the {tend:.0f} \u00c5 at which P10 and P11 stop; nothing "
+             "shallower than the line moves.\n\n"
+             "An atom is matched to the stretch of channel around its own "
+             "molecule (\u00b120 \u00c5 of arc), since depth is arc length "
+             "along a route that folds back on\nitself, and it counts as "
+             "past the end only if its nearest point lies in the deepest 10 "
+             "\u00c5 of the trace. One row per chemistry, the copy with the "
+             "most atoms\non the channel; only the DDM \u00d73 protomer "
+             "carries more than one ligand at once. Depths, atoms past the "
+             "end and the free radius left beside each\nligand are in "
+             "ligand_reach.csv.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P16_ligand_reach")
 
