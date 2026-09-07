@@ -32,8 +32,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import run_caver as rc
 from per_structure_tunnels import panel_protomers, rows_of
 from published_pockets import (LINING, PDBDIR, load_channel, pocket_ligands)
-from mexb_common import (STRUCT_DIR, TABLES, Structure, apply_rt, coords, fmt,
-                         kabsch, write_csv)
+from mexb_common import (STRUCT_DIR, TABLES, WORK_DIR, Structure, apply_rt,
+                         coords, fmt, kabsch, write_csv)
 
 PROBE, SHELL_R, SHELL_D = 0.9, 3.0, 4.0
 
@@ -62,6 +62,33 @@ def best_profile(outdir):
     n = min(len(v["X"]), len(v["Y"]), len(v["Z"]), len(v["R"]))
     P = np.column_stack([v["X"][:n], v["Y"][:n], v["Z"][:n]])
     return P, np.asarray(v["R"][:n]), key
+
+
+def reuse(outdir):
+    """Summarise a CAVER run that already completed, without rerunning it."""
+    tc = os.path.join(outdir, "analysis", "tunnel_characteristics.csv")
+    rows = list(csv.DictReader(open(tc), skipinitialspace=True))
+    if not rows:
+        return {"error": "no tunnels in cached run"}
+    rows.sort(key=lambda x: -float(x["Bottleneck radius"]))
+    b = rows[0]
+    return {"n_tunnels": len(rows), "cluster": b["Tunnel cluster"],
+            "bottleneck": float(b["Bottleneck radius"]),
+            "length": float(b["Length"]), "curvature": float(b["Curvature"]),
+            "throughput": float(b["Throughput"]), "residues": "",
+            "n_atoms_in": None, "n_atoms_loaded": None, "outdir": outdir}
+
+
+def flush(prof, summ):
+    """Write both tables now, so a killed run keeps what it already has."""
+    write_csv(os.path.join(TABLES, "caver_tunnel_profiles.csv"),
+              ["pdb", "chain", "ligand", "depth_from_own_mouth_A", "radius_A",
+               "depth_on_reference_axis_A", "offset_from_reference_A"], prof)
+    write_csv(os.path.join(TABLES, "caver_tunnels.csv"),
+              ["pdb", "chain", "ligand", "n_tunnels", "cluster",
+               "caver_bottleneck_A", "caver_length_A", "curvature",
+               "throughput", "our_bottleneck_A", "atoms_in", "atoms_loaded"],
+              summ)
 
 
 def main():
@@ -99,7 +126,15 @@ def main():
 
         atoms = [a for a in s.protein_atoms if not a.is_hydrogen]
         tag = f"{pid}_{ch}"
-        res = rc.run_one(jar, tag, atoms, seed, PROBE, SHELL_R, SHELL_D)
+        # resume: a completed run leaves tunnel_profiles.csv behind, and each
+        # CAVER call is minutes long, so never redo one
+        cached = os.path.join(WORK_DIR, "caver_runs", tag, "out")
+        if os.path.exists(os.path.join(cached, "analysis",
+                                       "tunnel_profiles.csv")):
+            res = reuse(cached)
+            print(f"  {nm:16} {pid} {ch}: reusing cached run")
+        else:
+            res = rc.run_one(jar, tag, atoms, seed, PROBE, SHELL_R, SHELL_D)
         if "error" in res:
             print(f"  {nm:16} {pid} {ch}: CAVER failed - {res['error'][:90]}")
             continue
@@ -136,15 +171,9 @@ def main():
                      fmt(res["curvature"]), fmt(res["throughput"]),
                      mine.get("tunnel_bottleneck_A", ""),
                      res["n_atoms_in"], res["n_atoms_loaded"]])
+        flush(prof, summ)
 
-    write_csv(os.path.join(TABLES, "caver_tunnel_profiles.csv"),
-              ["pdb", "chain", "ligand", "depth_from_own_mouth_A", "radius_A",
-               "depth_on_reference_axis_A", "offset_from_reference_A"], prof)
-    write_csv(os.path.join(TABLES, "caver_tunnels.csv"),
-              ["pdb", "chain", "ligand", "n_tunnels", "cluster",
-               "caver_bottleneck_A", "caver_length_A", "curvature",
-               "throughput", "our_bottleneck_A", "atoms_in", "atoms_loaded"],
-              summ)
+    flush(prof, summ)
     print("\nwrote results/tables/caver_tunnels.csv and "
           "caver_tunnel_profiles.csv")
 

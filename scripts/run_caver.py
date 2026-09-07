@@ -115,7 +115,7 @@ def run_one(jar, tag, atoms, seed, probe, shell_radius, shell_depth,
                                shell_radius=shell_radius,
                                shell_depth=shell_depth))
     out = os.path.join(d, "out")
-    cmd = ["java", "-Xmx6g", "-cp", os.path.join(CAVER_HOME, "lib"),
+    cmd = ["java", "-Xmx4g", "-cp", os.path.join(CAVER_HOME, "lib"),
            "-jar", jar, "-home", CAVER_HOME, "-pdb",
            os.path.join(d, "pdbs"), "-conf", os.path.join(d, "config.txt"),
            "-out", out]
