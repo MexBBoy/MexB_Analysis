@@ -1,3 +1,8 @@
 pdb,chain,ligand,n_tunnels,cluster,caver_bottleneck_A,caver_length_A,curvature,throughput,our_bottleneck_A,atoms_in,atoms_loaded
 Amp_MexB_20260826,E,Ampicillin,93,1,2.22,32.28,1.55,0.71,2.21,,
-21FO,B,CYMAL-7,86,2,2.37,13.87,1.16,0.83,1.21,23388,23380
+21FO,B,CYMAL-7,86,2,2.37,13.87,1.16,0.83,1.21,,
+21FP,B,Chloramphenicol,78,1,2.55,34.08,1.41,0.72,2.01,,
+2V50,B,DDM,86,1,2.61,19.92,1.25,0.85,2.37,,
+MexB_DDM_3_20260730,E,DDM x3,37,1,2.46,28.94,1.24,0.78,2.43,,
+3W9J,B,EPI,76,1,2.16,29.82,1.48,0.70,1.48,23348,23340
+6IIA,B,LMNG,72,1,2.63,26.01,1.47,0.80,2.19,23342,23334

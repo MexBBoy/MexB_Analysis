@@ -124,7 +124,17 @@ def main():
                   for c in cens]
         seed = cens[int(np.argmax(depths))]
 
-        atoms = [a for a in s.protein_atoms if not a.is_hydrogen]
+        # several entries hold two trimers in the asymmetric unit. Only the
+        # trimer containing the target chain lines its tunnel, and feeding
+        # CAVER the whole file roughly doubles a run that already takes
+        # minutes, so keep that chain and its two nearest neighbours.
+        cen = {c: coords([a for a in s.protein_atoms
+                          if a.chain == c and a.name.strip() == "CA"]).mean(0)
+               for c in s.chains}
+        near = sorted(cen, key=lambda c: float(np.linalg.norm(
+            cen[c] - cen[ch])))[:3]
+        atoms = [a for a in s.protein_atoms
+                 if not a.is_hydrogen and a.chain in set(near)]
         tag = f"{pid}_{ch}"
         # resume: a completed run leaves tunnel_profiles.csv behind, and each
         # CAVER call is minutes long, so never redo one
