@@ -1125,12 +1125,31 @@ def panel_mexb_rows():
         -float(prot[k][-1]["depth_from_entrance_A"])))
 
     n = len(order)
-    H = 3.5 + 0.52 * n
+    H = 4.6 + 0.52 * n
     fig = plt.figure(figsize=(10.6, H))
     title(fig, "One channel, every substrate-bound MexB protomer",
           "Each structure's own tunnel, traced separately and projected onto "
           "one shared axis, with its ligands placed on it.")
-    y0, htop = 1.80 / H, 2.85 / H
+
+    # the two numbers this panel exists to make, in P10's callout style
+    multi = [r for r in env if int(r["ligands_in_protomer"]) > 1]
+    span = 0.0
+    if multi:
+        dd = [float(r["depth_from_entrance_A"]) for r in multi]
+        span = max(dd) - min(dd)
+    bn = [float(r["tunnel_bottleneck_A"])
+          for r in R("per_structure_tunnel_summary.csv")
+          if r["tunnel_bottleneck_A"]]
+    callout(fig, 0.055, 1.0 - 1.02 / H, f"{span:.0f} \u00c5",
+            "of the path occupied at once, by the\nthree DDM of one "
+            "protomer", BINDING, size=38)
+    if bn:
+        callout(fig, 0.535, 1.0 - 1.02 / H,
+                f"{min(bn):.1f}\u2013{max(bn):.1f} \u00c5",
+                "bottleneck across the seven tunnels,\neach traced from its "
+                "own structure", TEAL, size=38)
+
+    y0, htop = 1.80 / H, 3.95 / H
     ax = fig.add_axes([0.245, y0, 0.660, 1.0 - y0 - htop])
     ax.set_xlim(-1.5, 66); ax.set_ylim(-1.85, n + 0.10)
     ax.annotate("Bottleneck", (1.0, n - 0.35),
@@ -1232,7 +1251,7 @@ def panel_mexb_rows():
                         color=col, annotation_clip=False)
     ax.annotate("Pocket-lining residues, coloured by which pocket they "
                 "belong to", (0.5, 1.0), xycoords="axes fraction",
-                xytext=(0, 78), textcoords="offset points", ha="center",
+                xytext=(0, 68), textcoords="offset points", ha="center",
                 fontsize=14, color=INK2, annotation_clip=False)
 
     if rad is not None:
@@ -1255,7 +1274,7 @@ def panel_mexb_rows():
                                  "both": "spans both"}[q])
                for q in ("DBP", "PBP", "both")]
     fig.legend(handles=handles, loc="upper center", ncol=3,
-               bbox_to_anchor=(0.62, 1.0 - 0.74 / H), fontsize=14,
+               bbox_to_anchor=(0.62, 1.0 - 2.15 / H), fontsize=14,
                handletextpad=0.35, columnspacing=1.6)
 
     fig.text(0.045, 0.085,
