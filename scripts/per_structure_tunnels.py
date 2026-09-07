@@ -51,6 +51,8 @@ STEP = 0.8          # grid spacing for the tunnel search, A
 MAX_OFFSET = 6.0    # a trace point further than this from the reference
                     # centreline is not on the same route
 BIN = 1.0           # depth bin, A
+END_TRIM = 3.0      # the terminal cap of a trace sits inside the seed cavity
+                    # and at the bulk mouth; neither is a route constriction
 OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
 
 
@@ -141,7 +143,7 @@ def write_own_axis(want, chan):
     same thing. The deep ends do not align, because the tunnels are not the
     same length - that is the honest cost of drawing them in full.
     """
-    prof, ligs = [], []
+    prof, ligs, summ = [], [], []
     for (pid, ch), nm in sorted(want.items(), key=lambda x: x[1]):
         path = os.path.join(STRUCT_DIR, f"{pid}.pdb")
         if not os.path.exists(path):
@@ -161,6 +163,22 @@ def write_own_axis(want, chan):
         depth = arc[-1] - arc
         for d, r in zip(depth, rad):
             prof.append([pid, ch, nm, fmt(d), fmt(r)])
+
+        # Two different numbers, both worth reporting. The clearance at the
+        # deep terminus is how much room the trace has where it was seeded -
+        # inside the pocket, beside the ligand. The route bottleneck is the
+        # narrowest point the tunnel actually passes through on the way out,
+        # taken with the terminal END_TRIM at each end removed so neither the
+        # seed cavity nor the bulk mouth can masquerade as a constriction.
+        seed = float(rad[0])
+        mid = (depth <= depth[0] - END_TRIM) & (depth >= END_TRIM)
+        if mid.any():
+            k = int(np.argmin(np.where(mid, rad, np.inf)))
+            neck, neck_d = float(rad[k]), float(depth[k])
+        else:
+            neck, neck_d = seed, float(depth[0])
+        summ.append([pid, ch, nm, fmt(depth[0]), fmt(seed), fmt(neck),
+                     fmt(neck_d), fmt(float(rad.min()))])
         for (c, rn, h) in pocket_ligands(s):
             if c != ch:
                 continue
@@ -177,15 +195,21 @@ def write_own_axis(want, chan):
               ["pdb", "chain", "ligand", "resname", "heavy_atoms",
                "depth_from_own_mouth_A", "offset_from_own_tunnel_A",
                "tunnel_length_A"], ligs)
+    write_csv(os.path.join(TABLES, "own_axis_summary.csv"),
+              ["pdb", "chain", "ligand", "tunnel_length_A",
+               "seed_clearance_A", "route_bottleneck_A",
+               "route_bottleneck_depth_A", "whole_trace_min_A"], summ)
     print("\n  --- full length, on each tunnel's own axis ---")
-    seen = set()
-    for r in prof:
-        if r[2] in seen:
-            continue
-        seen.add(r[2])
-        same = [float(x[3]) for x in prof if x[2] == r[2]]
-        print(f"    {r[2]:16} tunnel {max(same):5.1f} A long")
-    print("  wrote own_axis_tunnels.csv and own_axis_ligands.csv")
+    print(f"      {'ligand':16} {'length':>7} {'seed':>7} {'neck':>7} "
+          f"{'at':>7}")
+    for r in summ:
+        print(f"      {r[2]:16} {r[3]:>7} {r[4]:>7} {r[5]:>7} {r[6]:>7}")
+    print("      seed = clearance where the trace was seeded, beside the "
+          "ligand;\n      neck = narrowest point on the route itself "
+          f"(terminal {END_TRIM:.0f} A trimmed)")
+    print("  wrote own_axis_tunnels.csv, own_axis_ligands.csv and "
+          "own_axis_summary.csv")
+    return {(r[0], r[1]): r for r in summ}
 
 
 def main():
@@ -264,7 +288,10 @@ def main():
                         fmt(rr.min()), fmt(rad.min()),
                         "yes" if cover >= 50 else "partial"])
 
-    write_own_axis(want, chan)
+    own = write_own_axis(want, chan)
+    for row in summary:
+        o = own.get((row[0], row[1]))
+        row.extend([o[4], o[5], o[6]] if o else ["", "", ""])
 
     write_csv(os.path.join(TABLES, "per_structure_tunnels.csv"),
               ["pdb", "chain", "ligand", "depth_from_entrance_A",
@@ -273,7 +300,8 @@ def main():
               ["pdb", "chain", "ligand", "trace_points",
                "points_on_reference_route", "axis_coverage_pct",
                "radius_min_on_route_A", "tunnel_bottleneck_A",
-               "projectable"], summary)
+               "projectable", "seed_clearance_A", "route_bottleneck_A",
+               "route_bottleneck_depth_A"], summary)
     print("\nwrote results/tables/per_structure_tunnels.csv and "
           "per_structure_tunnel_summary.csv")
 

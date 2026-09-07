@@ -1137,9 +1137,9 @@ def panel_mexb_rows():
     if multi:
         dd = [float(r["depth_from_entrance_A"]) for r in multi]
         span = max(dd) - min(dd)
-    bn = [float(r["tunnel_bottleneck_A"])
+    bn = [float(r["route_bottleneck_A"])
           for r in R("per_structure_tunnel_summary.csv")
-          if r["tunnel_bottleneck_A"]]
+          if r.get("route_bottleneck_A")]
     callout(fig, 0.055, 1.0 - 1.02 / H, f"{span:.0f} \u00c5",
             "of the path occupied at once, by the\nthree DDM of one "
             "protomer", BINDING, size=38)
@@ -1201,8 +1201,8 @@ def panel_mexb_rows():
                     ax.plot(seg_d, y + sgn * KY * seg_r, color=tint(lc, 0.30),
                             linewidth=1.6, zorder=2)
             c = cover.get(k)
-            if c and c["radius_min_on_route_A"]:
-                ax.annotate(f"{float(c['tunnel_bottleneck_A']):.1f} \u00c5",
+            if c and c.get("route_bottleneck_A"):
+                ax.annotate(f"{float(c['route_bottleneck_A']):.1f} \u00c5",
                             (1.0, y), xycoords=("axes fraction", "data"),
                             xytext=(8, -4), textcoords="offset points",
                             ha="left", fontsize=12, color=lc,
@@ -1286,8 +1286,15 @@ def panel_mexb_rows():
              "within 6 \u00c5; coverage runs 22\u2013100%, so a gap is "
              "where a\nstructure's widest route goes elsewhere, not where "
              "it is blocked. Tube half-width is the local radius, on a "
-             "vertical\nscale that is not the horizontal one; each row's "
-             "own bottleneck is given at the right.\n\n"
+             "vertical\nscale that is not the horizontal one. The "
+             "bottleneck at the right is the narrowest point on the route "
+             "itself, taken\nwith the terminal 3 \u00c5 at each end "
+             "trimmed off: the trace is seeded beside the ligand, so its "
+             "deep cap measures the\nclearance of the pocket the ligand "
+             "sits in rather than any constriction the route passes "
+             "through. Both numbers\nare tabulated "
+             "(per_structure_tunnel_summary.csv); they differ by up to "
+             "1.0 \u00c5.\n\n"
              "Marker area tracks ligand size and its fill gives which "
              "lining set the ligand contacts at 4.5 \u00c5. One row per "
              "ligand:\nwhere a structure or a pair of structures gave more "
@@ -1473,7 +1480,7 @@ def panel_tm_overlay():
 def panel_caver():
     """Our widest-path bottlenecks against CAVER 3.0.3."""
     cav = R("caver_tunnels.csv")
-    own = {r["ligand"]: r for r in R("per_structure_tunnel_summary.csv")}
+    own = {r["ligand"]: r for r in R("own_axis_summary.csv")}
     if not cav:
         return
     NAME2PDB = {"Ampicillin": "Amp_MexB_20260826",
@@ -1484,10 +1491,13 @@ def panel_caver():
     rows = []
     for r in cav:
         nm = r["ligand"]
-        o = float(r["our_bottleneck_A"])
+        # CAVER reports the narrowest point along its route, so compare it
+        # with ours measured the same way - the route bottleneck, not the
+        # clearance at the seed where the trace starts beside the ligand.
+        o = float(r["our_route_bottleneck_A"])
         c = float(r["caver_bottleneck_A"])
         clen = float(r["caver_length_A"])
-        olen = (float(own[nm]["trace_points"]) * 0.15
+        olen = (float(own[nm]["tunnel_length_A"])
                 if nm in own else float("nan"))
         rows.append((nm, o, c, clen, olen, c - o))
     rows.sort(key=lambda x: abs(x[5]))
@@ -1514,8 +1524,9 @@ def panel_caver():
                     xytext=(8, -5), textcoords="offset points", ha="left",
                     fontsize=12.5, color=INK2, annotation_clip=False)
     ax.set_yticks([]); ax.set_ylim(-0.7, len(rows) - 0.3)
-    ax.set_xlim(1.0, 2.9)
-    ax.set_xlabel("Bottleneck radius (\u00c5)", labelpad=10, fontsize=15)
+    ax.set_xlim(1.0, 3.05)
+    ax.set_xlabel("Route bottleneck radius (\u00c5)", labelpad=10,
+                  fontsize=15)
     ax.grid(axis="y", visible=False); ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
     ax.annotate("\u0394", (1, len(rows) - 0.35),
@@ -1539,6 +1550,8 @@ def panel_caver():
         ax2.scatter([100 * x], [abs(d)], s=150, color=col, zorder=4,
                     edgecolor="white", linewidth=1.6)
     r_p = float(np.corrcoef(rat, dif)[0, 1])
+    keep = rat > 0.2                       # without the 9% CYMAL-7 point
+    r_k = float(np.corrcoef(rat[keep], dif[keep])[0, 1])
     ax2.set_xlabel("CAVER tunnel as % of our route", labelpad=10,
                    fontsize=14)
     ax2.set_ylabel("|difference| (\u00c5)", labelpad=8, fontsize=14)
@@ -1550,18 +1563,24 @@ def panel_caver():
 
     fig.text(0.055, 0.135,
              "Both tools were given the same protomer with ligands stripped "
-             "and the same seed. They agree to 0.01 and 0.03 \u00c5 on "
-             "ampicillin and DDM \u00d73, and\ndiverge by up to 1.16 "
-             "\u00c5 elsewhere \u2014 but CAVER's best-ranked cluster is "
-             "always far shorter than our route (14\u201334 \u00c5 against "
-             "59\u201386 \u00c5), so the two are not\nalways measuring the "
-             "same passage. The right panel is the pattern that suggests: "
-             "the more of our route CAVER's tunnel spans, the closer the "
-             "bottlenecks. With\nseven points that is suggestive, not "
-             "established. CAVER ranks clustered candidate tunnels by "
-             "bottleneck; ours takes the single widest path from the seed "
-             "to bulk\nsolvent. Per-tunnel profiles are in "
-             "caver_tunnel_profiles.csv for a route-by-route comparison.",
+             "and the same seed, and both numbers are route bottlenecks: "
+             "the narrowest point\nthe tunnel passes through, with the "
+             "terminal 3 \u00c5 trimmed so the seed cavity beside the "
+             "ligand is not counted as a constriction. They agree to\n"
+             "0.01 and 0.03 \u00c5 on ampicillin and DDM \u00d73 and "
+             "diverge by up to 1.00 \u00c5 elsewhere \u2014 but CAVER's "
+             "best-ranked cluster is always far shorter than our route\n"
+             "(14\u201334 \u00c5 against 52\u2013154 \u00c5), so the "
+             "two are not always measuring the same passage. The right "
+             f"panel is the pattern that suggests: the more of\nour route "
+             f"CAVER's tunnel spans, the closer the bottlenecks "
+             f"(r = {r_p:+.2f}, n = 7; {r_k:+.2f} without the CYMAL-7 point "
+             "at 9% coverage, which carries most of it). With\nseven "
+             "points that is suggestive, not established. CAVER ranks "
+             "clustered candidate tunnels by bottleneck; ours takes the "
+             "single widest path from the seed to\nbulk solvent. "
+             "Per-tunnel profiles are in caver_tunnel_profiles.csv for a "
+             "route-by-route comparison.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P14_caver_crosscheck")
 

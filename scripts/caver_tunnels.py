@@ -87,7 +87,8 @@ def flush(prof, summ):
     write_csv(os.path.join(TABLES, "caver_tunnels.csv"),
               ["pdb", "chain", "ligand", "n_tunnels", "cluster",
                "caver_bottleneck_A", "caver_length_A", "curvature",
-               "throughput", "our_bottleneck_A", "atoms_in", "atoms_loaded"],
+               "throughput", "our_bottleneck_A", "our_seed_clearance_A",
+               "our_route_bottleneck_A", "atoms_in", "atoms_loaded"],
               summ)
 
 
@@ -175,11 +176,15 @@ def main():
         mine = ours.get((pid, ch), {})
         print(f"  {nm:16} {pid} {ch}: {res['n_tunnels']:3d} tunnels, best "
               f"bottleneck {res['bottleneck']:.2f} A over {arc[-1]:.0f} A"
-              f"   (ours {mine.get('tunnel_bottleneck_A', '-'):>5} A)")
+              f"   (our route neck "
+              f"{mine.get('route_bottleneck_A', '-'):>5} A, seed "
+              f"{mine.get('seed_clearance_A', '-'):>5} A)")
         summ.append([pid, ch, nm, res["n_tunnels"], key[0],
                      fmt(res["bottleneck"]), fmt(arc[-1]),
                      fmt(res["curvature"]), fmt(res["throughput"]),
                      mine.get("tunnel_bottleneck_A", ""),
+                     mine.get("seed_clearance_A", ""),
+                     mine.get("route_bottleneck_A", ""),
                      res["n_atoms_in"], res["n_atoms_loaded"]])
         flush(prof, summ)
 
