@@ -1,0 +1,8 @@
+pdb,chain,ligand,full_length_A,matched_length_A,first_crossing_A,enclosure_threshold,enclosure_at_ligand,enclosure_at_own_end,route_bottleneck_matched_A
+Amp_MexB_20260826,E,Ampicillin,62.80,42.17,42.17,203,256,31,2.21
+21FO,B,CYMAL-7,153.64,121.92,77.97,203,226,105,1.37
+21FP,B,Chloramphenicol,66.11,65.71,60.20,203,271,203,2.35
+2V50,B,DDM,51.51,46.17,46.17,203,242,189,2.37
+MexB_DDM_3_20260730,E,DDM x3,62.03,47.95,46.93,203,251,187,2.43
+3W9J,B,EPI,72.13,69.80,47.67,203,253,168,1.81
+6IIA,B,LMNG,64.96,36.61,35.65,203,249,108,2.88

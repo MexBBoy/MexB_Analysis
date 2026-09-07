@@ -1616,6 +1616,126 @@ def panel_caver():
     save(fig, "P14_caver_crosscheck")
 
 
+# ------------------------------------------------------------------ P15
+def panel_common_exit():
+    """Every route cut where it is equally enclosed, not where it first
+    touched bulk solvent."""
+    summ = R("common_exit_summary.csv")
+    prof = R("common_exit_profiles.csv")
+    if not summ or not prof:
+        return
+    PDB = {r["ligand"]: r["pdb"] for r in summ}
+    thresh = int(summ[0]["enclosure_threshold"])
+
+    by = {}
+    for r in prof:
+        by.setdefault(r["ligand"], []).append(
+            (float(r["depth_from_ligand_A"]), int(r["enclosure_atoms_12A"]),
+             r["kept"] == "yes"))
+    for v in by.values():
+        v.sort()
+
+    rows = sorted(summ, key=lambda r: float(r["matched_length_A"]))
+    matched = [float(r["matched_length_A"]) for r in rows
+               if r["ligand"] != "CYMAL-7"]
+
+    fig = plt.figure(figsize=(11.6, 8.6))
+    title(fig, "Cut where they are equally enclosed, the routes still differ",
+          "Each tunnel re-cut at a matched enclosure, so path length no "
+          "longer depends on where the search happened to stop.")
+    callout(fig, 0.055, 0.865,
+            f"{min(matched):.0f}\u2013{max(matched):.0f} \u00c5",
+            "from the pocket to an equally exposed\npoint, across the six "
+            "porter-domain routes", TEAL, size=34)
+    callout(fig, 0.545, 0.865, f"{thresh}",
+            "protein heavy atoms within 12 \u00c5:\nthe matched enclosure",
+            APOLAR, size=34)
+
+    # enclosure along each route, from the ligand outwards
+    ax = fig.add_axes([0.075, 0.325, 0.50, 0.355])
+    ax.axhline(thresh, color=APOLAR, linestyle=(0, (5, 4)), linewidth=2,
+               zorder=2)
+    ax.annotate(f"matched enclosure, {thresh} atoms", (0.99, thresh),
+                xycoords=("axes fraction", "data"), xytext=(0, 7),
+                textcoords="offset points", ha="right", fontsize=12,
+                color=APOLAR)
+    for r in rows:
+        nm = r["ligand"]
+        col = LIGCOL.get(PDB[nm], TEAL)
+        d = np.array([p[0] for p in by[nm]])
+        e = np.array([p[1] for p in by[nm]])
+        ax.plot(d, e, color=tint(col, 0.55), linewidth=1.4, zorder=3)
+        cut = float(r["matched_length_A"])
+        k = int(np.argmin(np.abs(d - cut)))
+        ax.plot(d[:k + 1], e[:k + 1], color=col, linewidth=2.4, zorder=4)
+        ax.scatter([d[k]], [e[k]], s=110, color=col, edgecolor="white",
+                   linewidth=1.6, zorder=5)
+    ax.set_xlim(0, 130)
+    ax.set_xlabel("Distance from the ligand along the route (\u00c5)",
+                  labelpad=9, fontsize=14.5)
+    ax.set_ylabel("Enclosure (heavy atoms within 12 \u00c5)", labelpad=8,
+                  fontsize=14.5)
+    ax.set_axisbelow(True)
+
+    # full length against matched length
+    ax2 = fig.add_axes([0.715, 0.325, 0.235, 0.355])
+    for i, r in enumerate(rows):
+        y = len(rows) - 1 - i
+        nm = r["ligand"]
+        col = LIGCOL.get(PDB[nm], TEAL)
+        full = float(r["full_length_A"])
+        cut = float(r["matched_length_A"])
+        ax2.plot([cut, full], [y, y], color=col, linewidth=3, alpha=.45,
+                 zorder=2, solid_capstyle="round")
+        ax2.scatter([full], [y], s=130, facecolor="white", edgecolor=col,
+                    linewidth=2.2, zorder=4)
+        ax2.scatter([cut], [y], s=130, color=col, zorder=4,
+                    edgecolor="white", linewidth=1.5)
+        ax2.annotate(nm, (0, y), xycoords=("axes fraction", "data"),
+                     xytext=(-9, -5), textcoords="offset points", ha="right",
+                     fontsize=12.5, color=col)
+    ax2.set_yticks([]); ax2.set_ylim(-2.0, len(rows) - 0.3)
+    ax2.set_xlim(20, 165)
+    ax2.set_xticks([50, 100, 150])
+    ax2.set_xlabel("Path length (\u00c5)", labelpad=9, fontsize=14.5)
+    ax2.grid(axis="y", visible=False); ax2.set_axisbelow(True)
+    ax2.spines["left"].set_visible(False)
+    h = [plt.Line2D([], [], marker="o", linestyle="", markersize=10,
+                    markerfacecolor="white", markeredgecolor=INK2,
+                    markeredgewidth=2, label="as traced"),
+         plt.Line2D([], [], marker="o", linestyle="", markersize=10,
+                    markerfacecolor=INK2, markeredgecolor="white",
+                    markeredgewidth=1.5, label="cut at the matched exit")]
+    ax2.legend(handles=h, loc="lower left", fontsize=11.5,
+               framealpha=0.9)
+
+    fig.text(0.055, 0.205,
+             "The tunnel search stops at the first point of the "
+             "bulk-connected open region, which is a uniform rule but not a "
+             "comparable place: ampicillin's\nroute ends with 31 protein "
+             f"heavy atoms within 12 \u00c5 of its last point, "
+             f"chloramphenicol's with {thresh}. One has come out into the "
+             "open, the other has only\njust broken the surface, so raw "
+             "path length mixes how far a route runs inside the protein "
+             "with how far past it the search carried on. Every\ntrace is "
+             f"therefore re-cut at enclosure {thresh}, the largest "
+             "end-of-trace value in the set, so all seven reach it. "
+             "Enclosure is counted on that\nprotomer's own trimer, so a "
+             "second trimer in the asymmetric unit is not read as burial, "
+             "and on heavy atoms only, since our models carry\nhydrogens "
+             "and the deposited ones do not. The cut is each route's point "
+             "of no return, the last place it drops below the threshold for "
+             "good \u2014 3W9J\nand 21FO both open into a vestibule and "
+             "then run back into the protein. Matched this way the six "
+             "porter-domain routes span "
+             f"{min(matched):.0f}\u2013{max(matched):.0f} \u00c5, so the "
+             "length\ndifferences in P11 are geometry, not an artefact of "
+             "where each search stopped. 21FO is again the outlier at 122 "
+             "\u00c5. Full profiles are in\ncommon_exit_profiles.csv.",
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P15_common_exit")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -1632,6 +1752,7 @@ def main():
     panel_regional_rmsd()
     panel_tm_overlay()
     panel_caver()
+    panel_common_exit()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
