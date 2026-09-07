@@ -1364,6 +1364,78 @@ def panel_regional_rmsd():
     save(fig, "P12_regional_rmsd")
 
 
+# ------------------------------------------------------------------ P13
+def panel_tm_overlay():
+    """TM cartoon overlays with AcrB, after Lawrence et al. Fig. 2C."""
+    import matplotlib.image as mpimg
+    src = os.path.join(FIGURES, "tm_overlay")
+    STATES = ("Access", "Binding", "Extrusion")
+    REPS = ("R1", "R2")
+    have = {(st, rp): os.path.join(src, f"{st}_{rp}.png")
+            for st in STATES for rp in REPS}
+    have = {k: v for k, v in have.items() if os.path.exists(v)}
+    if len(have) < 6:
+        return
+    fit = {r["state"]: r["tm_fit_rmsd_A"] for r in R("tm_overlay.csv")}
+    MEXB, ACRB = "#2E5FE8", "#E59BD8"
+
+    fig = plt.figure(figsize=(10.6, 8.4))
+    title(fig, "MexB and AcrB transmembrane domains, state by state",
+          "The two pseudo-symmetric repeats superposed and drawn as "
+          "cartoons, from one camera, for each protomer state.")
+    fig.text(0.055, 0.876, "MexB", fontsize=20, fontweight="bold",
+             color=MEXB, va="top")
+    fig.text(0.175, 0.876, "AcrB (4DX5)", fontsize=20, fontweight="bold",
+             color=ACRB, va="top")
+
+    def crop(a):
+        """Trim the white margin PyMOL leaves around the cartoon."""
+        ink = (a[..., :3] < 0.97).any(-1) if a.ndim == 3 else a < 0.97
+        ys, xs = np.where(ink)
+        if not len(ys):
+            return a
+        m = 8
+        return a[max(ys.min() - m, 0):ys.max() + m,
+                 max(xs.min() - m, 0):xs.max() + m]
+
+    left, right, top, bot = 0.075, 0.985, 0.805, 0.185
+    wcell = (right - left) / 3
+    hcell = (top - bot) / 2
+    for j, st in enumerate(STATES):
+        for i, rp in enumerate(REPS):
+            ax = fig.add_axes([left + j * wcell, top - (i + 1) * hcell,
+                               wcell * 0.97, hcell * 0.94])
+            ax.imshow(crop(mpimg.imread(have[(st, rp)])))
+            ax.set_xticks([]); ax.set_yticks([])
+            for sp in ax.spines.values():
+                sp.set_visible(False)
+            if i == 0:
+                ax.set_title(st, fontsize=19, fontweight="bold",
+                             color=STATE_COLOR[st], pad=8)
+            if j == 0:
+                ax.set_ylabel(rp, fontsize=19, fontweight="bold",
+                              color=INK, labelpad=10, rotation=0,
+                              va="center")
+    for j, st in enumerate(STATES):
+        if st in fit:
+            fig.text(left + j * wcell + wcell * 0.48, bot - 0.018,
+                     f"TM fit {float(fit[st]):.2f} \u00c5", ha="center",
+                     va="top", fontsize=14, color=INK2)
+
+    fig.text(0.055, 0.108,
+             "R1 is TM1\u20136 with the I\u03b1 helix, R2 is TM7\u201312. "
+             "Each MexB protomer of the DDM \u00d73 model is superposed on "
+             "the AcrB 4DX5 protomer in the same state over\ntheir ~390 "
+             "shared transmembrane C\u03b1, then that rigid pair is moved "
+             "onto the AcrB access protomer, so all six panels share one "
+             "camera and differences between\nthem are real. AcrB states "
+             "are assigned by ranking 4DX5's own protomers on their "
+             "PN1\u2013PN2 and PC1\u2013PC2 separations. Rendered in "
+             "PyMOL as cylindrical helices.",
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P13_tm_overlay")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -1378,6 +1450,7 @@ def main():
     panel_mechanism()
     panel_mexb_rows()
     panel_regional_rmsd()
+    panel_tm_overlay()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 

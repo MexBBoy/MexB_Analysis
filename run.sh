@@ -80,6 +80,9 @@ python3 scripts/per_structure_tunnels.py || echo "(skipped)"
 
 python3 scripts/regional_rmsd.py || echo "(skipped)"
 
+# needs pymol-open-source; skipped silently if absent
+python3 scripts/tm_overlay.py || echo "(TM overlay skipped - no PyMOL?)"
+
 python3 scripts/poster_figures.py
 
 echo
