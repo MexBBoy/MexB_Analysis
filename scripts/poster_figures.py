@@ -1128,8 +1128,9 @@ def panel_mexb_rows():
     H = 3.5 + 0.52 * n
     fig = plt.figure(figsize=(10.6, H))
     title(fig, "One channel, every substrate-bound MexB protomer",
-          "Each row is one protomer of the same channel, drawn at its "
-          "measured radius, with its ligands placed on it.")
+          "One reference channel repeated on every row \u2014 the widest "
+          "ligand-free route out of ampicillin chain E \u2014 with each "
+          "structure's ligands placed on it.")
     y0, htop = 1.80 / H, 2.85 / H
     ax = fig.add_axes([0.245, y0, 0.735, 1.0 - y0 - htop])
     ax.set_xlim(-1.5, 66); ax.set_ylim(-1.85, n - 0.15)
@@ -1225,8 +1226,10 @@ def panel_mexb_rows():
                handletextpad=0.35, columnspacing=1.6)
 
     fig.text(0.045, 0.072,
-             "Channel drawn at its measured radius (2.2\u20134.4 \u00c5); "
-             "the vertical scale is not the horizontal one. Marker area "
+             "The same reference channel is drawn on every row at its "
+             "measured radius (2.2\u20134.4 \u00c5); these are not seven "
+             "separately traced tunnels. The vertical scale is not the "
+             "horizontal one. Marker area "
              "tracks ligand size, its fill gives which lining set the "
              "ligand contacts at 4.5 \u00c5, and each channel is\ntinted "
              "its ligand's poster colour. One row per ligand: where a "
