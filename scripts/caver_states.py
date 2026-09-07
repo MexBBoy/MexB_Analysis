@@ -29,7 +29,7 @@ from caver_tunnels import PROBE, SHELL_D, SHELL_R, reuse
 from per_structure_tunnels import rows_of
 from published_pockets import PDBDIR, load_channel, pocket_ligands
 from mexb_common import (DBP, PBP, STRUCT_DIR, TABLES, WORK_DIR, Structure,
-                         centroid, coords, fmt, write_csv)
+                         apply_rt, centroid, coords, fmt, kabsch, write_csv)
 
 DEFAULT = "MexB_DDM_3_20260730"
 OUT = os.path.join(os.path.dirname(TABLES), "structures")
@@ -202,6 +202,140 @@ def pdb_lines(atoms, het=False):
                f"  1.00{a.bfac:6.2f}          {a.element:>2.2s}\n")
 
 
+def build_overlay(pid, s, rows, state, ref="E"):
+    """The same three tunnels, superposed into one protomer.
+
+    Side by side the three states sit at 120 degrees to each other, so the
+    eye compares three different views of the same thing. Superposing each
+    chain onto one of them by its own CA puts all three routes in a single
+    frame, where what moves between states is the tunnel and not the camera.
+    """
+    os.makedirs(OUT, exist_ok=True)
+    rca = s.ca(ref)
+    pdb = os.path.join(OUT, f"{pid}_overlay.pdb")
+    with open(pdb, "w") as fh:
+        fh.write(f"REMARK  {pid}: chain {ref} ({state.get(ref, '?')}), with "
+                 f"the tunnels of all three protomers superposed onto it\n")
+        fh.writelines(pdb_lines([a for a in s.protein_atoms
+                                 if a.chain == ref and not a.is_hydrogen]))
+        fh.writelines(pdb_lines([a for a in s.het_atoms
+                                 if a.chain == ref and not a.is_hydrogen
+                                 and a.resname.strip() not in ("HOH", "WAT")],
+                                het=True))
+        fh.write("END\n")
+
+    bild = os.path.join(OUT, f"{pid}_overlay.bild")
+    drawn, fits = [], {}
+    with open(bild, "w") as fh:
+        for ch in sorted(s.chains):
+            mca = s.ca(ch)
+            common = sorted(set(mca) & set(rca))
+            R, t = kabsch(np.array([mca[r] for r in common]),
+                          np.array([rca[r] for r in common]))
+            d = np.linalg.norm(apply_rt(R, t, np.array([mca[r] for r in common]))
+                               - np.array([rca[r] for r in common]), axis=1)
+            fits[ch] = (float(np.sqrt((d ** 2).mean())), len(common))
+            st = state.get(ch, "")
+            base = SCOL.get(st, "#7a8891")
+            for i, r in enumerate(pick(rows, ch)):
+                if r[9].startswith("down"):
+                    continue   # the membrane routes only clutter the overlay
+                k = int(r[3])
+                fh.write(f".comment {ch} [{st}] cluster {k}: {r[9]}\n")
+                fh.write(".color %.3f %.3f %.3f\n"
+                         % tuple(int(base[j:j + 2], 16) / 255
+                                 for j in (1, 3, 5)))
+                P = cluster_spheres(os.path.join(WORK_DIR, "caver_runs",
+                                                 f"{pid}_st{ch}"), k)
+                Q = apply_rt(R, t, np.array([p[:3] for p in P]))
+                for (x, y, z), (_, _, _, rad) in zip(Q, P):
+                    fh.write(f".sphere {x:.3f} {y:.3f} {z:.3f} {rad:.2f}\n")
+                drawn.append((ch, st, k, r[9], base))
+
+    cxc = os.path.join(OUT, f"{pid}_overlay.cxc")
+    with open(cxc, "w") as fh:
+        fh.write(f"# ChimeraX: open this file, keeping it beside\n"
+                 f"#   {os.path.basename(pdb)} and "
+                 f"{os.path.basename(bild)}\n")
+        fh.write(f"open {os.path.basename(pdb)}\n")
+        fh.write("hide atoms\nshow cartoon\ncolor #1 #D6DEE2\n")
+        fh.write("transparency #1 55 target c\n")
+        fh.write(f"open {os.path.basename(bild)}\n")
+        for (ch, st, k, call, col) in drawn:
+            fh.write(f"# chain {ch} [{st}] cluster {k} in {col}\n")
+        fh.write("select ligand\nstyle sel ball\ncolor sel byhetero\n")
+        fh.write("~select\nset bgColor white\nlighting soft\n"
+                 "graphics silhouettes true\nview\n")
+    print(f"\n  overlay on chain {ref}: {os.path.relpath(pdb)}\n"
+          f"         {os.path.relpath(bild)}\n         "
+          f"{os.path.relpath(cxc)}")
+    for ch in sorted(fits):
+        rms, n = fits[ch]
+        print(f"      chain {ch} [{state.get(ch, '?'):9}] onto {ref}: "
+              f"{rms:.2f} A over {n} CA")
+    return drawn
+
+
+def render_overlay(pid, s, drawn, state, axis_c, axis, ref="E"):
+    """The overlay, seen across the membrane normal."""
+    try:
+        import pymol
+        from pymol import cmd
+    except ImportError:
+        return
+    pdb = os.path.join(OUT, f"{pid}_overlay.pdb")
+    bild = os.path.join(OUT, f"{pid}_overlay.bild")
+    pymol.finish_launching(["pymol", "-qc"])
+    cmd.reinitialize()
+    cmd.load(pdb, "protomer")
+    cmd.hide("everything")
+    cmd.show("cartoon", "polymer")
+    cmd.color("grey80", "polymer")
+    cmd.set("cartoon_transparency", 0.72, "polymer")
+
+    # the BILD spheres are already in the reference frame; re-read them
+    col, n = None, 0
+    for ln in open(bild):
+        if ln.startswith(".color"):
+            col = [float(x) for x in ln.split()[1:4]]
+            n += 1
+            cmd.set_color(f"ov{n}", col)
+        elif ln.startswith(".sphere"):
+            x, y, z, r = [float(v) for v in ln.split()[1:5]]
+            cmd.pseudoatom(f"ov{n}", pos=[x, y, z], vdw=r)
+    # the .color blocks were written in the order of `drawn`, so the i-th
+    # sphere set is the i-th tunnel and can be styled by where it exits
+    for i in range(1, n + 1):
+        cmd.color(f"ov{i}", f"ov{i}")
+        cmd.show("spheres", f"ov{i}")
+        call = drawn[i - 1][3] if i - 1 < len(drawn) else "up"
+        cmd.set("sphere_transparency", 0.0 if call.startswith("up") else 0.6,
+                f"ov{i}")
+    lig = "hetatm and not resn HOH"
+    if cmd.count_atoms(lig):
+        cmd.show("sticks", lig)
+        cmd.color("yellow", f"{lig} and elem C")
+    cmd.hide("everything", "hydro")
+    cmd.bg_color("white")
+    cmd.set("ray_opaque_background", 1)
+    cmd.set("ray_shadows", 0)
+    cmd.set("sphere_quality", 3)
+
+    up = np.asarray(axis, float)
+    ce = np.array([v for v in s.ca(ref).values()]).mean(0)
+    back = ce - axis_c
+    back = back - float(np.dot(back, up)) * up
+    back /= float(np.linalg.norm(back))
+    right = np.cross(up, back)
+    cmd.set_view(list(np.array([right, up, back]).T.flatten())
+                 + [0.0, 0.0, -260.0] + list(map(float, ce))
+                 + [120.0, 400.0, -20.0])
+    cmd.zoom("ov* or (%s)" % lig, 12, complete=1)
+    png = os.path.join(OUT, f"{pid}_overlay.png")
+    cmd.png(png, width=2600, height=2200, dpi=300, ray=1)
+    print(f"         {os.path.relpath(png)}")
+
+
 def render_states(pid, s, drawn, state, axis_c, axis):
     """A side-on view with the pseudo-3-fold vertical, so up means up."""
     try:
@@ -362,6 +496,8 @@ def main():
     if rows and len({r[1] for r in rows}) > 1:
         drawn = build_scene(pid, s, rows, state)
         render_states(pid, s, drawn, state, axis_c, axis)
+        over = build_overlay(pid, s, rows, state)
+        render_overlay(pid, s, over, state, axis_c, axis)
 
 
 if __name__ == "__main__":
