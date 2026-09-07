@@ -1,0 +1,24 @@
+# ChimeraX: open this file (File > Open, or
+#   'open MexB_DDM_3_20260730_E_tunnels.cxc' in the command line).
+# Keep it beside MexB_DDM_3_20260730_E_tunnels.pdb and MexB_DDM_3_20260730_E_tunnels.bild.
+open MexB_DDM_3_20260730_E_tunnels.pdb
+hide atoms
+show cartoon
+color #1 #D6DEE2
+color #1/E #6699CC
+transparency #1 60 target c
+transparency #1/E 35 target c
+open MexB_DDM_3_20260730_E_tunnels.bild
+# model #2 sub-model: cluster 1, magenta-ish, r 2.46-4.64 A
+# model #2 sub-model: cluster 2, teal, r 1.82-4.64 A
+# model #2 sub-model: cluster 3, amber, r 1.44-4.65 A
+select ligand
+style sel ball
+color sel byhetero
+~select
+set bgColor white
+lighting soft
+graphics silhouettes true
+view #2
+# the TUN atoms in the PDB carry the same radii in their B-factor column,
+# if you would rather drive them yourself: show #1/TUV atoms

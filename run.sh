@@ -80,6 +80,11 @@ python3 scripts/per_structure_tunnels.py || echo "(skipped)"
 
 python3 scripts/common_exit_tunnels.py || echo "(skipped)"
 
+python3 scripts/ligand_reach.py || echo "(skipped)"
+
+# packs the cached CAVER runs into viewable scenes (PDB + ChimeraX + PyMOL)
+python3 scripts/caver_scene.py || echo "(skipped - no CAVER runs?)"
+
 python3 scripts/regional_rmsd.py || echo "(skipped)"
 
 python3 scripts/helix_displacement.py || echo "(helix step skipped - no PyMOL?)"
