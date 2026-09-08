@@ -80,6 +80,9 @@ python3 scripts/per_structure_tunnels.py || echo "(skipped)"
 
 python3 scripts/common_exit_tunnels.py || echo "(skipped)"
 
+# every MexB protomer of every structure, not just the seven the panels show
+python3 scripts/all_channels.py || echo "(skipped)"
+
 python3 scripts/ligand_reach.py || echo "(skipped)"
 
 python3 scripts/pocket_chemistry.py || echo "(skipped)"

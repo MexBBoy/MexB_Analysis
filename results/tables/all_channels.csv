@@ -1,0 +1,49 @@
+pdb,chain,state,seed_ligand,ligand_to_distal_pocket_A,seed_moved_A,seed_clearance_A,length_A,radius_at_seed_A,route_bottleneck_A,route_bottleneck_depth_A,whole_trace_min_A,rise_along_axis_A,outward_step_A,exit,mouth_frac_PC,mouth_frac_PN,mouth_frac_TM,mouth_frac_docking,trace_file
+Amp_MexB_20260826,D,Binding,,,10.75,3.44,66.95,3.30,1.93,60.50,1.93,-19.68,15.31,CH1 - PC1/PC2 periplasmic cleft,0.89,0.00,0.00,0.11,all_Amp_MexB_20260826_D_tunnel.pdb
+Amp_MexB_20260826,E,Binding,ZZ7,7.09,5.78,3.66,66.86,3.49,2.21,33.80,2.21,-18.48,36.45,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_Amp_MexB_20260826_E_tunnel.pdb
+Amp_MexB_20260826,F,Extrusion,,,9.46,3.70,51.40,3.58,2.41,25.39,2.41,22.54,-11.72,funnel - docking domain,0.00,0.27,0.00,0.73,all_Amp_MexB_20260826_F_tunnel.pdb
+MexB_DDM_3_20260730,D,Access,,,10.71,3.55,70.96,3.76,1.86,52.00,1.86,-21.51,20.37,CH1 - PC1/PC2 periplasmic cleft,0.60,0.00,0.40,0.00,all_MexB_DDM_3_20260730_D_tunnel.pdb
+MexB_DDM_3_20260730,E,Binding,LMT,10.70,6.63,4.65,35.84,4.51,2.43,22.03,2.43,-15.85,16.12,CH1 - PC1/PC2 periplasmic cleft,0.77,0.00,0.23,0.00,all_MexB_DDM_3_20260730_E_tunnel.pdb
+MexB_DDM_3_20260730,F,Extrusion,,,9.74,3.76,35.23,3.92,2.76,25.59,2.76,18.76,-14.47,CH3 - PN1/PN2 groove,0.00,0.73,0.00,0.27,all_MexB_DDM_3_20260730_F_tunnel.pdb
+21FO,A,Access,,,10.90,3.77,81.45,3.93,1.85,76.06,1.85,-19.83,30.20,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_21FO_A_tunnel.pdb
+21FO,B,Binding,CA7,9.18,7.87,4.80,20.71,4.80,2.45,9.56,2.45,-9.91,11.12,CH1 - PC1/PC2 periplasmic cleft,0.88,0.00,0.00,0.12,all_21FO_B_tunnel.pdb
+21FO,C,Extrusion,,,9.66,4.02,65.78,3.73,2.66,58.18,2.66,42.66,-14.26,funnel - docking domain,0.00,0.00,0.00,1.00,all_21FO_C_tunnel.pdb
+21FP,A,Access,,,9.00,3.57,68.12,3.42,1.99,49.91,1.99,-15.79,9.02,CH1 - PC1/PC2 periplasmic cleft (mixed),0.00,0.00,0.00,0.00,all_21FP_A_tunnel.pdb
+21FP,B,Binding,CLM,15.35,2.73,3.43,51.91,3.26,2.65,3.21,2.65,-16.05,15.40,CH1 - PC1/PC2 periplasmic cleft,0.88,0.00,0.00,0.12,all_21FP_B_tunnel.pdb
+21FP,C,Extrusion,,,10.34,3.75,12.79,3.55,2.69,3.92,2.69,7.38,-3.55,CH3 - PN1/PN2 groove,0.36,0.64,0.00,0.00,all_21FP_C_tunnel.pdb
+2V50,A,Access,,,10.31,3.90,53.43,4.04,1.89,38.94,1.89,-34.07,2.12,CH2 - membrane and central cavity,0.25,0.00,0.75,0.00,all_2V50_A_tunnel.pdb
+2V50,B,Binding,LMT,13.16,1.82,3.95,89.96,3.85,2.28,54.46,2.28,-28.17,31.58,CH1 - PC1/PC2 periplasmic cleft,0.50,0.00,0.50,0.00,all_2V50_B_tunnel.pdb
+2V50,C,Extrusion,,,10.25,3.81,53.83,3.79,2.61,38.65,2.61,16.89,-21.07,CH3 - PN1/PN2 groove,0.00,0.56,0.00,0.44,all_2V50_C_tunnel.pdb
+2V50,D,Access,,,10.83,4.03,68.57,3.91,1.90,54.32,1.90,-5.30,28.29,CH3 - PN1/PN2 groove,0.00,1.00,0.00,0.00,all_2V50_D_tunnel.pdb
+2V50,E,Binding,LMT,13.92,2.07,3.97,13.25,3.74,2.61,8.30,2.61,5.09,6.80,CH3 - PN1/PN2 groove,0.33,0.58,0.00,0.08,all_2V50_E_tunnel.pdb
+2V50,F,Extrusion,,,10.16,3.77,27.44,3.75,2.62,16.20,2.62,-8.20,-12.32,CH3 - PN1/PN2 groove,0.00,0.90,0.00,0.10,all_2V50_F_tunnel.pdb
+3W9I,A,Access,,,10.78,3.64,52.31,3.44,1.81,19.77,1.81,29.48,-9.54,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_3W9I_A_tunnel.pdb
+3W9I,B,Binding,LMT,12.80,2.22,4.18,40.36,3.98,3.22,30.31,3.13,10.13,19.87,CH1 - PC1/PC2 periplasmic cleft,0.89,0.00,0.00,0.11,all_3W9I_B_tunnel.pdb
+3W9I,C,Extrusion,,,10.51,3.77,46.58,3.61,2.79,40.36,2.79,-15.55,-19.68,CH3 - PN1/PN2 groove,0.00,0.70,0.00,0.30,all_3W9I_C_tunnel.pdb
+3W9I,D,Access,,,10.78,3.64,86.58,3.42,1.67,67.46,1.67,48.24,1.61,funnel - docking domain,0.00,0.00,0.00,1.00,all_3W9I_D_tunnel.pdb
+3W9I,E,Binding,,,10.75,4.56,30.02,4.63,2.55,16.47,2.55,9.36,19.36,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_3W9I_E_tunnel.pdb
+3W9I,F,Extrusion,,,9.20,3.74,8.60,3.89,3.20,3.44,3.09,2.15,-7.22,CH3 - PN1/PN2 groove,0.36,0.64,0.00,0.00,all_3W9I_F_tunnel.pdb
+3W9J,A,Access,,,10.71,3.49,58.88,3.18,1.70,38.11,1.70,-17.09,-10.91,funnel - docking domain,0.00,0.21,0.00,0.79,all_3W9J_A_tunnel.pdb
+3W9J,B,Binding,P9D,6.55,10.75,3.58,66.61,3.36,2.16,26.04,2.16,14.98,24.13,CH1 - PC1/PC2 periplasmic cleft,0.71,0.00,0.29,0.00,all_3W9J_B_tunnel.pdb
+3W9J,C,Extrusion,,,9.47,3.92,11.59,3.69,3.00,3.99,3.00,-1.91,-9.71,CH3 - PN1/PN2 groove,0.23,0.77,0.00,0.00,all_3W9J_C_tunnel.pdb
+3W9J,D,Access,,,10.78,3.36,69.92,3.03,1.87,63.25,1.87,-9.56,21.93,CH3 - PN1/PN2 groove,0.00,1.00,0.00,0.00,all_3W9J_D_tunnel.pdb
+3W9J,E,Binding,P9D,6.34,8.60,3.76,54.87,3.71,1.93,22.68,1.93,-6.00,27.39,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_3W9J_E_tunnel.pdb
+3W9J,F,Extrusion,,,9.62,4.02,10.21,3.81,2.78,3.05,2.77,2.55,-8.27,CH3 - PN1/PN2 groove,0.33,0.67,0.00,0.00,all_3W9J_F_tunnel.pdb
+6IIA,A,Access,,,10.83,3.65,148.80,3.61,1.70,105.73,1.70,76.25,21.37,CH2 - membrane and central cavity,0.00,0.00,1.00,0.00,all_6IIA_A_tunnel.pdb
+6IIA,B,Binding,AV0,8.95,10.57,4.67,22.80,4.34,2.96,9.61,2.96,0.62,13.46,CH1 - PC1/PC2 periplasmic cleft,0.90,0.00,0.00,0.10,all_6IIA_B_tunnel.pdb
+6IIA,C,Extrusion,,,9.46,3.94,36.45,3.75,2.83,31.71,2.83,-14.74,-15.44,CH3 - PN1/PN2 groove,0.00,0.67,0.00,0.33,all_6IIA_C_tunnel.pdb
+6IIA,D,Access,,,10.78,3.68,92.31,3.76,1.92,85.23,1.92,8.39,4.44,funnel - docking domain,0.40,0.00,0.00,0.60,all_6IIA_D_tunnel.pdb
+6IIA,E,Binding,AV0,8.91,10.62,4.45,20.54,4.47,2.77,7.68,2.77,-1.35,16.18,CH1 - PC1/PC2 periplasmic cleft,0.89,0.00,0.00,0.11,all_6IIA_E_tunnel.pdb
+6IIA,F,Extrusion,,,9.20,4.01,10.06,3.94,2.84,3.10,2.79,2.93,-8.33,CH3 - PN1/PN2 groove,0.33,0.67,0.00,0.00,all_6IIA_F_tunnel.pdb
+6IOK,E,Extrusion,,,10.92,3.78,23.41,3.64,3.00,7.55,3.00,4.73,-11.27,funnel - docking domain,0.00,0.45,0.00,0.55,all_6IOK_E_tunnel.pdb
+6IOK,F,Access,,,8.72,3.48,50.10,3.16,2.22,40.79,2.22,28.37,17.25,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_6IOK_F_tunnel.pdb
+6IOK,G,Access,,,10.80,3.87,79.07,3.84,1.77,55.49,1.77,17.46,17.11,CH2 - membrane and central cavity,0.00,0.40,0.60,0.00,all_6IOK_G_tunnel.pdb
+6IOL,E,Extrusion,,,7.83,3.78,53.89,3.54,2.50,46.69,2.50,15.65,-24.97,funnel - docking domain,0.00,0.40,0.00,0.60,all_6IOL_E_tunnel.pdb
+6IOL,F,Access,,,7.62,3.52,57.75,3.52,1.69,42.61,1.69,30.24,16.61,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_6IOL_F_tunnel.pdb
+6IOL,G,Binding,,,7.34,3.81,68.17,3.57,1.72,36.13,1.72,27.07,13.96,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_6IOL_G_tunnel.pdb
+6T7S,J,Binding,,,7.99,4.21,87.18,4.19,2.00,40.64,2.00,-13.52,-11.58,CH3 - PN1/PN2 groove,0.00,1.00,0.00,0.00,all_6T7S_J_tunnel.pdb
+6T7S,K,Access,,,10.44,3.96,90.92,3.84,1.85,55.33,1.85,55.15,-9.55,funnel - docking domain,0.00,0.00,0.00,1.00,all_6T7S_K_tunnel.pdb
+6T7S,L,Access,,,9.49,4.06,72.27,4.17,1.91,62.86,1.91,39.22,-12.81,funnel - docking domain,0.00,0.00,0.00,1.00,all_6T7S_L_tunnel.pdb
+6TA6,J,Binding,,,10.08,3.99,66.19,3.89,2.05,29.52,2.05,34.42,16.75,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_6TA6_J_tunnel.pdb
+6TA6,K,Extrusion,,,8.90,4.03,133.72,3.96,1.83,90.71,1.83,-3.11,-33.18,funnel - docking domain,0.00,0.00,0.00,1.00,all_6TA6_K_tunnel.pdb
+6TA6,L,Access,,,10.95,4.20,50.34,4.24,1.83,31.89,1.83,29.91,-3.45,CH1 - PC1/PC2 periplasmic cleft,1.00,0.00,0.00,0.00,all_6TA6_L_tunnel.pdb
