@@ -39,6 +39,12 @@ ACCESS, BINDING, EXTRUSION = "#0A9DA0", "#CA0FC1", "#0F9C1B"
 APOLAR, POLAR = "#C68B3C", "#0E9AA0"
 WARN = "#B26A00"
 
+# the two pocket definitions, so the chips can be labelled by residue
+DBP_RES = [136, 139, 178, 277, 279, 327, 573, 610, 612, 615, 617, 626, 628,
+           630]
+PBP_RES = [79, 128, 151, 152, 176, 180, 273, 274, 276, 668, 672, 674, 676,
+           717, 819, 825, 828]
+
 OUT = os.path.join(FIGURES, "poster")
 os.makedirs(OUT, exist_ok=True)
 
@@ -1813,7 +1819,7 @@ def panel_ligand_reach():
 
     y0, htop = 2.05 / H, 2.75 / H
     ax = fig.add_axes([0.225, y0, 0.685, 1.0 - y0 - htop])
-    ax.set_xlim(-1.5, 76); ax.set_ylim(-1.35, n + 0.05)
+    ax.set_xlim(-1.5, 76); ax.set_ylim(-0.75, n + 0.05)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
@@ -1824,7 +1830,7 @@ def panel_ligand_reach():
     tend = float(reach[0].get("trace_end_depth_A") or 0.0)
     if tend:
         ax.axvspan(tend, 76, color="#f4f7f8", zorder=0, linewidth=0)
-        ax.plot([tend, tend], [-1.35, n + 0.05], color="#9fb0b8",
+        ax.plot([tend, tend], [-0.75, n + 0.05], color="#9fb0b8",
                 linestyle=(0, (4, 3)), linewidth=1.6, zorder=2)
         ax.annotate("trace ends", (tend, n - 0.05),
                     xytext=(6, 0), textcoords="offset points", ha="left",
@@ -1864,17 +1870,6 @@ def panel_ligand_reach():
                 textcoords="offset points", ha="left", fontsize=12,
                 color=INK2, annotation_clip=False)
 
-    if prof is not None:
-        dep, rad = prof
-        ax.plot([1.2, 1.2], [-0.95 - KY * 4, -0.95 + KY * 4], color=INK2,
-                linewidth=2.4, solid_capstyle="butt")
-        ax.annotate("8 \u00c5 across", (1.2, -0.95),
-                    textcoords="offset points", xytext=(9, -5), ha="left",
-                    fontsize=12, color=INK2)
-    ax.annotate("Entry cleft", (22.0, -0.95), ha="center", va="center",
-                fontsize=12.5, color=INK2, fontstyle="italic")
-    ax.annotate("Porter pocket", (52.0, -0.95), ha="center", va="center",
-                fontsize=12.5, color=INK2, fontstyle="italic")
     ax.set_xlabel("Depth into the porter domain (\u00c5 from the "
                   "periplasmic entrance)", labelpad=10)
     ax.xaxis.label.set_size(16)
@@ -1913,6 +1908,172 @@ def panel_ligand_reach():
     save(fig, "P16_ligand_reach")
 
 
+# ------------------------------------------------------------------ P17
+def panel_pocket_chemistry():
+    """What the two pockets are made of, distal against proximal."""
+    chem = R("pocket_chemistry.csv")
+    env = R("ligand_environment.csv")
+    if not chem:
+        return
+    # one representative row per pocket: the sequence is identical in every
+    # MexB protomer, so any complete one carries the composition
+    rep = {}
+    for r in chem:
+        pk = r["pocket"]
+        if pk not in rep or int(r["residues_present"]) > \
+                int(rep[pk]["residues_present"]):
+            rep[pk] = r
+    if len(rep) < 2:
+        return
+    POCK = [("distal", "Distal pocket", APOLAR),
+            ("proximal", "Proximal pocket", POLAR)]
+
+    def spread(pk, col):
+        v = [float(r[col]) for r in chem if r["pocket"] == pk and r[col]]
+        return float(np.mean(v)), float(np.std(v, ddof=1)) if len(v) > 1 else 0.0
+
+    AROM, ALIPH = set("FWY"), set("AVLIMPG")
+    PLR, CHG = set("STNQCH"), set("DEKR")
+    CLS = [("aromatic", "#8A5A12"), ("aliphatic", "#D9A85F"),
+           ("polar", "#0E9AA0"), ("charged", "#3B6FD4")]
+
+    def cls_of(c):
+        return ("aromatic" if c in AROM else "aliphatic" if c in ALIPH
+                else "polar" if c in PLR else "charged" if c in CHG
+                else "other")
+
+    # residue numbers, in the order the sequence column was built
+    NUM = {"distal": DBP_RES, "proximal": PBP_RES}
+
+    fig = plt.figure(figsize=(11.8, 8.6))
+    H = 8.6
+    title(fig, "Two pockets, two chemistries",
+          "Every MexB protomer agrees: the distal pocket is an aromatic "
+          "cage, the proximal one is polar and charged.")
+    d_lip = spread("distal", "apolar_sidechain_atoms_pct")
+    p_lip = spread("proximal", "apolar_sidechain_atoms_pct")
+    n_prot = len({(r["pdb"], r["chain"]) for r in chem})
+    callout(fig, 0.055, 1.0 - 0.95 / H,
+            f"{int(rep['distal']['aromatic'])} vs "
+            f"{int(rep['proximal']['aromatic'])}",
+            "aromatic residues, distal against\nproximal", APOLAR, size=36)
+    callout(fig, 0.545, 1.0 - 0.95 / H,
+            f"{d_lip[0]:.0f}% vs {p_lip[0]:.0f}%",
+            "of side-chain atoms apolar, over\n"
+            f"{n_prot} protomers of 12 structures", POLAR, size=36)
+
+    # ---- the residues themselves, one chip each
+    ax = fig.add_axes([0.135, 0.575, 0.815, 0.110])
+    ax.set_xlim(-0.6, max(len(rep[k]["sequence"]) for k, _, _ in POCK) - 0.4)
+    ax.set_ylim(-0.55, 1.55)
+    ax.axis("off")
+    for i, (key, label, col) in enumerate(POCK):
+        y = 1.0 - i
+        seq = rep[key]["sequence"]
+        nums = NUM[key]
+        ax.annotate(label, (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-12, -5), textcoords="offset points", ha="right",
+                    fontsize=14, color=col, fontweight="bold")
+        for j, c in enumerate(seq):
+            cl = cls_of(c)
+            fc = dict(CLS).get(cl, "#b9c3c8")
+            ax.add_patch(plt.Rectangle((j - 0.42, y - 0.30), 0.84, 0.60,
+                                       facecolor=fc, edgecolor="white",
+                                       linewidth=1.4, zorder=2))
+            ax.text(j, y, f"{c}{nums[j]}" if j < len(nums) else c,
+                    ha="center", va="center", fontsize=10.5, color="white",
+                    fontweight="bold", zorder=3)
+
+    handles = [plt.Line2D([], [], marker="s", linestyle="", markersize=13,
+                          markerfacecolor=c, markeredgecolor="white",
+                          label=n) for n, c in CLS]
+    fig.legend(handles=handles, loc="upper center", ncol=4,
+               bbox_to_anchor=(0.56, 1.0 - 2.00 / H), fontsize=13.5,
+               handletextpad=0.4, columnspacing=1.8)
+
+    # ---- composition, hydropathy, apolar fraction
+    def bars(rect, values, xlabel, xlim=None, fmt_="{:.0f}", zero=False):
+        a = fig.add_axes(rect)
+        for i, (key, label, col) in enumerate(POCK):
+            y = 1 - i
+            v = values[key]
+            a.barh([y], [v], height=0.55, color=col, zorder=3)
+            off = 6 if v >= 0 else -6
+            a.annotate(fmt_.format(v), (v, y), xytext=(off, -5),
+                       textcoords="offset points", fontsize=13,
+                       ha="left" if v >= 0 else "right", color=col,
+                       fontweight="bold")
+        a.set_ylim(-0.65, 1.65); a.set_yticks([])
+        if xlim:
+            a.set_xlim(*xlim)
+        if zero:
+            a.axvline(0, color=INK2, linewidth=1.2, zorder=4)
+        a.grid(axis="y", visible=False); a.set_axisbelow(True)
+        a.spines["left"].set_visible(False)
+        a.set_xlabel(xlabel, labelpad=8, fontsize=13.5)
+        return a
+
+    bars([0.135, 0.435, 0.205, 0.105],
+         {k: int(rep[k]["aromatic"]) for k, _, _ in POCK},
+         "Aromatic residues", xlim=(0, 9.5))
+    bars([0.415, 0.435, 0.205, 0.105],
+         {k: int(rep[k]["polar"]) + int(rep[k]["charged"]) for k, _, _ in POCK},
+         "Polar and charged residues", xlim=(0, 13))
+    bars([0.695, 0.435, 0.255, 0.105],
+         {k: spread(k, "mean_kyte_doolittle")[0] for k, _, _ in POCK},
+         "Kyte\u2013Doolittle mean", xlim=(-3.2, 3.4), fmt_="{:+.2f}",
+         zero=True)
+
+    # apolar fraction, with what the ligands actually touch on the same axis
+    a = fig.add_axes([0.135, 0.215, 0.815, 0.095])
+    SITE = {"distal": "DBP", "proximal": "PBP"}
+    for i, (key, label, col) in enumerate(POCK):
+        y = 1 - i
+        m, sd = spread(key, "apolar_sidechain_atoms_pct")
+        a.barh([y], [m], height=0.55, color=col, zorder=3)
+        # inside the bar: the diamond marking the ligand contacts can land
+        # right where a label outside the bar would sit
+        a.annotate(f"{m:.1f}%", (0.0, y), xytext=(9, -5),
+                   textcoords="offset points", fontsize=13, ha="left",
+                   color="white", fontweight="bold", zorder=6)
+        got = [float(r["percent_apolar"]) for r in (env or [])
+               if r.get("site") == SITE[key] and r.get("percent_apolar")]
+        if got:
+            a.scatter([float(np.mean(got))], [y], s=190, marker="D",
+                      facecolor="white", edgecolor=col, linewidth=2.6,
+                      zorder=5)
+            a.annotate(f"{np.mean(got):.0f}% of the ligand contacts",
+                       (float(np.mean(got)), y), xytext=(0, 16),
+                       textcoords="offset points", ha="center", fontsize=11.5,
+                       color=col)
+    a.set_ylim(-0.65, 1.75); a.set_yticks([]); a.set_xlim(0, 105)
+    a.grid(axis="y", visible=False); a.set_axisbelow(True)
+    a.spines["left"].set_visible(False)
+    a.set_xlabel("Apolar side-chain atoms (%)", labelpad=8, fontsize=13.5)
+    for i, (key, label, col) in enumerate(POCK):
+        a.annotate(label, (0, 1 - i), xycoords=("axes fraction", "data"),
+                   xytext=(-12, -5), textcoords="offset points", ha="right",
+                   fontsize=13, color=col)
+
+    fig.text(0.055, 0.135,
+             "Composition and Kyte\u2013Doolittle come from the residues "
+             "themselves; the apolar fraction is measured on the structures, "
+             "as the share of\nside-chain heavy atoms that are carbon or "
+             "sulphur \u2014 what a substrate's van der Waals surface "
+             f"actually meets. All three agree across {n_prot} MexB "
+             "protomers from\n12 structures, and the sequence is identical "
+             "in every one, so this is a property of MexB rather than of any "
+             "model. The diamonds are an\nindependent check: the apolar "
+             "share of the contacts the bound ligands make at 4.5 \u00c5 in "
+             "each site. Chains count only where their residues\nmatch the "
+             "MexB reference at these positions, which excludes the MexA and "
+             "OprM chains of the complexes and the MexBYB chimera "
+             "(22XK,\n22XM), whose pocket region is not MexB's. "
+             "Per-protomer numbers in pocket_chemistry.csv.",
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P17_pocket_chemistry")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -1931,6 +2092,7 @@ def main():
     panel_caver()
     panel_common_exit()
     panel_ligand_reach()
+    panel_pocket_chemistry()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
