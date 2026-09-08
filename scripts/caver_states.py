@@ -20,16 +20,19 @@ import os
 import sys
 
 import numpy as np
+from scipy.spatial import cKDTree
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import run_caver as rc
 import tunnels as T
-from caver_scene import cluster_spheres
+from all_channels import exit_call
+from per_structure_tunnels import read_trace
 from caver_tunnels import PROBE, SHELL_D, SHELL_R, reuse
 from per_structure_tunnels import rows_of
 from published_pockets import PDBDIR, load_channel, pocket_ligands
-from mexb_common import (DBP, PBP, STRUCT_DIR, TABLES, WORK_DIR, Structure,
-                         apply_rt, centroid, coords, fmt, kabsch, write_csv)
+from mexb_common import (CXDIR, DBP, PBP, STRUCT_DIR, TABLES, WORK_DIR,
+                         Structure, apply_rt, centroid, coords, fmt, kabsch,
+                         write_csv)
 
 DEFAULT = "MexB_DDM_3_20260730"
 OUT = os.path.join(os.path.dirname(TABLES), "structures")
@@ -91,30 +94,41 @@ def free_point(cf, p, reach=11.0, step=0.8, floor=1.4):
     return p + off[k], float(r[k]), float(np.linalg.norm(off[k]))
 
 
-def exit_call(dh, dr):
-    """Where a tunnel comes out, from its rise and its outward step."""
-    if dh > UP:
-        return "up - funnel and docking domain"
-    if dh < -UP:
-        return "down - towards the membrane"
-    return "out - periplasmic cleft"
-
-
 def pick(rows, ch):
     """The tunnels worth drawing for one protomer.
 
     The best-ranked route out of a pocket usually leaves through the nearest
     opening, which for a porter-domain pocket is the periplasmic cleft it came
     in by - that is a real route, not an artefact, but on its own it hides the
-    one that matters. So keep the best of each exit direction rather than the
-    top of the ranking.
+    one that matters. So keep the best of each exit rather than the top of the
+    ranking, with the funnel first so it is the one drawn solid.
     """
     mine = [r for r in rows if r[1] == ch]
     out = []
-    for kind in ("up", "out", "down"):
+    for kind in ("funnel", "CH3", "CH1", "CH2"):
         got = [r for r in mine if r[9].startswith(kind)]
         if got:
             out.append(min(got, key=lambda r: int(r[3])))
+    return out
+
+
+def full_routes(pid, ch):
+    """[(exit, points, radii)] from all_channels, for one protomer.
+
+    CAVER's clusters here are 10-35 A stubs that stop well inside the
+    protein, so there is no exit for them to be named by - the lining of
+    their last 12 A is still pocket, which is why every one came back "CH3".
+    The scenes therefore draw the full traces, which run from the pocket to
+    bulk solvent and do have an exit to name.
+    """
+    out = []
+    for r in rows_of(os.path.join(TABLES, "all_channels.csv")):
+        if r["pdb"] != pid or r["chain"] != ch:
+            continue
+        f = os.path.join(CXDIR, r["trace_file"])
+        if os.path.exists(f):
+            P, rad = read_trace(f)
+            out.append((r["exit"], P, rad))
     return out
 
 
@@ -144,19 +158,14 @@ def build_scene(pid, s, rows, state):
         for ch in chains:
             st = state.get(ch, "")
             base = SCOL.get(st, "#7a8891")
-            for i, r in enumerate(pick(rows, ch)):
-                k = int(r[3])
-                col = shade(base, 0.0 if i == 0 else 0.35 + 0.2 * i)
-                fh.write(f".comment {ch} [{st}] cluster {k}: {r[9]}\n")
+            for (call, P, rad) in full_routes(pid, ch):
+                fh.write(f".comment {ch} [{st}]: {call}\n")
                 fh.write(".color %.3f %.3f %.3f\n"
-                         % tuple(int(col[j:j + 2], 16) / 255
+                         % tuple(int(base[j:j + 2], 16) / 255
                                  for j in (1, 3, 5)))
-                for (x, y, z, rad) in cluster_spheres(
-                        os.path.join(WORK_DIR, "caver_runs",
-                                     f"{pid}_st{ch}"),
-                        k):
-                    fh.write(f".sphere {x:.3f} {y:.3f} {z:.3f} {rad:.2f}\n")
-                drawn.append((ch, st, k, r[9], col))
+                for (x, y, z), r in zip(P, rad):
+                    fh.write(f".sphere {x:.3f} {y:.3f} {z:.3f} {r:.2f}\n")
+                drawn.append((ch, st, call, base))
 
     cxc = os.path.join(OUT, f"{pid}_states.cxc")
     with open(cxc, "w") as fh:
@@ -170,15 +179,15 @@ def build_scene(pid, s, rows, state):
                      f"   # {state.get(ch, '?')}\n")
         fh.write("transparency #1 70 target c\n")
         fh.write(f"open {os.path.basename(bild)}\n")
-        for (ch, st, k, call, col) in drawn:
-            fh.write(f"# chain {ch} [{st}] cluster {k}: {call}\n")
+        for (ch, st, call, col) in drawn:
+            fh.write(f"# chain {ch} [{st}]: {call}\n")
         fh.write("select ligand\nstyle sel ball\ncolor sel byhetero\n")
         fh.write("~select\nset bgColor white\nlighting soft\n"
                  "graphics silhouettes true\nview\n")
     print(f"\n  scene: {os.path.relpath(pdb)}\n         "
           f"{os.path.relpath(bild)}\n         {os.path.relpath(cxc)}")
-    for (ch, st, k, call, col) in drawn:
-        print(f"      {ch} [{st:9}] cluster {k}: {call}")
+    for (ch, st, call, col) in drawn:
+        print(f"      {ch} [{st:9}] {call}")
     return drawn
 
 
@@ -237,20 +246,14 @@ def build_overlay(pid, s, rows, state, ref="E"):
             fits[ch] = (float(np.sqrt((d ** 2).mean())), len(common))
             st = state.get(ch, "")
             base = SCOL.get(st, "#7a8891")
-            for i, r in enumerate(pick(rows, ch)):
-                if r[9].startswith("down"):
-                    continue   # the membrane routes only clutter the overlay
-                k = int(r[3])
-                fh.write(f".comment {ch} [{st}] cluster {k}: {r[9]}\n")
+            for (call, P, rad) in full_routes(pid, ch):
+                fh.write(f".comment {ch} [{st}]: {call}\n")
                 fh.write(".color %.3f %.3f %.3f\n"
                          % tuple(int(base[j:j + 2], 16) / 255
                                  for j in (1, 3, 5)))
-                P = cluster_spheres(os.path.join(WORK_DIR, "caver_runs",
-                                                 f"{pid}_st{ch}"), k)
-                Q = apply_rt(R, t, np.array([p[:3] for p in P]))
-                for (x, y, z), (_, _, _, rad) in zip(Q, P):
-                    fh.write(f".sphere {x:.3f} {y:.3f} {z:.3f} {rad:.2f}\n")
-                drawn.append((ch, st, k, r[9], base))
+                for (x, y, z), r in zip(apply_rt(R, t, P), rad):
+                    fh.write(f".sphere {x:.3f} {y:.3f} {z:.3f} {r:.2f}\n")
+                drawn.append((ch, st, call, base))
 
     cxc = os.path.join(OUT, f"{pid}_overlay.cxc")
     with open(cxc, "w") as fh:
@@ -261,8 +264,8 @@ def build_overlay(pid, s, rows, state, ref="E"):
         fh.write("hide atoms\nshow cartoon\ncolor #1 #D6DEE2\n")
         fh.write("transparency #1 55 target c\n")
         fh.write(f"open {os.path.basename(bild)}\n")
-        for (ch, st, k, call, col) in drawn:
-            fh.write(f"# chain {ch} [{st}] cluster {k} in {col}\n")
+        for (ch, st, call, col) in drawn:
+            fh.write(f"# chain {ch} [{st}]: {call}\n")
         fh.write("select ligand\nstyle sel ball\ncolor sel byhetero\n")
         fh.write("~select\nset bgColor white\nlighting soft\n"
                  "graphics silhouettes true\nview\n")
@@ -308,9 +311,9 @@ def render_overlay(pid, s, drawn, state, axis_c, axis, ref="E"):
     for i in range(1, n + 1):
         cmd.color(f"ov{i}", f"ov{i}")
         cmd.show("spheres", f"ov{i}")
-        call = drawn[i - 1][3] if i - 1 < len(drawn) else "up"
-        cmd.set("sphere_transparency", 0.0 if call.startswith("up") else 0.6,
-                f"ov{i}")
+        call = drawn[i - 1][3] if i - 1 < len(drawn) else "funnel"
+        cmd.set("sphere_transparency",
+                0.0 if call.startswith("funnel") else 0.6, f"ov{i}")
     lig = "hetatm and not resn HOH"
     if cmd.count_atoms(lig):
         cmd.show("sticks", lig)
@@ -357,20 +360,16 @@ def render_states(pid, s, drawn, state, axis_c, axis):
         cmd.color(f"st{ch}", f"polymer and chain {ch}")
     cmd.set("cartoon_transparency", 0.80, "polymer")
 
-    for (ch, st, k, call, col) in drawn:
-        sel = f"tun{ch}{k}"
-        for (x, y, z, rad) in cluster_spheres(
-                os.path.join(WORK_DIR, "caver_runs", f"{pid}_st{ch}"), k):
-            cmd.pseudoatom(sel, pos=[float(x), float(y), float(z)],
-                           vdw=float(rad))
-        cmd.set_color(f"c{ch}{k}", [int(col[j:j + 2], 16) / 255
-                                    for j in (1, 3, 5)])
-        cmd.color(f"c{ch}{k}", sel)
+    for (ch, st, call, col) in drawn:
+        sel = f"tun{ch}"
+        for (_, P, rad) in full_routes(pid, ch):
+            for (x, y, z), r in zip(P, rad):
+                cmd.pseudoatom(sel, pos=[float(x), float(y), float(z)],
+                               vdw=float(r))
+        cmd.set_color(f"c{ch}", [int(col[j:j + 2], 16) / 255
+                                 for j in (1, 3, 5)])
+        cmd.color(f"c{ch}", sel)
         cmd.show("spheres", sel)
-        # the route up the funnel is the one the mechanism is about; the
-        # others are drawn faint so they read as context
-        cmd.set("sphere_transparency", 0.0 if call.startswith("up") else 0.55,
-                sel)
     lig = "hetatm and not resn HOH"
     if cmd.count_atoms(lig):
         cmd.show("sticks", lig)
@@ -462,8 +461,7 @@ def main():
             print("    no clusters written")
             continue
         hs = float(np.dot(seed - axis_c, axis))
-        rs = float(np.linalg.norm((seed - axis_c)
-                                  - hs * axis))
+        rs = float(np.linalg.norm((seed - axis_c) - hs * axis))
         for k in range(1, N_CLUSTERS + 1):
             pts = []
             for f in sorted(os.listdir(d)):
@@ -481,7 +479,17 @@ def main():
             arc = float(np.linalg.norm(np.diff(P, axis=0), axis=1).sum())
             h = float(np.dot(P[-1] - axis_c, axis))
             r = float(np.linalg.norm((P[-1] - axis_c) - h * axis))
-            call = exit_call(h - hs, r - rs)
+            # An exit can only be named for a route that reaches one. Most
+            # of these clusters stop well inside the protein, and the lining
+            # of their last 12 A is still pocket - which is why naming them
+            # by lining returned "CH3" for every one. Enclosure at the end
+            # (protein heavy atoms within 12 A, calibrated in
+            # common_exit_tunnels) says which have emerged.
+            enc = len(cKDTree(coords([a for a in atoms
+                                      if not a.is_hydrogen])
+                              ).query_ball_point(P[-1], 12.0))
+            call = (exit_call(atoms, P, rad)[0] if enc <= 203
+                    else f"stops inside - {enc} atoms within 12 A of its end")
             rows.append([pid, ch, state.get(ch, ""), k, len(P), fmt(arc),
                          fmt(rad.min()), fmt(h - hs), fmt(r - rs), call, how])
             print(f"    cluster {k}: {arc:5.1f} A long, bottleneck "

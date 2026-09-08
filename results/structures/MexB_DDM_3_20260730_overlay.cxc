@@ -6,12 +6,9 @@ show cartoon
 color #1 #D6DEE2
 transparency #1 55 target c
 open MexB_DDM_3_20260730_overlay.bild
-# chain D [Access] cluster 1 in #0A9DA0
-# chain D [Access] cluster 4 in #0A9DA0
-# chain E [Binding] cluster 5 in #CA0FC1
-# chain E [Binding] cluster 1 in #CA0FC1
-# chain F [Extrusion] cluster 3 in #0F9C1B
-# chain F [Extrusion] cluster 1 in #0F9C1B
+# chain D [Access]: CH1 - PC1/PC2 periplasmic cleft
+# chain E [Binding]: CH1 - PC1/PC2 periplasmic cleft
+# chain F [Extrusion]: CH3 - PN1/PN2 groove
 select ligand
 style sel ball
 color sel byhetero

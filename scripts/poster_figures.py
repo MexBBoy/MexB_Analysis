@@ -2068,6 +2068,141 @@ def panel_pocket_chemistry():
     save(fig, "P17_pocket_chemistry")
 
 
+# ------------------------------------------------------------------ P18
+def panel_state_channels():
+    """Every protomer's route out, by conformational state."""
+    ch = R("all_channels.csv")
+    if not ch:
+        return
+    ST = [("Access", ACCESS), ("Binding", BINDING), ("Extrusion", EXTRUSION)]
+    KIND = [("CH1", "CH1 \u2014 periplasmic cleft", "#C68B3C"),
+            ("CH2", "CH2 \u2014 membrane", "#8A5A12"),
+            ("CH3", "CH3 \u2014 PN1/PN2 groove", "#0E9AA0"),
+            ("funnel", "funnel \u2014 docking domain", "#104862")]
+    rows = [r for r in ch if r["state"] in dict(ST)
+            and r["route_bottleneck_A"]]
+    if len(rows) < 12:
+        return
+    neck = {st: [float(r["route_bottleneck_A"]) for r in rows
+                 if r["state"] == st] for st, _ in ST}
+    n_prot, n_struct = len(rows), len({r["pdb"] for r in rows})
+
+    # the same trend within one structure, which is the stronger claim
+    per = {}
+    for r in rows:
+        per.setdefault(r["pdb"], {}).setdefault(r["state"], []).append(
+            float(r["route_bottleneck_A"]))
+    full = {p: {st: float(np.mean(v[st])) for st, _ in ST}
+            for p, v in per.items() if all(st in v for st, _ in ST)}
+    mono = sum(1 for v in full.values()
+               if v["Access"] < v["Binding"] < v["Extrusion"])
+
+    fig = plt.figure(figsize=(11.6, 8.0))
+    H = 8.0
+    title(fig, "The route opens as the protomer turns",
+          f"Every MexB protomer of every structure in hand: {n_prot} "
+          f"protomers, {n_struct} structures, one widest route each.")
+    callout(fig, 0.055, 1.0 - 0.95 / H,
+            f"{np.mean(neck['Access']):.2f} \u2192 "
+            f"{np.mean(neck['Extrusion']):.2f} \u00c5",
+            "bottleneck, access to extrusion,\nand monotone in "
+            f"{mono} of {len(full)} structures", TEAL, size=34)
+    n_cleft = sum(1 for r in rows if r["state"] == "Binding"
+                  and r["exit"].startswith("CH1"))
+    n_bind = sum(1 for r in rows if r["state"] == "Binding")
+    n_ext_cleft = sum(1 for r in rows if r["state"] == "Extrusion"
+                      and r["exit"].startswith("CH1"))
+    n_ext = sum(1 for r in rows if r["state"] == "Extrusion")
+    callout(fig, 0.545, 1.0 - 0.95 / H, f"{n_cleft} of {n_bind}",
+            "binding protomers open to the cleft,\nagainst "
+            f"{n_ext_cleft} of {n_ext} extrusion protomers", APOLAR, size=34)
+
+    # ---- bottleneck by state
+    ax = fig.add_axes([0.105, 0.335, 0.42, 0.335])
+    rng = np.random.default_rng(3)
+    for i, (st, col) in enumerate(ST):
+        v = np.array(neck[st])
+        ax.scatter(i + rng.uniform(-0.16, 0.16, len(v)), v, s=95, color=col,
+                   alpha=.55, edgecolor="white", linewidth=1.1, zorder=3)
+        m, sd = float(v.mean()), float(v.std(ddof=1))
+        ax.plot([i - 0.30, i + 0.30], [m, m], color=col, linewidth=3.4,
+                zorder=5, solid_capstyle="round")
+        ax.annotate(f"{m:.2f}", (i, m), xytext=(0, 12),
+                    textcoords="offset points", ha="center", fontsize=13.5,
+                    color=col, fontweight="bold")
+        ax.annotate(f"n = {len(v)}", (i, 0), xycoords=("data",
+                                                       "axes fraction"),
+                    xytext=(0, -34), textcoords="offset points",
+                    ha="center", fontsize=12, color=INK2,
+                    annotation_clip=False)
+    for p, v in full.items():                    # paired, within a structure
+        ax.plot(range(3), [v[st] for st, _ in ST], color="#9fb0b8",
+                linewidth=1.1, zorder=2, alpha=.9)
+    ax.set_xticks(range(3)); ax.set_xticklabels([st for st, _ in ST],
+                                                fontsize=14)
+    for t, (st, col) in zip(ax.get_xticklabels(), ST):
+        t.set_color(col)
+    ax.set_xlim(-0.55, 2.55)
+    ax.set_ylabel("Route bottleneck (\u00c5)", labelpad=8, fontsize=14.5)
+    ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+
+    # ---- where those routes come out
+    ax2 = fig.add_axes([0.635, 0.335, 0.315, 0.335])
+    for i, (st, col) in enumerate(ST):
+        mine = [r for r in rows if r["state"] == st]
+        left = 0.0
+        for key, label, kc in KIND:
+            f = 100.0 * sum(1 for r in mine
+                            if r["exit"].startswith(key)) / len(mine)
+            if f <= 0:
+                continue
+            ax2.barh([2 - i], [f], left=left, height=0.58, color=kc,
+                     zorder=3, edgecolor="white", linewidth=1.4)
+            if f >= 12:
+                ax2.annotate(f"{f:.0f}%", (left + f / 2, 2 - i),
+                             xytext=(0, -5), textcoords="offset points",
+                             ha="center", fontsize=12, color="white",
+                             fontweight="bold", zorder=5)
+            left += f
+        ax2.annotate(st, (0, 2 - i), xycoords=("axes fraction", "data"),
+                     xytext=(-10, -5), textcoords="offset points",
+                     ha="right", fontsize=13.5, color=col)
+    ax2.set_yticks([]); ax2.set_ylim(-0.6, 2.6); ax2.set_xlim(0, 100)
+    ax2.grid(axis="y", visible=False); ax2.set_axisbelow(True)
+    ax2.spines["left"].set_visible(False)
+    ax2.set_xlabel("Where the route comes out (%)", labelpad=8,
+                   fontsize=14.5)
+    handles = [plt.Line2D([], [], marker="s", linestyle="", markersize=13,
+                          markerfacecolor=kc, markeredgecolor="white",
+                          label=label) for _, label, kc in KIND]
+    fig.legend(handles=handles, loc="upper center", ncol=2,
+               bbox_to_anchor=(0.79, 0.255), fontsize=12.5,
+               handletextpad=0.4, columnspacing=1.6)
+
+    fig.text(0.055, 0.160,
+             "One widest ligand-free route per protomer, from a seed in its "
+             "own pocket to bulk solvent, by the same max-min search used "
+             "throughout. Empty\nprotomers are seeded on the transferred "
+             "DBP/PBP midpoint, nudged to open space where a closed pocket "
+             "leaves none. The bottleneck is the\nnarrowest point on the "
+             "route with the terminal 3 \u00c5 at each end trimmed. Its "
+             "widening across the cycle is significant "
+             "(Kruskal\u2013Wallis p = 8\u00d710\u207b\u2077; every "
+             "pair\nseparately, p \u2264 0.014), and the grey lines are "
+             f"the stronger form of it: the same order holds within {mono} "
+             f"of the {len(full)} structures that contain all\nthree "
+             "states. Exits are named by the subdomain lining the last 12 "
+             "\u00c5 of the route, not by which way it points \u2014 the "
+             "cleft mouth sits about 18 \u00c5\nbelow the pocket, so an "
+             "axial test calls a route out of the cleft downwards. No "
+             "extrusion protomer opens to the cleft and no binding protomer "
+             "opens\nto the funnel, which is the functional rotation "
+             "measured rather than assumed. Per-protomer rows, with traces, "
+             "in all_channels.csv.",
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P18_state_channels")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -2087,6 +2222,7 @@ def main():
     panel_common_exit()
     panel_ligand_reach()
     panel_pocket_chemistry()
+    panel_state_channels()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
