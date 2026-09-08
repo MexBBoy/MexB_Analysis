@@ -1862,6 +1862,11 @@ def panel_ligand_reach():
     ax.set_xlabel("Depth into the porter domain (\u00c5 from the "
                   "periplasmic entrance)", labelpad=10)
     ax.xaxis.label.set_size(16)
+    # black axis, rather than the panel set's grey
+    for sp in ax.spines.values():
+        sp.set_color("black")
+    ax.tick_params(axis="both", colors="black", labelcolor="black")
+    ax.xaxis.label.set_color("black")
 
     fig.text(0.045, 0.105,
              "Every ligand is projected atom by atom onto one channel "
