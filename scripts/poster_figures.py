@@ -1158,7 +1158,7 @@ def panel_mexb_rows():
     y0, htop = 1.80 / H, 3.95 / H
     ax = fig.add_axes([0.245, y0, 0.660, 1.0 - y0 - htop])
     XMAX = 76.0
-    ax.set_xlim(-1.5, XMAX); ax.set_ylim(-1.85, n + 0.10)
+    ax.set_xlim(-1.5, XMAX); ax.set_ylim(-1.05, n + 0.10)
     ax.set_xticks(list(range(0, 80, 10)))
     ax.annotate("Bottleneck", (1.0, n - 0.35),
                 xycoords=("axes fraction", "data"), xytext=(8, -4),
@@ -1283,17 +1283,6 @@ def panel_mexb_rows():
                 xytext=(0, 68), textcoords="offset points", ha="center",
                 fontsize=14, color=INK2, annotation_clip=False)
 
-    if rad is not None:
-        ax.plot([1.2, 1.2], [-1.42 - KY * 4, -1.42 + KY * 4], color=INK2,
-                linewidth=2.4, solid_capstyle="butt")
-        ax.annotate("8 \u00c5 across", (1.2, -1.42),
-                    textcoords="offset points", xytext=(9, -5), ha="left",
-                    fontsize=12, color=INK2)
-
-    ax.annotate("Entry cleft", (22.0, -1.42), ha="center", va="center",
-                fontsize=12.5, color=INK2, fontstyle="italic")
-    ax.annotate("Porter pocket", (55.0, -1.42), ha="center", va="center",
-                fontsize=12.5, color=INK2, fontstyle="italic")
 
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=11,
                           markerfacecolor=SITECOL[q], markeredgecolor="white",
