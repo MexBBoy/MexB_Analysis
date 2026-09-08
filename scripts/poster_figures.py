@@ -2070,7 +2070,7 @@ def panel_pocket_chemistry():
 
 # ------------------------------------------------------------------ P18
 def panel_state_channels():
-    """Every protomer's route out, by conformational state."""
+    """Every protomer's route out, by conformational state, one row each."""
     ch = R("all_channels.csv")
     if not ch:
         return
@@ -2079,75 +2079,97 @@ def panel_state_channels():
             ("CH2", "CH2 \u2014 membrane", "#8A5A12"),
             ("CH3", "CH3 \u2014 PN1/PN2 groove", "#0E9AA0"),
             ("funnel", "funnel \u2014 docking domain", "#104862")]
+    NAME = {"Amp_MexB_20260826": "Ampicillin (this work)",
+            "MexB_DDM_3_20260730": "DDM \u00d73 (this work)"}
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
     rows = [r for r in ch if r["state"] in dict(ST)
             and r["route_bottleneck_A"]]
     if len(rows) < 12:
         return
+    n_prot, n_struct = len(rows), len({r["pdb"] for r in rows})
     neck = {st: [float(r["route_bottleneck_A"]) for r in rows
                  if r["state"] == st] for st, _ in ST}
-    n_prot, n_struct = len(rows), len({r["pdb"] for r in rows})
 
-    # the same trend within one structure, which is the stronger claim
     per = {}
     for r in rows:
         per.setdefault(r["pdb"], {}).setdefault(r["state"], []).append(
             float(r["route_bottleneck_A"]))
-    full = {p: {st: float(np.mean(v[st])) for st, _ in ST}
-            for p, v in per.items() if all(st in v for st, _ in ST)}
-    mono = sum(1 for v in full.values()
-               if v["Access"] < v["Binding"] < v["Extrusion"])
+    per = {p: {st: float(np.mean(v)) for st, v in d.items()}
+           for p, d in per.items()}
+    full = [p for p, d in per.items() if len(d) == 3]
+    mono = sum(1 for p in full
+               if per[p]["Access"] < per[p]["Binding"] < per[p]["Extrusion"])
+    # ours first, then widest opening first
+    order = sorted(per, key=lambda p: (
+        p not in OURS, -(max(per[p].values()) - min(per[p].values()))))
+    n = len(order)
 
-    fig = plt.figure(figsize=(11.6, 8.0))
-    H = 8.0
+    H = 7.0 + 0.46 * n
+    fig = plt.figure(figsize=(11.4, H))
     title(fig, "The route opens as the protomer turns",
           f"Every MexB protomer of every structure in hand: {n_prot} "
           f"protomers, {n_struct} structures, one widest route each.")
-    callout(fig, 0.055, 1.0 - 0.95 / H,
+    callout(fig, 0.055, 1.0 - 1.55 / H,
             f"{np.mean(neck['Access']):.2f} \u2192 "
             f"{np.mean(neck['Extrusion']):.2f} \u00c5",
-            "bottleneck, access to extrusion,\nand monotone in "
+            "bottleneck, access to extrusion,\nand in that order within "
             f"{mono} of {len(full)} structures", TEAL, size=34)
     n_cleft = sum(1 for r in rows if r["state"] == "Binding"
                   and r["exit"].startswith("CH1"))
     n_bind = sum(1 for r in rows if r["state"] == "Binding")
-    n_ext_cleft = sum(1 for r in rows if r["state"] == "Extrusion"
-                      and r["exit"].startswith("CH1"))
     n_ext = sum(1 for r in rows if r["state"] == "Extrusion")
-    callout(fig, 0.545, 1.0 - 0.95 / H, f"{n_cleft} of {n_bind}",
-            "binding protomers open to the cleft,\nagainst "
-            f"{n_ext_cleft} of {n_ext} extrusion protomers", APOLAR, size=34)
+    callout(fig, 0.545, 1.0 - 1.55 / H, f"{n_cleft} of {n_bind}",
+            "binding protomers open to the cleft,\nagainst 0 of "
+            f"{n_ext} extrusion protomers", APOLAR, size=34)
 
-    # ---- bottleneck by state
-    ax = fig.add_axes([0.105, 0.335, 0.42, 0.335])
-    rng = np.random.default_rng(3)
-    for i, (st, col) in enumerate(ST):
-        v = np.array(neck[st])
-        ax.scatter(i + rng.uniform(-0.16, 0.16, len(v)), v, s=95, color=col,
-                   alpha=.55, edgecolor="white", linewidth=1.1, zorder=3)
-        m, sd = float(v.mean()), float(v.std(ddof=1))
-        ax.plot([i - 0.30, i + 0.30], [m, m], color=col, linewidth=3.4,
-                zorder=5, solid_capstyle="round")
-        ax.annotate(f"{m:.2f}", (i, m), xytext=(0, 12),
-                    textcoords="offset points", ha="center", fontsize=13.5,
-                    color=col, fontweight="bold")
-        ax.annotate(f"n = {len(v)}", (i, 0), xycoords=("data",
-                                                       "axes fraction"),
-                    xytext=(0, -34), textcoords="offset points",
-                    ha="center", fontsize=12, color=INK2,
-                    annotation_clip=False)
-    for p, v in full.items():                    # paired, within a structure
-        ax.plot(range(3), [v[st] for st, _ in ST], color="#9fb0b8",
-                linewidth=1.1, zorder=2, alpha=.9)
-    ax.set_xticks(range(3)); ax.set_xticklabels([st for st, _ in ST],
-                                                fontsize=14)
-    for t, (st, col) in zip(ax.get_xticklabels(), ST):
-        t.set_color(col)
-    ax.set_xlim(-0.55, 2.55)
-    ax.set_ylabel("Route bottleneck (\u00c5)", labelpad=8, fontsize=14.5)
-    ax.grid(axis="x", visible=False); ax.set_axisbelow(True)
+    y0, htop = 3.35 / H, 3.60 / H
+    ax = fig.add_axes([0.265, y0, 0.615, 1.0 - y0 - htop])
+    ax.set_xlim(1.5, 3.15); ax.set_ylim(-0.75, n - 0.25)
+    ax.set_yticks([]); ax.grid(axis="y", visible=False)
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    for sp in ax.spines.values():
+        sp.set_color("black")
+    ax.tick_params(axis="both", colors="black", labelcolor="black")
 
-    # ---- where those routes come out
-    ax2 = fig.add_axes([0.635, 0.335, 0.315, 0.335])
+    for i, p in enumerate(order):
+        y = n - 1 - i
+        d = per[p]
+        lo, hi = min(d.values()), max(d.values())
+        ax.plot([lo, hi], [y, y], color="#c9d5da", linewidth=9,
+                solid_capstyle="round", zorder=1)
+        for st, col in ST:
+            if st not in d:
+                continue
+            ax.scatter([d[st]], [y], s=210, color=col, zorder=4,
+                       edgecolor="white", linewidth=2.0)
+        lab = NAME.get(p, p)
+        ax.annotate(lab, (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-12, -5), textcoords="offset points", ha="right",
+                    fontsize=13.5, color=INK if p in OURS else INK2,
+                    fontweight="bold" if p in OURS else "normal")
+        ax.annotate(f"{hi - lo:+.2f}" if len(d) > 1 else "\u2014",
+                    (1.0, y), xycoords=("axes fraction", "data"),
+                    xytext=(9, -5), textcoords="offset points", ha="left",
+                    fontsize=12.5, color=INK2, annotation_clip=False)
+    ax.annotate("Opening", (1.0, n - 0.55),
+                xycoords=("axes fraction", "data"), xytext=(9, -4),
+                textcoords="offset points", ha="left", fontsize=12,
+                color=INK2, annotation_clip=False)
+    for st, col in ST:                      # the mean of each state, on top
+        m = float(np.mean(neck[st]))
+        ax.plot([m, m], [-0.75, n - 0.55], color=col, linestyle=(0, (4, 3)),
+                linewidth=1.6, zorder=0)
+        ax.annotate(f"{st}\n{m:.2f} \u00c5", (m, n - 0.55),
+                    xytext=(0, 8), textcoords="offset points", ha="center",
+                    va="bottom", fontsize=12.5, color=col,
+                    fontweight="bold", annotation_clip=False)
+    ax.set_xlabel("Route bottleneck (\u00c5)", labelpad=10)
+    ax.xaxis.label.set_size(16)
+    ax.xaxis.label.set_color("black")
+
+    # where those routes come out, in the same row idiom
+    ax2 = fig.add_axes([0.265, 1.95 / H, 0.615, 0.75 / H])
     for i, (st, col) in enumerate(ST):
         mine = [r for r in rows if r["state"] == st]
         left = 0.0
@@ -2156,47 +2178,55 @@ def panel_state_channels():
                             if r["exit"].startswith(key)) / len(mine)
             if f <= 0:
                 continue
-            ax2.barh([2 - i], [f], left=left, height=0.58, color=kc,
+            ax2.barh([2 - i], [f], left=left, height=0.62, color=kc,
                      zorder=3, edgecolor="white", linewidth=1.4)
-            if f >= 12:
+            if f >= 14:
                 ax2.annotate(f"{f:.0f}%", (left + f / 2, 2 - i),
                              xytext=(0, -5), textcoords="offset points",
-                             ha="center", fontsize=12, color="white",
+                             ha="center", fontsize=11.5, color="white",
                              fontweight="bold", zorder=5)
             left += f
         ax2.annotate(st, (0, 2 - i), xycoords=("axes fraction", "data"),
-                     xytext=(-10, -5), textcoords="offset points",
-                     ha="right", fontsize=13.5, color=col)
-    ax2.set_yticks([]); ax2.set_ylim(-0.6, 2.6); ax2.set_xlim(0, 100)
+                     xytext=(-12, -5), textcoords="offset points",
+                     ha="right", fontsize=13, color=col)
+    ax2.set_yticks([]); ax2.set_ylim(-0.65, 2.65); ax2.set_xlim(0, 100)
     ax2.grid(axis="y", visible=False); ax2.set_axisbelow(True)
     ax2.spines["left"].set_visible(False)
-    ax2.set_xlabel("Where the route comes out (%)", labelpad=8,
-                   fontsize=14.5)
-    handles = [plt.Line2D([], [], marker="s", linestyle="", markersize=13,
+    for sp in ax2.spines.values():
+        sp.set_color("black")
+    ax2.tick_params(axis="both", colors="black", labelcolor="black")
+    # under its own ticks and left-aligned, so it cannot run into the main
+    # axis title, which is centred just above
+    ax2.set_xlabel("Where the route comes out (%)", labelpad=6,
+                   fontsize=13.5, loc="left")
+    ax2.xaxis.label.set_color("black")
+    handles = [plt.Line2D([], [], marker="s", linestyle="", markersize=12,
                           markerfacecolor=kc, markeredgecolor="white",
                           label=label) for _, label, kc in KIND]
-    fig.legend(handles=handles, loc="upper center", ncol=2,
-               bbox_to_anchor=(0.79, 0.255), fontsize=12.5,
-               handletextpad=0.4, columnspacing=1.6)
+    fig.legend(handles=handles, loc="upper center", ncol=4,
+               bbox_to_anchor=(0.58, 1.42 / H), fontsize=12,
+               handletextpad=0.4, columnspacing=1.5)
 
-    fig.text(0.055, 0.160,
-             "One widest ligand-free route per protomer, from a seed in its "
-             "own pocket to bulk solvent, by the same max-min search used "
-             "throughout. Empty\nprotomers are seeded on the transferred "
-             "DBP/PBP midpoint, nudged to open space where a closed pocket "
-             "leaves none. The bottleneck is the\nnarrowest point on the "
-             "route with the terminal 3 \u00c5 at each end trimmed. Its "
-             "widening across the cycle is significant "
-             "(Kruskal\u2013Wallis p = 8\u00d710\u207b\u2077; every "
-             "pair\nseparately, p \u2264 0.014), and the grey lines are "
-             f"the stronger form of it: the same order holds within {mono} "
-             f"of the {len(full)} structures that contain all\nthree "
-             "states. Exits are named by the subdomain lining the last 12 "
-             "\u00c5 of the route, not by which way it points \u2014 the "
-             "cleft mouth sits about 18 \u00c5\nbelow the pocket, so an "
+    fig.text(0.045, 1.05 / H,
+             "One row per structure: its widest ligand-free route in each "
+             "state, from a seed in that protomer's own pocket to bulk "
+             "solvent, by the same\nmax-min search used throughout. Where a "
+             "structure holds two trimers the two protomers of a state are "
+             "averaged; the number at the right is\nhow much the route "
+             "opens across the states present. Empty protomers are seeded "
+             "on the transferred DBP/PBP midpoint, nudged to open space "
+             "where\na closed pocket leaves none. The bottleneck is the "
+             "narrowest point with the terminal 3 \u00c5 at each end "
+             "trimmed. The widening is significant\n(Kruskal\u2013Wallis "
+             "p = 8\u00d710\u207b\u2077; every pair separately, p "
+             f"\u2264 0.014) and holds within {mono} of the {len(full)} "
+             "structures that carry all three states \u2014 6IIA ties and "
+             "6TA6\ndoes not. Exits are named by the subdomain lining the "
+             "last 12 \u00c5 of the route, not by which way it points: the "
+             "cleft mouth sits about 18 \u00c5 below\nthe pocket, so an "
              "axial test calls a route out of the cleft downwards. No "
              "extrusion protomer opens to the cleft and no binding protomer "
-             "opens\nto the funnel, which is the functional rotation "
+             "opens to\nthe funnel, which is the functional rotation "
              "measured rather than assumed. Per-protomer rows, with traces, "
              "in all_channels.csv.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
