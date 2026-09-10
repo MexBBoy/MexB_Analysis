@@ -134,6 +134,17 @@ def main():
             # drawn from the shallowest atom to the deepest
             cdep = float(dep.mean())
 
+            # How much room the molecule sits in, measured atom by atom.
+            # The clearance at a ligand's centroid is not that: an elongated
+            # molecule curls, so its centroid falls in protein rather than in
+            # the cavity - 0.80 A for CYMAL-7, which extends 10.8 A from its
+            # own centre, against 2.66 A for compact ampicillin at 6.0 A.
+            # Taking the median over the ligand's own atoms is fair to both.
+            pa = clearance(X, prot)
+            room = fmt(float(np.median(pa)))
+            room_max = fmt(float(pa.max()))
+            extent = fmt(float(np.linalg.norm(X - X.mean(0), axis=1).max()))
+
             # the free radius left beside it, in the structure's own frame
             free = ""
             if P is not None:
@@ -144,19 +155,21 @@ def main():
             rows.append([pid, ch, f"{lname}{lres}", lname, len(heavy),
                          fmt(cdep), fmt(dep.min()), fmt(dep.max()),
                          fmt(dep.max() - dep.min()), fmt(float(off.mean())),
-                         free, int(past.sum()), fmt(rtot)])
+                         free, room, room_max, extent,
+                         int(past.sum()), fmt(rtot)])
             print(f"  {pid:20} {ch} {lname}{lres:>5}: mean depth "
                   f"{cdep:5.1f} A, spans {dep.min():5.1f}"
                   f"–{dep.max():5.1f} A "
-                  f"({dep.max() - dep.min():4.1f} A of the path), free "
-                  f"radius beside it {free or '-'} A")
+                  f"({dep.max() - dep.min():4.1f} A of the path), room "
+                  f"{room} A per atom, {extent} A long")
 
     write_csv(os.path.join(TABLES, "ligand_reach.csv"),
               ["pdb", "chain", "ligand", "resname", "heavy_atoms",
                "depth_mean_A", "depth_shallowest_A", "depth_deepest_A",
                "span_A", "mean_offset_from_channel_A",
-               "free_radius_beside_A", "atoms_past_the_trace_end",
-               "trace_end_depth_A"], rows)
+               "free_radius_beside_A", "median_room_per_atom_A",
+               "max_room_per_atom_A", "extent_from_centroid_A",
+               "atoms_past_the_trace_end", "trace_end_depth_A"], rows)
     print("\nwrote results/tables/ligand_reach.csv")
 
 

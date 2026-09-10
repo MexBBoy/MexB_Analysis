@@ -2268,11 +2268,12 @@ def panel_state_channels():
 
 # ------------------------------------------------------------------ P19
 def panel_ligand_in_tunnel():
-    """Each structure's own tunnel, with its ligand where it actually sits."""
+    """Where each ligand sits, and how much room it sits in."""
     prof_rows = R("own_axis_tunnels.csv")
-    lig_rows = R("own_axis_ligands.csv")
+    own_lig = R("own_axis_ligands.csv")
+    reach = R("ligand_reach.csv")
     env = R("ligand_environment.csv")
-    if not prof_rows or not lig_rows:
+    if not prof_rows or not own_lig or not reach:
         return
     SITECOL = {"DBP": APOLAR, "PBP": POLAR, "both": "#7a8891",
                "neither": "#b9c3c8"}
@@ -2286,53 +2287,63 @@ def panel_ligand_in_tunnel():
     for r in prof_rows:
         prof.setdefault((r["pdb"], r["chain"]), []).append(
             (float(r["depth_from_own_mouth_A"]), float(r["radius_A"])))
-    ligs = {}
-    for r in lig_rows:
-        ligs.setdefault((r["pdb"], r["chain"]), []).append(
-            (float(r["depth_from_own_mouth_A"]), int(r["heavy_atoms"])))
+    own = {}
+    for r in own_lig:
+        own.setdefault((r["pdb"], r["chain"]), []).append(
+            float(r["depth_from_own_mouth_A"]))
     site = {}
     for r in (env or []):
-        site.setdefault((r["pdb"], r["chain"]), []).append(r.get("site", ""))
+        site.setdefault((r["pdb"], r["chain"]), r.get("site", ""))
 
-    XMAX = 80.0
-    rows = []
-    for k, v in prof.items():
-        if k not in ligs:
+    # one row per ligand chemistry, the copy with the most atoms on the channel
+    best = {}
+    for r in reach:
+        k = (r["pdb"], r["chain"])
+        if k not in prof or k not in own:
             continue
-        v = sorted(v)
+        nm = NAME.get(r["pdb"], r["pdb"])
+        sc = sum(int(x["heavy_atoms"]) for x in reach
+                 if (x["pdb"], x["chain"]) == k)
+        if nm not in best or sc > best[nm][0]:
+            best[nm] = (sc, k)
+    rows = []
+    for nm, (_, k) in best.items():
+        mine = [r for r in reach if (r["pdb"], r["chain"]) == k]
+        v = sorted(prof[k])
         d = np.array([a for a, _ in v])
         rad = np.array([b for _, b in v])
-        mid = (d >= 3.0) & (d <= d.max() - 3.0)
-        neck = float(rad[mid].min()) if mid.any() else float(rad.min())
-        neck_d = float(d[mid][int(np.argmin(rad[mid]))]) if mid.any() else 0.0
-        here = [(ld, ha, float(np.interp(ld, d, rad)))
-                for ld, ha in sorted(ligs[k])]
-        rows.append((NAME.get(k[0], k[0]), k, d, rad, neck, neck_d, here))
+        # slide the tube so this protomer's deepest ligand sits at that
+        # ligand's depth on the shared reference channel
+        deep = max(mine, key=lambda r: float(r["depth_mean_A"]))
+        shift = float(deep["depth_mean_A"]) - max(own[k])
+        rows.append((nm, k, d + shift, rad, mine))
     if not rows:
         return
-    # tightest spot first: that is the point of the panel
-    rows.sort(key=lambda t: min(x[2] for x in t[6]))
+    rooms = [float(r["median_room_per_atom_A"]) for _, _, _, _, m in rows
+             for r in m]
+    deps = [float(r["depth_mean_A"]) for _, _, _, _, m in rows for r in m]
+    rows.sort(key=lambda t: min(float(r["median_room_per_atom_A"])
+                                for r in t[4]))
     n = len(rows)
 
-    tight = rows[0]
-    wide = rows[-1]
+    XLO, XHI = -6.0, 80.0
     H = 6.4 + 0.62 * n
     fig = plt.figure(figsize=(11.6, H))
-    title(fig, "Every substrate sits in a different part of its tunnel",
-          "Each structure's own tunnel at its measured radius, with its "
-          "ligand where the crystal puts it.")
+    title(fig, "Same room, different place",
+          "Each structure's own tunnel with its ligand on it, and the room "
+          "the molecule actually sits in.")
     callout(fig, 0.055, 1.0 - 1.15 / H,
-            f"{min(x[2] for x in tight[6]):.2f} \u00c5",
-            f"of room where {tight[0]} sits \u2014 the\ntightest spot any "
-            "substrate occupies", TEAL, size=36)
+            f"{min(rooms):.1f}\u2013{max(rooms):.1f} \u00c5",
+            "of room per atom for every substrate,\nfrom a 20-atom "
+            "antibiotic to a 69-atom detergent", TEAL, size=34)
     callout(fig, 0.545, 1.0 - 1.15 / H,
-            f"{max(x[2] for x in wide[6]):.2f} \u00c5",
-            f"where {wide[0]} sits, in the widest\npart of its own route",
-            APOLAR, size=36)
+            f"{min(deps):.0f}\u2013{max(deps):.0f} \u00c5",
+            "the depths they sit at \u2014 the same\nsite offered at "
+            "different points on the path", APOLAR, size=34)
 
     y0, htop = 2.85 / H, 3.30 / H
     ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
-    ax.set_xlim(-1.0, XMAX + 1); ax.set_ylim(-0.95, n - 0.15)
+    ax.set_xlim(XLO, XHI); ax.set_ylim(-0.95, n - 0.15)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
@@ -2341,53 +2352,52 @@ def panel_ligand_in_tunnel():
     ax.tick_params(axis="both", colors="black", labelcolor="black")
     KY = 0.085
 
-    for i, (nm, k, d, rad, neck, neck_d, here) in enumerate(rows):
+    for i, (nm, k, d, rad, mine) in enumerate(rows):
         y = n - 1 - i
         col = LIGCOL.get(k[0], TEAL)
-        keep = d <= XMAX
+        keep = (d >= XLO) & (d <= XHI)
         ax.fill_between(d[keep], y - KY * rad[keep], y + KY * rad[keep],
                         color=tint(col, 0.85), zorder=2, linewidth=0)
         for sgn in (1, -1):
             ax.plot(d[keep], y + sgn * KY * rad[keep], color=tint(col, 0.30),
                     linewidth=1.6, zorder=3)
-        if neck_d <= XMAX:                       # the narrowest point
-            ax.plot([neck_d, neck_d], [y - KY * neck - 0.10,
-                                       y + KY * neck + 0.10],
-                    color="#7a8b93", linewidth=1.8, zorder=4)
-        st = (site.get(k) or [""])[0]
-        for j, (ld, ha, rl) in enumerate(here):
-            if ld > XMAX:
-                ax.annotate(f"\u2192 {ld:.0f} \u00c5", (XMAX, y),
-                            xytext=(-6, -5), textcoords="offset points",
-                            ha="right", fontsize=11.5, color=col, zorder=6)
-                continue
-            ax.scatter([ld], [y], s=80 + 2.4 * ha, zorder=5,
+        if d.min() < XLO:                        # the route carries on
+            ax.annotate(f"\u2190 {d.max() - d.min():.0f} \u00c5 route",
+                        (XLO, y), xytext=(6, 13), textcoords="offset points",
+                        ha="left", fontsize=10.5, color=tint(col, 0.25))
+        st = site.get(k, "")
+        for r in sorted(mine, key=lambda r: float(r["depth_mean_A"])):
+            x = float(r["depth_mean_A"])
+            a, b = (float(r["depth_shallowest_A"]),
+                    float(r["depth_deepest_A"]))
+            ax.plot([a, b], [y, y], color=col, linewidth=7, alpha=.40,
+                    solid_capstyle="round", zorder=4)
+            ax.scatter([x], [y], s=80 + 2.4 * int(r["heavy_atoms"]), zorder=5,
                        color=SITECOL.get(st, "#b9c3c8"), edgecolor=col,
                        linewidth=2.4)
-            ax.annotate(f"{rl:.2f} \u00c5", (ld, y), xytext=(0, 15),
-                        textcoords="offset points", ha="center",
-                        fontsize=11.5, color=tint(col, 0.15),
+            ax.annotate(f"{float(r['median_room_per_atom_A']):.2f} \u00c5",
+                        (x, y), xytext=(0, 16), textcoords="offset points",
+                        ha="center", fontsize=11.5, color=tint(col, 0.15),
                         fontweight="bold", zorder=6)
         ax.annotate(nm, (0, y), xycoords=("axes fraction", "data"),
                     xytext=(-12, -5), textcoords="offset points", ha="right",
                     fontsize=13.5, color=col,
                     fontweight="bold" if k[0] in OURS else "normal")
-        ax.annotate(f"{min(x[2] for x in here):.2f} \u00c5", (1.0, y),
-                    xycoords=("axes fraction", "data"), xytext=(9, -5),
-                    textcoords="offset points", ha="left", fontsize=12.5,
-                    color=col, annotation_clip=False)
-    ax.annotate("Room at\nthe ligand", (1.0, n - 0.35),
+        ax.annotate(f"{min(float(r['median_room_per_atom_A']) for r in mine):.2f}"
+                    f" \u00c5", (1.0, y), xycoords=("axes fraction", "data"),
+                    xytext=(9, -5), textcoords="offset points", ha="left",
+                    fontsize=12.5, color=col, annotation_clip=False)
+    ax.annotate("Room per\natom", (1.0, n - 0.35),
                 xycoords=("axes fraction", "data"), xytext=(9, 2),
                 textcoords="offset points", ha="left", va="bottom",
                 fontsize=12, color=INK2, annotation_clip=False)
-    ax.plot([1.5, 1.5], [-0.70 - KY * 4, -0.70 + KY * 4], color="black",
-            linewidth=2.4, solid_capstyle="butt")
-    ax.annotate("8 \u00c5 across", (1.5, -0.70), textcoords="offset points",
-                xytext=(9, -5), ha="left", fontsize=12, color=INK2)
-    ax.annotate("\u2502 narrowest point of that route", (XMAX, -0.70),
-                ha="right", va="center", fontsize=12, color="#7a8b93")
-    ax.set_xlabel("Depth into the porter domain (\u00c5 from that "
-                  "structure's own periplasmic mouth)", labelpad=10)
+    ax.plot([XLO + 2.0, XLO + 2.0], [-0.70 - KY * 4, -0.70 + KY * 4],
+            color="black", linewidth=2.4, solid_capstyle="butt")
+    ax.annotate("8 \u00c5 across", (XLO + 2.0, -0.70),
+                textcoords="offset points", xytext=(9, -5), ha="left",
+                fontsize=12, color=INK2)
+    ax.set_xlabel("Depth into the porter domain (\u00c5 from the "
+                  "periplasmic entrance)", labelpad=10)
     ax.xaxis.label.set_size(16)
     ax.xaxis.label.set_color("black")
 
@@ -2403,22 +2413,27 @@ def panel_ligand_in_tunnel():
                handletextpad=0.35, columnspacing=1.8)
 
     fig.text(0.045, 1.55 / H,
-             "Each row is one structure's own widest ligand-free route, "
-             "traced from its own coordinates and drawn at its measured "
-             "radius from its\nown periplasmic mouth. The marker is the "
-             "ligand, at the depth the crystal puts it, sized by heavy-atom "
-             "count and filled by which lining set\nit contacts; the number "
-             "above it is the free radius there, and the grey bar is the "
-             "narrowest point of that route. Tube half-width is the local\n"
-             "radius, on a vertical scale that is not the horizontal one. "
-             "The routes are traced with ligands stripped, so the radius at "
-             "a ligand is the room the\nsite offers, not what is left "
-             "beside the molecule. 21FO is cut at the axis: its route "
-             "wanders 154 \u00c5 before reaching CYMAL-7, marked by the "
-             "arrow.\nDepths are each structure's own arc length, so the "
-             "same measurement on every row but not a shared coordinate "
-             "\u2014 P16 is the shared one.\nProfiles in "
-             "own_axis_tunnels.csv, ligand depths in own_axis_ligands.csv.",
+             "Each row is one structure's own tunnel, drawn at its measured "
+             "radius and slid so its deepest ligand sits at that ligand's "
+             "depth on the shared\nreference channel; the bar is the "
+             "stretch of channel the molecule occupies and the marker its "
+             "mean depth, sized by heavy-atom count. Room is\nmeasured atom "
+             "by atom \u2014 the median clearance to protein over the "
+             "ligand's own atoms \u2014 not at its centroid. That matters: "
+             "an elongated molecule\ncurls, so its centroid falls in "
+             "protein rather than in the cavity, which reads as 0.80 "
+             "\u00c5 for CYMAL-7, a molecule reaching 10.8 \u00c5 from its "
+             "own centre,\nagainst 2.66 \u00c5 for compact ampicillin at "
+             "6.0 \u00c5. Measured fairly, every substrate sits in much the "
+             "same room and the differences are small: EPI\nis tightest at "
+             "1.8 \u00c5 and LMNG widest at 2.3 \u00c5, with a 20-atom "
+             "antibiotic and a 69-atom detergent barely apart. Routes are "
+             "traced with ligands\nstripped, so this is the room the site "
+             "offers rather than what is left beside the molecule. 21FO's "
+             "own route runs 154 \u00c5 and extends off the left of\nthe "
+             "panel; on the shared axis its CYMAL-7 sits at 41 \u00c5, "
+             "overlapping the shallowest DDM of our three-ligand protomer. "
+             "Numbers in ligand_reach.csv.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P19_ligand_in_tunnel")
 
