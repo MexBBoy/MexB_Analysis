@@ -2266,6 +2266,163 @@ def panel_state_channels():
     save(fig, "P18_state_channels")
 
 
+# ------------------------------------------------------------------ P19
+def panel_ligand_in_tunnel():
+    """Each structure's own tunnel, with its ligand where it actually sits."""
+    prof_rows = R("own_axis_tunnels.csv")
+    lig_rows = R("own_axis_ligands.csv")
+    env = R("ligand_environment.csv")
+    if not prof_rows or not lig_rows:
+        return
+    SITECOL = {"DBP": APOLAR, "PBP": POLAR, "both": "#7a8891",
+               "neither": "#b9c3c8"}
+    NAME = {"21FP": "Chloramphenicol", "Amp_MexB_20260826": "Ampicillin",
+            "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
+            "3W9J": "EPI", "6IIA": "LMNG",
+            "MexB_DDM_3_20260730": "DDM \u00d73"}
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+
+    prof = {}
+    for r in prof_rows:
+        prof.setdefault((r["pdb"], r["chain"]), []).append(
+            (float(r["depth_from_own_mouth_A"]), float(r["radius_A"])))
+    ligs = {}
+    for r in lig_rows:
+        ligs.setdefault((r["pdb"], r["chain"]), []).append(
+            (float(r["depth_from_own_mouth_A"]), int(r["heavy_atoms"])))
+    site = {}
+    for r in (env or []):
+        site.setdefault((r["pdb"], r["chain"]), []).append(r.get("site", ""))
+
+    XMAX = 80.0
+    rows = []
+    for k, v in prof.items():
+        if k not in ligs:
+            continue
+        v = sorted(v)
+        d = np.array([a for a, _ in v])
+        rad = np.array([b for _, b in v])
+        mid = (d >= 3.0) & (d <= d.max() - 3.0)
+        neck = float(rad[mid].min()) if mid.any() else float(rad.min())
+        neck_d = float(d[mid][int(np.argmin(rad[mid]))]) if mid.any() else 0.0
+        here = [(ld, ha, float(np.interp(ld, d, rad)))
+                for ld, ha in sorted(ligs[k])]
+        rows.append((NAME.get(k[0], k[0]), k, d, rad, neck, neck_d, here))
+    if not rows:
+        return
+    # tightest spot first: that is the point of the panel
+    rows.sort(key=lambda t: min(x[2] for x in t[6]))
+    n = len(rows)
+
+    tight = rows[0]
+    wide = rows[-1]
+    H = 6.4 + 0.62 * n
+    fig = plt.figure(figsize=(11.6, H))
+    title(fig, "Every substrate sits in a different part of its tunnel",
+          "Each structure's own tunnel at its measured radius, with its "
+          "ligand where the crystal puts it.")
+    callout(fig, 0.055, 1.0 - 1.15 / H,
+            f"{min(x[2] for x in tight[6]):.2f} \u00c5",
+            f"of room where {tight[0]} sits \u2014 the\ntightest spot any "
+            "substrate occupies", TEAL, size=36)
+    callout(fig, 0.545, 1.0 - 1.15 / H,
+            f"{max(x[2] for x in wide[6]):.2f} \u00c5",
+            f"where {wide[0]} sits, in the widest\npart of its own route",
+            APOLAR, size=36)
+
+    y0, htop = 2.85 / H, 3.30 / H
+    ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
+    ax.set_xlim(-1.0, XMAX + 1); ax.set_ylim(-0.95, n - 0.15)
+    ax.set_yticks([]); ax.grid(axis="y", visible=False)
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    for sp in ax.spines.values():
+        sp.set_color("black")
+    ax.tick_params(axis="both", colors="black", labelcolor="black")
+    KY = 0.085
+
+    for i, (nm, k, d, rad, neck, neck_d, here) in enumerate(rows):
+        y = n - 1 - i
+        col = LIGCOL.get(k[0], TEAL)
+        keep = d <= XMAX
+        ax.fill_between(d[keep], y - KY * rad[keep], y + KY * rad[keep],
+                        color=tint(col, 0.85), zorder=2, linewidth=0)
+        for sgn in (1, -1):
+            ax.plot(d[keep], y + sgn * KY * rad[keep], color=tint(col, 0.30),
+                    linewidth=1.6, zorder=3)
+        if neck_d <= XMAX:                       # the narrowest point
+            ax.plot([neck_d, neck_d], [y - KY * neck - 0.10,
+                                       y + KY * neck + 0.10],
+                    color="#7a8b93", linewidth=1.8, zorder=4)
+        st = (site.get(k) or [""])[0]
+        for j, (ld, ha, rl) in enumerate(here):
+            if ld > XMAX:
+                ax.annotate(f"\u2192 {ld:.0f} \u00c5", (XMAX, y),
+                            xytext=(-6, -5), textcoords="offset points",
+                            ha="right", fontsize=11.5, color=col, zorder=6)
+                continue
+            ax.scatter([ld], [y], s=80 + 2.4 * ha, zorder=5,
+                       color=SITECOL.get(st, "#b9c3c8"), edgecolor=col,
+                       linewidth=2.4)
+            ax.annotate(f"{rl:.2f} \u00c5", (ld, y), xytext=(0, 15),
+                        textcoords="offset points", ha="center",
+                        fontsize=11.5, color=tint(col, 0.15),
+                        fontweight="bold", zorder=6)
+        ax.annotate(nm, (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-12, -5), textcoords="offset points", ha="right",
+                    fontsize=13.5, color=col,
+                    fontweight="bold" if k[0] in OURS else "normal")
+        ax.annotate(f"{min(x[2] for x in here):.2f} \u00c5", (1.0, y),
+                    xycoords=("axes fraction", "data"), xytext=(9, -5),
+                    textcoords="offset points", ha="left", fontsize=12.5,
+                    color=col, annotation_clip=False)
+    ax.annotate("Room at\nthe ligand", (1.0, n - 0.35),
+                xycoords=("axes fraction", "data"), xytext=(9, 2),
+                textcoords="offset points", ha="left", va="bottom",
+                fontsize=12, color=INK2, annotation_clip=False)
+    ax.plot([1.5, 1.5], [-0.70 - KY * 4, -0.70 + KY * 4], color="black",
+            linewidth=2.4, solid_capstyle="butt")
+    ax.annotate("8 \u00c5 across", (1.5, -0.70), textcoords="offset points",
+                xytext=(9, -5), ha="left", fontsize=12, color=INK2)
+    ax.annotate("\u2502 narrowest point of that route", (XMAX, -0.70),
+                ha="right", va="center", fontsize=12, color="#7a8b93")
+    ax.set_xlabel("Depth into the porter domain (\u00c5 from that "
+                  "structure's own periplasmic mouth)", labelpad=10)
+    ax.xaxis.label.set_size(16)
+    ax.xaxis.label.set_color("black")
+
+    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=12,
+                          markerfacecolor=SITECOL[q], markeredgecolor=INK2,
+                          markeredgewidth=1.6,
+                          label={"DBP": "distal pocket",
+                                 "PBP": "proximal pocket",
+                                 "both": "spans both"}[q])
+               for q in ("DBP", "PBP", "both")]
+    fig.legend(handles=handles, loc="upper center", ncol=3,
+               bbox_to_anchor=(0.58, 1.0 - 2.55 / H), fontsize=13.5,
+               handletextpad=0.35, columnspacing=1.8)
+
+    fig.text(0.045, 1.55 / H,
+             "Each row is one structure's own widest ligand-free route, "
+             "traced from its own coordinates and drawn at its measured "
+             "radius from its\nown periplasmic mouth. The marker is the "
+             "ligand, at the depth the crystal puts it, sized by heavy-atom "
+             "count and filled by which lining set\nit contacts; the number "
+             "above it is the free radius there, and the grey bar is the "
+             "narrowest point of that route. Tube half-width is the local\n"
+             "radius, on a vertical scale that is not the horizontal one. "
+             "The routes are traced with ligands stripped, so the radius at "
+             "a ligand is the room the\nsite offers, not what is left "
+             "beside the molecule. 21FO is cut at the axis: its route "
+             "wanders 154 \u00c5 before reaching CYMAL-7, marked by the "
+             "arrow.\nDepths are each structure's own arc length, so the "
+             "same measurement on every row but not a shared coordinate "
+             "\u2014 P16 is the shared one.\nProfiles in "
+             "own_axis_tunnels.csv, ligand depths in own_axis_ligands.csv.",
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P19_ligand_in_tunnel")
+
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -2286,6 +2443,7 @@ def main():
     panel_ligand_reach()
     panel_pocket_chemistry()
     panel_state_channels()
+    panel_ligand_in_tunnel()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
