@@ -2069,8 +2069,19 @@ def panel_pocket_chemistry():
 
 
 # ------------------------------------------------------------------ P18
+def trace_of(path):
+    """(points, radii) from a tunnel trace PDB; radius is the B-factor."""
+    pts, rad = [], []
+    for ln in open(path):
+        if ln.startswith(("ATOM", "HETATM")):
+            pts.append([float(ln[30:38]), float(ln[38:46]),
+                        float(ln[46:54])])
+            rad.append(float(ln[60:66]))
+    return np.asarray(pts, float), np.asarray(rad, float)
+
+
 def panel_state_channels():
-    """Every protomer's route out, by conformational state, one row each."""
+    """Every protomer's route out, drawn as a tunnel, one row per state."""
     ch = R("all_channels.csv")
     if not ch:
         return
@@ -2104,7 +2115,7 @@ def panel_state_channels():
         p not in OURS, -(max(per[p].values()) - min(per[p].values()))))
     n = len(order)
 
-    H = 7.0 + 0.46 * n
+    H = 10.4                      # three tunnel rows, not one per structure
     fig = plt.figure(figsize=(11.4, H))
     title(fig, "The route opens as the protomer turns",
           f"Every MexB protomer of every structure in hand: {n_prot} "
@@ -2122,49 +2133,69 @@ def panel_state_channels():
             "binding protomers open to the cleft,\nagainst 0 of "
             f"{n_ext} extrusion protomers", APOLAR, size=34)
 
-    y0, htop = 3.35 / H, 3.60 / H
+    # ---- the routes themselves, drawn as tunnels, one row per state
+    prof = {}
+    for r in rows:
+        f = os.path.join(CXDIR, r["trace_file"])
+        if not os.path.exists(f):
+            continue
+        P, rad = trace_of(f)
+        arc = np.concatenate([[0.0], np.cumsum(
+            np.linalg.norm(np.diff(P, axis=0), axis=1))])
+        prof.setdefault(r["state"], []).append((arc, rad))
+
+    XMAX = 80.0
+    grid = np.arange(0.0, XMAX + 0.25, 0.5)
+    y0, htop = 4.05 / H, 3.30 / H
     ax = fig.add_axes([0.265, y0, 0.615, 1.0 - y0 - htop])
-    ax.set_xlim(1.5, 3.15); ax.set_ylim(-0.75, n - 0.25)
+    ax.set_xlim(-1.0, XMAX + 1); ax.set_ylim(-0.85, 2.85)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
     for sp in ax.spines.values():
         sp.set_color("black")
     ax.tick_params(axis="both", colors="black", labelcolor="black")
+    KY = 0.058                      # plot units per Angstrom of tunnel radius
 
-    for i, p in enumerate(order):
-        y = n - 1 - i
-        d = per[p]
-        lo, hi = min(d.values()), max(d.values())
-        ax.plot([lo, hi], [y, y], color="#c9d5da", linewidth=9,
-                solid_capstyle="round", zorder=1)
-        for st, col in ST:
-            if st not in d:
-                continue
-            ax.scatter([d[st]], [y], s=210, color=col, zorder=4,
-                       edgecolor="white", linewidth=2.0)
-        lab = NAME.get(p, p)
-        ax.annotate(lab, (0, y), xycoords=("axes fraction", "data"),
-                    xytext=(-12, -5), textcoords="offset points", ha="right",
-                    fontsize=13.5, color=INK if p in OURS else INK2,
-                    fontweight="bold" if p in OURS else "normal")
-        ax.annotate(f"{hi - lo:+.2f}" if len(d) > 1 else "\u2014",
-                    (1.0, y), xycoords=("axes fraction", "data"),
-                    xytext=(9, -5), textcoords="offset points", ha="left",
-                    fontsize=12.5, color=INK2, annotation_clip=False)
-    ax.annotate("Opening", (1.0, n - 0.55),
-                xycoords=("axes fraction", "data"), xytext=(9, -4),
-                textcoords="offset points", ha="left", fontsize=12,
-                color=INK2, annotation_clip=False)
-    for st, col in ST:                      # the mean of each state, on top
+    for i, (st, col) in enumerate(ST):
+        y = 2 - i
+        got = prof.get(st, [])
+        stack = []
+        for arc, rad in got:                     # every protomer, faint
+            keep = arc <= XMAX
+            ax.plot(arc[keep], y + KY * rad[keep], color=tint(col, 0.78),
+                    linewidth=0.8, zorder=2)
+            ax.plot(arc[keep], y - KY * rad[keep], color=tint(col, 0.78),
+                    linewidth=0.8, zorder=2)
+            stack.append(np.interp(grid, arc, rad, right=np.nan))
+        if not stack:
+            continue
+        M = np.vstack(stack)
+        med = np.nanmedian(M, axis=0)
+        ok = ~np.isnan(med)
+        ax.fill_between(grid[ok], y - KY * med[ok], y + KY * med[ok],
+                        color=tint(col, 0.80), zorder=3, linewidth=0)
+        for sgn in (1, -1):
+            ax.plot(grid[ok], y + sgn * KY * med[ok], color=col,
+                    linewidth=2.0, zorder=4)
         m = float(np.mean(neck[st]))
-        ax.plot([m, m], [-0.75, n - 0.55], color=col, linestyle=(0, (4, 3)),
-                linewidth=1.6, zorder=0)
-        ax.annotate(f"{st}\n{m:.2f} \u00c5", (m, n - 0.55),
-                    xytext=(0, 8), textcoords="offset points", ha="center",
-                    va="bottom", fontsize=12.5, color=col,
-                    fontweight="bold", annotation_clip=False)
-    ax.set_xlabel("Route bottleneck (\u00c5)", labelpad=10)
+        ax.annotate(f"{m:.2f} \u00c5", (1.0, y),
+                    xycoords=("axes fraction", "data"), xytext=(9, -5),
+                    textcoords="offset points", ha="left", fontsize=13,
+                    color=col, fontweight="bold", annotation_clip=False)
+        ax.annotate(f"{st}\nn = {len(got)}", (0, y),
+                    xycoords=("axes fraction", "data"), xytext=(-12, 0),
+                    textcoords="offset points", ha="right", va="center",
+                    fontsize=13.5, color=col, fontweight="bold")
+    ax.annotate("Bottleneck", (1.0, 2.55), xycoords=("axes fraction", "data"),
+                xytext=(9, -4), textcoords="offset points", ha="left",
+                fontsize=12, color=INK2, annotation_clip=False)
+    ax.plot([1.5, 1.5], [-0.60 - KY * 4, -0.60 + KY * 4], color="black",
+            linewidth=2.4, solid_capstyle="butt")
+    ax.annotate("8 \u00c5 across", (1.5, -0.60), textcoords="offset points",
+                xytext=(9, -5), ha="left", fontsize=12, color=INK2)
+    ax.set_xlabel("Distance from the pocket along the route (\u00c5)",
+                  labelpad=10)
     ax.xaxis.label.set_size(16)
     ax.xaxis.label.set_color("black")
 
@@ -2208,27 +2239,29 @@ def panel_state_channels():
                handletextpad=0.4, columnspacing=1.5)
 
     fig.text(0.045, 1.05 / H,
-             "One row per structure: its widest ligand-free route in each "
-             "state, from a seed in that protomer's own pocket to bulk "
-             "solvent, by the same\nmax-min search used throughout. Where a "
-             "structure holds two trimers the two protomers of a state are "
-             "averaged; the number at the right is\nhow much the route "
-             "opens across the states present. Empty protomers are seeded "
-             "on the transferred DBP/PBP midpoint, nudged to open space "
-             "where\na closed pocket leaves none. The bottleneck is the "
-             "narrowest point with the terminal 3 \u00c5 at each end "
-             "trimmed. The widening is significant\n(Kruskal\u2013Wallis "
-             "p = 8\u00d710\u207b\u2077; every pair separately, p "
-             f"\u2264 0.014) and holds within {mono} of the {len(full)} "
-             "structures that carry all three states \u2014 6IIA ties and "
-             "6TA6\ndoes not. Exits are named by the subdomain lining the "
-             "last 12 \u00c5 of the route, not by which way it points: the "
-             "cleft mouth sits about 18 \u00c5 below\nthe pocket, so an "
-             "axial test calls a route out of the cleft downwards. No "
-             "extrusion protomer opens to the cleft and no binding protomer "
-             "opens to\nthe funnel, which is the functional rotation "
-             "measured rather than assumed. Per-protomer rows, with traces, "
-             "in all_channels.csv.",
+             "One row per state, drawn as the tunnels themselves: every "
+             "protomer's route as a faint outline and the median profile "
+             "solid, at the\nmeasured radius, from a seed in that "
+             "protomer's own pocket outwards. Tube half-width is the local "
+             "radius on a vertical scale that is not\nthe horizontal one. "
+             "Routes run 9\u2013149 \u00c5 and the axis is cut at 80, so "
+             "the median thins where the longer ones carry on alone. Empty "
+             "protomers\nare seeded on the transferred DBP/PBP midpoint, "
+             "nudged to open space where a closed pocket leaves none. The "
+             "bottleneck at the right is\nthe mean over that state's "
+             "protomers, narrowest point with the terminal 3 \u00c5 at "
+             "each end trimmed; its widening across the cycle is "
+             "significant\n(Kruskal\u2013Wallis p = 8\u00d710\u207b\u2077"
+             f"; every pair separately, p \u2264 0.014) and holds within "
+             f"{mono} of the {len(full)} structures that carry all three "
+             "states \u2014 6IIA ties\nand 6TA6 does not. Exits are named "
+             "by the subdomain lining the last 12 \u00c5 of the route, not "
+             "by which way it points: the cleft mouth sits about\n18 "
+             "\u00c5 below the pocket, so an axial test calls a route out "
+             "of the cleft downwards. No extrusion protomer opens to the "
+             "cleft and no binding\nprotomer opens to the funnel, which is "
+             "the functional rotation measured rather than assumed. "
+             "Per-protomer rows, with traces, in all_channels.csv.",
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P18_state_channels")
 
