@@ -119,7 +119,7 @@ def sphere_radius(heavy):
     return float((d + np.array([vdw(a.element) for a in heavy])).max())
 
 
-def least_strain(grid, rlig, src, dst):
+def least_strain(grid, bulk, rlig, src, dst):
     """Route from src to dst minimising how far the protein must open.
 
     Dijkstra on the cost  (1 + LAMB * max(0, rlig - clearance)) ds. The first
@@ -128,10 +128,17 @@ def least_strain(grid, rlig, src, dst):
     voxel, which dominates when it is non-zero. Voxels below PASS_FLOOR are
     protein rather than a squeezable gap and are not crossed at any price.
 
+    Bulk solvent is barred except at the target. Outside the protein the
+    clearance is large, so every bulk voxel is unstrained and costs only its
+    length: left open, the cheapest route leaves by the nearest surface and
+    travels around the outside of the protein to the mouth, which is not a
+    channel and makes the search explore the whole solvent box. Barring bulk
+    keeps the route interior until it surfaces at the cleft, where it ends.
+
     Returns (voxel path, integrated strain in A^2, peak strain in A).
     """
     clear = grid.clearance
-    ok = clear >= PASS_FLOOR
+    ok = (clear >= PASS_FLOOR) & (~bulk | dst)
     pen = np.maximum(0.0, rlig - clear)
     off = [(a, b, c) for a in (-1, 0, 1) for b in (-1, 0, 1)
            for c in (-1, 0, 1) if (a, b, c) != (0, 0, 0)]
@@ -233,7 +240,7 @@ def main():
 
             # how wide a rigid body could get there at all, for reference
             Rmax, _ = T.widest_path(grid.clearance, sidx, dst)
-            vox, strain, peak = least_strain(grid, rloc, sidx, dst)
+            vox, strain, peak = least_strain(grid, bulk, rloc, sidx, dst)
             if vox is None:
                 print(f"  {nm} {rn}: no route to the cleft mouth"); continue
             pts = T.densify(T.refine_path(T.smooth_path(
