@@ -1,0 +1,8 @@
+pdb,chain,ligand,extension_A,pocket_end_room_A,pocket_end_burial_A,ligand_burial_A,straight_line_to_end_A,trace_file
+Amp_MexB_20260826,E,Ampicillin,22.80,1.47,64.20,41.40,10.83,cleft_Amp_MexB_20260826_E_tunnel.pdb
+21FO,B,CYMAL-7,57.60,1.42,80.40,22.80,17.69,cleft_21FO_B_tunnel.pdb
+21FP,B,Chloramphenicol,30.00,1.51,63.60,33.60,17.06,cleft_21FP_B_tunnel.pdb
+2V50,B,DDM,31.20,1.56,58.80,27.60,15.01,cleft_2V50_B_tunnel.pdb
+MexB_DDM_3_20260730,E,DDM x3,24.60,1.55,48.00,23.40,17.85,cleft_MexB_DDM_3_20260730_E_tunnel.pdb
+3W9J,B,EPI,37.20,1.57,69.00,31.80,17.78,cleft_3W9J_B_tunnel.pdb
+6IIA,B,LMNG,59.40,1.58,73.80,14.40,17.15,cleft_6IIA_B_tunnel.pdb
