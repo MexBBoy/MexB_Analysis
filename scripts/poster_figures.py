@@ -2310,7 +2310,10 @@ def panel_ligand_in_tunnel():
         return
     rows.sort(key=lambda t: t[6])
     n = len(rows)
-    XHI = max(t[4] for t in rows) + 4.0
+    # the axis ends where the longest route does, so that row reaches the
+    # right edge; the shorter rows end at their own ligand, which is where
+    # their route ends, and each gets a cap to say so
+    XHI = max(t[4] for t in rows) + 0.5
 
     H = 6.4 + 0.62 * n
     fig = plt.figure(figsize=(11.6, H))
@@ -2348,6 +2351,10 @@ def panel_ligand_in_tunnel():
         for sgn in (1, -1):
             ax.plot(d, y + sgn * KY * rad, color=tint(col, 0.30),
                     linewidth=1.6, zorder=3)
+        # a cap where the route ends: the row stops because the trace does
+        ax.plot([L, L], [y - KY * rad[0] - 0.06, y + KY * rad[0] + 0.06],
+                color=tint(col, 0.30), linewidth=2.2, zorder=4,
+                solid_capstyle="butt")
         st = site.get(k, "")
         for r in sorted(mine, key=lambda r: float(r["along_route_A"])):
             if float(r["closest_offset_A"]) > ON_ROUTE:
@@ -2406,7 +2413,13 @@ def panel_ligand_in_tunnel():
             "its bottleneck and will wander - taking the shortest route "
             "through voxels at least as wide as that bottleneck gives the "
             "same number by a direct path. Every row therefore starts at the "
-            "cleft and ends where its substrate sits, 24 to 50 A in. The bar "
+            "cleft and ends where its substrate sits, 24 to 50 A in; the "
+            "vertical cap on each row marks that end, and the axis stops "
+            "where the longest route does. The rows cannot be made to finish "
+            "together without inventing tunnel: past its ligand a route has "
+            "nothing left to trace, because the ligand is where the search "
+            "was seeded and the pocket beyond it is a chamber rather than a "
+            "continuing passage. The bar "
             "is the stretch the molecule occupies and the marker its mean "
             "position, sized by heavy-atom count. Whether a ligand is on "
             "the route is judged by its nearest atom rather than its "
