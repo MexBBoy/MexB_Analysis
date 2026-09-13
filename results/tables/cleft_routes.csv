@@ -1,0 +1,8 @@
+pdb,chain,ligand,length_A,grid_bottleneck_A,route_bottleneck_A,radius_at_ligand_A,seed_clearance_A,trace_file
+Amp_MexB_20260826,E,Ampicillin,46.99,1.93,2.20,3.49,3.66,cleft_Amp_MexB_20260826_E_tunnel.pdb
+21FO,B,CYMAL-7,30.58,2.21,2.43,4.80,4.80,cleft_21FO_B_tunnel.pdb
+21FP,B,Chloramphenicol,50.19,2.42,2.65,3.26,3.43,cleft_21FP_B_tunnel.pdb
+2V50,B,DDM,46.45,2.12,2.32,3.85,3.95,cleft_2V50_B_tunnel.pdb
+MexB_DDM_3_20260730,E,DDM x3,29.79,2.17,2.39,4.51,4.65,cleft_MexB_DDM_3_20260730_E_tunnel.pdb
+3W9J,B,EPI,52.91,1.77,2.10,3.36,3.58,cleft_3W9J_B_tunnel.pdb
+6IIA,B,LMNG,31.03,2.67,2.92,4.34,4.67,cleft_6IIA_B_tunnel.pdb

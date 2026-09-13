@@ -2268,90 +2268,70 @@ def panel_state_channels():
 
 # ------------------------------------------------------------------ P19
 def panel_ligand_in_tunnel():
-    """Where each ligand sits, and how much room it sits in."""
-    prof_rows = R("own_axis_tunnels.csv")
-    own_lig = R("own_axis_ligands.csv")
+    """Cleft to ligand: where each substrate sits on the way in."""
+    routes = R("cleft_routes.csv")
+    cl = R("cleft_ligands.csv")
     reach = R("ligand_reach.csv")
     env = R("ligand_environment.csv")
-    if not prof_rows or not own_lig or not reach:
+    if not routes or not cl:
         return
     SITECOL = {"DBP": APOLAR, "PBP": POLAR, "both": "#7a8891",
                "neither": "#b9c3c8"}
-    NAME = {"21FP": "Chloramphenicol", "Amp_MexB_20260826": "Ampicillin",
-            "2V50": "DDM", "3W9I": "DDM", "21FO": "CYMAL-7",
-            "3W9J": "EPI", "6IIA": "LMNG",
-            "MexB_DDM_3_20260730": "DDM \u00d73"}
     OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+    # whether a ligand is on this route is judged by its nearest atom, not
+    # its mean: a 69-atom detergent 12 A long has a large mean offset however
+    # squarely it sits on the line
+    ON_ROUTE = 3.0
 
-    prof = {}
-    for r in prof_rows:
-        prof.setdefault((r["pdb"], r["chain"]), []).append(
-            (float(r["depth_from_own_mouth_A"]), float(r["radius_A"])))
-    own = {}
-    for r in own_lig:
-        own.setdefault((r["pdb"], r["chain"]), []).append(
-            float(r["depth_from_own_mouth_A"]))
     site = {}
     for r in (env or []):
         site.setdefault((r["pdb"], r["chain"]), r.get("site", ""))
+    room = {}
+    for r in (reach or []):
+        room.setdefault((r["pdb"], r["chain"]), []).append(
+            float(r["median_room_per_atom_A"]))
+    ligs = {}
+    for r in cl:
+        ligs.setdefault((r["pdb"], r["chain"]), []).append(r)
 
-    # one row per ligand chemistry, the copy with the most atoms on the channel
-    best = {}
-    for r in reach:
-        k = (r["pdb"], r["chain"])
-        if k not in prof or k not in own:
-            continue
-        nm = NAME.get(r["pdb"], r["pdb"])
-        sc = sum(int(x["heavy_atoms"]) for x in reach
-                 if (x["pdb"], x["chain"]) == k)
-        if nm not in best or sc > best[nm][0]:
-            best[nm] = (sc, k)
     rows = []
-    for nm, (_, k) in best.items():
-        mine = [r for r in reach if (r["pdb"], r["chain"]) == k]
-        v = sorted(prof[k])
-        d = np.array([a for a, _ in v])
-        rad = np.array([b for _, b in v])
-        # slide the tube so this protomer's deepest ligand sits at that
-        # ligand's depth on the shared reference channel
-        deep = max(mine, key=lambda r: float(r["depth_mean_A"]))
-        shift = float(deep["depth_mean_A"]) - max(own[k])
-        rows.append((nm, k, d + shift, rad, mine,
-                     float(deep["depth_mean_A"]), float(max(d) - min(d))))
+    for r in routes:
+        k = (r["pdb"], r["chain"])
+        f = os.path.join(CXDIR, r["trace_file"])
+        if not os.path.exists(f) or k not in ligs:
+            continue
+        P, rad = trace_of(f)
+        arc = np.concatenate([[0.0], np.cumsum(
+            np.linalg.norm(np.diff(P, axis=0), axis=1))])
+        rows.append((r["ligand"], k, arc[-1] - arc, rad, float(r["length_A"]),
+                     float(r["route_bottleneck_A"]),
+                     float(np.median(room.get(k, [np.nan]))), ligs[k]))
     if not rows:
         return
-    rooms = [float(r["median_room_per_atom_A"]) for t in rows for r in t[4]]
-    deps = [float(r["depth_mean_A"]) for t in rows for r in t[4]]
-    rows.sort(key=lambda t: min(float(r["median_room_per_atom_A"])
-                                for r in t[4]))
-    # the whole axis, entrance to 80 A in, and each tube drawn wherever it
-    # has route. A row that starts short of zero is one whose trace never
-    # reaches the periplasmic entrance; one that stops short of 80 is one
-    # whose trace ends at its ligand, which every one of them does.
+    rows.sort(key=lambda t: t[6])
     n = len(rows)
+    XHI = max(t[4] for t in rows) + 4.0
 
-    # the axis stops just past the deepest ligand rather than at a round
-    # number: a flood fill from bulk puts the deepest solvent-accessible
-    # point anywhere in the protomer 64 A of path from the outside, so an
-    # axis running further only shows where the protein has ended
-    XLO, XHI = 0.0, 70.0
     H = 6.4 + 0.62 * n
     fig = plt.figure(figsize=(11.6, H))
     title(fig, "Same room, different place",
-          "Each structure's own tunnel with its ligand on it, and the room "
-          "the molecule actually sits in.")
+          "The widest route from the periplasmic cleft to each bound "
+          "substrate, with the room the molecule sits in.")
     callout(fig, 0.055, 1.0 - 1.15 / H,
-            f"{min(rooms):.1f}\u2013{max(rooms):.1f} \u00c5",
+            f"{min(t[6] for t in rows):.1f}\u2013"
+            f"{max(t[6] for t in rows):.1f} \u00c5",
             "of room per atom for every substrate,\nfrom a 20-atom "
             "antibiotic to a 69-atom detergent", TEAL, size=34)
+    d0 = [float(x["along_route_A"]) for t in rows for x in t[7]
+          if float(x["closest_offset_A"]) <= ON_ROUTE]
     callout(fig, 0.545, 1.0 - 1.15 / H,
-            f"{min(deps):.0f}\u2013{max(deps):.0f} \u00c5",
-            "the depths they sit at \u2014 the same\nsite offered at "
-            "different points on the path", APOLAR, size=34)
+            f"{min(d0):.0f}\u2013{max(d0):.0f} \u00c5",
+            "from the cleft to where they sit \u2014\nthe same site, "
+            "reached at different distances", APOLAR, size=34)
 
     y0, htop = 2.85 / H, 3.30 / H
     ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
-    ax.set_xlim(XLO, XHI); ax.set_ylim(-0.95, n - 0.15)
+    ax.set_xlim(-1.0, XHI); ax.set_ylim(-0.95, n - 0.15)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
@@ -2360,55 +2340,47 @@ def panel_ligand_in_tunnel():
     ax.tick_params(axis="both", colors="black", labelcolor="black")
     KY = 0.085
 
-    for i, (nm, k, d, rad, mine, anchor, full) in enumerate(rows):
+    for i, (nm, k, d, rad, L, neck, rm, mine) in enumerate(rows):
         y = n - 1 - i
         col = LIGCOL.get(k[0], TEAL)
-        keep = (d >= XLO) & (d <= XHI)
-        ax.fill_between(d[keep], y - KY * rad[keep], y + KY * rad[keep],
-                        color=tint(col, 0.85), zorder=2, linewidth=0)
+        ax.fill_between(d, y - KY * rad, y + KY * rad, color=tint(col, 0.85),
+                        zorder=2, linewidth=0)
         for sgn in (1, -1):
-            ax.plot(d[keep], y + sgn * KY * rad[keep], color=tint(col, 0.30),
+            ax.plot(d, y + sgn * KY * rad, color=tint(col, 0.30),
                     linewidth=1.6, zorder=3)
-
         st = site.get(k, "")
-        for r in sorted(mine, key=lambda r: float(r["depth_mean_A"])):
-            x = float(r["depth_mean_A"])
-            a, b = (float(r["depth_shallowest_A"]),
-                    float(r["depth_deepest_A"]))
-            ax.plot([a, b], [y, y], color=col, linewidth=7, alpha=.40,
-                    solid_capstyle="round", zorder=4)
+        for r in sorted(mine, key=lambda r: float(r["along_route_A"])):
+            if float(r["closest_offset_A"]) > ON_ROUTE:
+                continue                 # sits off this route, not on it
+            x = float(r["along_route_A"])
+            ax.plot([float(r["along_route_min_A"]),
+                     float(r["along_route_max_A"])], [y, y], color=col,
+                    linewidth=7, alpha=.40, solid_capstyle="round", zorder=4)
             ax.scatter([x], [y], s=80 + 2.4 * int(r["heavy_atoms"]), zorder=5,
                        color=SITECOL.get(st, "#b9c3c8"), edgecolor=col,
                        linewidth=2.4)
-            ax.annotate(f"{float(r['median_room_per_atom_A']):.2f} \u00c5",
-                        (x, y), xytext=(0, 16), textcoords="offset points",
-                        ha="center", fontsize=11.5, color=tint(col, 0.15),
-                        fontweight="bold", zorder=6)
         ax.annotate(nm, (0, y), xycoords=("axes fraction", "data"),
                     xytext=(-12, -5), textcoords="offset points", ha="right",
                     fontsize=13.5, color=col,
                     fontweight="bold" if k[0] in OURS else "normal")
-        ax.annotate(f"{min(float(r['median_room_per_atom_A']) for r in mine):.2f}"
-                    f" \u00c5", (1.0, y), xycoords=("axes fraction", "data"),
-                    xytext=(9, 1), textcoords="offset points", ha="left",
-                    va="bottom", fontsize=12.5, color=col,
-                    annotation_clip=False)
-        # the full route, as a number rather than as tube length
-        ax.annotate(f"{full:.0f} \u00c5 route", (1.0, y),
+        ax.annotate(f"{rm:.2f} \u00c5", (1.0, y),
+                    xycoords=("axes fraction", "data"), xytext=(9, 1),
+                    textcoords="offset points", ha="left", va="bottom",
+                    fontsize=12.5, color=col, annotation_clip=False)
+        ax.annotate(f"neck {neck:.2f} \u00c5", (1.0, y),
                     xycoords=("axes fraction", "data"), xytext=(9, -4),
                     textcoords="offset points", ha="left", va="top",
                     fontsize=10.5, color="#8a99a2", annotation_clip=False)
-    ax.annotate("Room per atom,\nand the full route", (1.0, n - 0.35),
+    ax.annotate("Room per atom,\nand the route's neck", (1.0, n - 0.35),
                 xycoords=("axes fraction", "data"), xytext=(9, 2),
                 textcoords="offset points", ha="left", va="bottom",
                 fontsize=12, color=INK2, annotation_clip=False)
-    ax.plot([XLO + 1.2, XLO + 1.2], [-0.70 - KY * 4, -0.70 + KY * 4],
-            color="black", linewidth=2.4, solid_capstyle="butt")
-    ax.annotate("8 \u00c5 across", (XLO + 1.2, -0.70),
-                textcoords="offset points", xytext=(9, -5), ha="left",
-                fontsize=12, color=INK2)
-    ax.set_xlabel("Depth into the porter domain (\u00c5 from the "
-                  "periplasmic entrance)", labelpad=10)
+    ax.plot([0.8, 0.8], [-0.70 - KY * 4, -0.70 + KY * 4], color="black",
+            linewidth=2.4, solid_capstyle="butt")
+    ax.annotate("8 \u00c5 across", (0.8, -0.70), textcoords="offset points",
+                xytext=(9, -5), ha="left", fontsize=12, color=INK2)
+    ax.set_xlabel("Distance from the periplasmic cleft along the route "
+                  "(\u00c5)", labelpad=10)
     ax.xaxis.label.set_size(16)
     ax.xaxis.label.set_color("black")
 
@@ -2423,8 +2395,37 @@ def panel_ligand_in_tunnel():
                bbox_to_anchor=(0.58, 1.0 - 2.55 / H), fontsize=13.5,
                handletextpad=0.35, columnspacing=1.8)
 
-    fig.text(0.045, 1.55 / H,
-             'Each row is one structure\'s own tunnel, drawn at its measured radius and slid so its deepest ligand sits at that\nligand\'s depth on the shared reference channel, then shown from the periplasmic entrance to 70 \u00c5 in. A row that starts\nshort of zero is one whose own route never reaches the entrance \u2014 it breaks out of the side of the porter domain\ninstead, which all but ampicillin\'s do \u2014 and every row stops at its ligand, because that is where the trace was\nseeded. The number at the right is the full route, 52 to 154 \u00c5, which is a property of the tracing rather than of\ntransport: it mixes how much a route winds with how far past the surface the search happened to carry on. The axis\nstops at 70 \u00c5 because the protein does: a flood fill from bulk solvent puts the deepest water-accessible point\nanywhere in this protomer 64 \u00c5 of path from the outside, and the deepest ligand at 68 \u00c5. The bar is\nthe stretch of channel the molecule occupies and the marker its mean depth, sized by heavy-atom count. Room is\nmeasured atom by atom \u2014 the median clearance to protein over the ligand\'s own atoms \u2014 not at its centroid. That\nmatters: an elongated molecule curls, so its centroid falls in protein rather than in the cavity, which reads as 0.80\n\u00c5 for CYMAL-7, a molecule reaching 10.8 \u00c5 from its own centre, against 2.66 \u00c5 for compact ampicillin at 6.0 \u00c5.\nMeasured fairly, every substrate sits in much the same room and the differences are small: EPI is tightest at 1.8 \u00c5\nand LMNG widest at 2.3 \u00c5, with a 20-atom antibiotic and a 69-atom detergent barely apart. Routes are traced with\nligands stripped, so this is the room the site offers rather than what is left beside the molecule. Numbers in\nligand_reach.csv.',
+    body = ("Each row is the widest route from the periplasmic cleft to that "
+            "structure's own bound substrate, drawn at its measured radius. "
+            "Both ends are fixed, which is what makes the rows comparable: "
+            "the search starts at the ligand and must leave through the "
+            "cleft mouth of the reference channel, mapped into each "
+            "structure's frame by superposition, rather than by whatever "
+            "opening happens to be widest. It runs in two stages, because a "
+            "widest-path search has no preference among routes that share "
+            "its bottleneck and will wander - taking the shortest route "
+            "through voxels at least as wide as that bottleneck gives the "
+            "same number by a direct path. Every row therefore starts at the "
+            "cleft and ends where its substrate sits, 24 to 50 A in. The bar "
+            "is the stretch the molecule occupies and the marker its mean "
+            "position, sized by heavy-atom count. Whether a ligand is on "
+            "the route is judged by its nearest atom rather than its "
+            "mean, since a 69-atom detergent 12 A long has a large mean "
+            "offset however squarely it sits on the line; on that test "
+            "eight of the nine ligands are within 1.5 A of their route "
+            "and the ninth, one of the three DDM of our protomer, is "
+            "11 A off it and is not drawn. Room is the median clearance "
+            "to protein over the ligand's own atoms, not at its centroid: an "
+            "elongated molecule curls, so its centroid falls in protein, "
+            "which reads as 0.80 A for CYMAL-7 against 2.66 A for compact "
+            "ampicillin. Measured fairly every substrate sits in much the "
+            "same room. Routes are traced with ligands stripped, so this is "
+            "the room the site offers rather than what is left beside the "
+            "molecule. Numbers in cleft_routes.csv and cleft_ligands.csv.")
+    body = body.replace(" A ", " \u00c5 ").replace(" A.", " \u00c5.")
+    body = body.replace(" - ", " \u2014 ")
+    import textwrap
+    fig.text(0.045, 1.55 / H, "\n".join(textwrap.wrap(body, width=118)),
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P19_ligand_in_tunnel")
 
