@@ -2330,7 +2330,11 @@ def panel_ligand_in_tunnel():
     # whose trace ends at its ligand, which every one of them does.
     n = len(rows)
 
-    XLO, XHI = 0.0, 80.0
+    # the axis stops just past the deepest ligand rather than at a round
+    # number: a flood fill from bulk puts the deepest solvent-accessible
+    # point anywhere in the protomer 64 A of path from the outside, so an
+    # axis running further only shows where the protein has ended
+    XLO, XHI = 0.0, 70.0
     H = 6.4 + 0.62 * n
     fig = plt.figure(figsize=(11.6, H))
     title(fig, "Same room, different place",
@@ -2420,7 +2424,7 @@ def panel_ligand_in_tunnel():
                handletextpad=0.35, columnspacing=1.8)
 
     fig.text(0.045, 1.55 / H,
-             'Each row is one structure\'s own tunnel, drawn at its measured radius and slid so its deepest ligand sits at that\nligand\'s depth on the shared reference channel, then shown from the periplasmic entrance to 80 \u00c5 in. A row that starts\nshort of zero is one whose own route never reaches the entrance \u2014 it breaks out of the side of the porter domain\ninstead, which all but ampicillin\'s do \u2014 and every row stops at its ligand, because that is where the trace was\nseeded. The number at the right is the full route, 52 to 154 \u00c5, which is a property of the tracing rather than of\ntransport: it mixes how much a route winds with how far past the surface the search happened to carry on. The bar is\nthe stretch of channel the molecule occupies and the marker its mean depth, sized by heavy-atom count. Room is\nmeasured atom by atom \u2014 the median clearance to protein over the ligand\'s own atoms \u2014 not at its centroid. That\nmatters: an elongated molecule curls, so its centroid falls in protein rather than in the cavity, which reads as 0.80\n\u00c5 for CYMAL-7, a molecule reaching 10.8 \u00c5 from its own centre, against 2.66 \u00c5 for compact ampicillin at 6.0 \u00c5.\nMeasured fairly, every substrate sits in much the same room and the differences are small: EPI is tightest at 1.8 \u00c5\nand LMNG widest at 2.3 \u00c5, with a 20-atom antibiotic and a 69-atom detergent barely apart. Routes are traced with\nligands stripped, so this is the room the site offers rather than what is left beside the molecule. Numbers in\nligand_reach.csv.',
+             'Each row is one structure\'s own tunnel, drawn at its measured radius and slid so its deepest ligand sits at that\nligand\'s depth on the shared reference channel, then shown from the periplasmic entrance to 70 \u00c5 in. A row that starts\nshort of zero is one whose own route never reaches the entrance \u2014 it breaks out of the side of the porter domain\ninstead, which all but ampicillin\'s do \u2014 and every row stops at its ligand, because that is where the trace was\nseeded. The number at the right is the full route, 52 to 154 \u00c5, which is a property of the tracing rather than of\ntransport: it mixes how much a route winds with how far past the surface the search happened to carry on. The axis\nstops at 70 \u00c5 because the protein does: a flood fill from bulk solvent puts the deepest water-accessible point\nanywhere in this protomer 64 \u00c5 of path from the outside, and the deepest ligand at 68 \u00c5. The bar is\nthe stretch of channel the molecule occupies and the marker its mean depth, sized by heavy-atom count. Room is\nmeasured atom by atom \u2014 the median clearance to protein over the ligand\'s own atoms \u2014 not at its centroid. That\nmatters: an elongated molecule curls, so its centroid falls in protein rather than in the cavity, which reads as 0.80\n\u00c5 for CYMAL-7, a molecule reaching 10.8 \u00c5 from its own centre, against 2.66 \u00c5 for compact ampicillin at 6.0 \u00c5.\nMeasured fairly, every substrate sits in much the same room and the differences are small: EPI is tightest at 1.8 \u00c5\nand LMNG widest at 2.3 \u00c5, with a 20-atom antibiotic and a 69-atom detergent barely apart. Routes are traced with\nligands stripped, so this is the room the site offers rather than what is left beside the molecule. Numbers in\nligand_reach.csv.',
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P19_ligand_in_tunnel")
 
