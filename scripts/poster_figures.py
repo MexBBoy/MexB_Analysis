@@ -2316,17 +2316,24 @@ def panel_ligand_in_tunnel():
         # ligand's depth on the shared reference channel
         deep = max(mine, key=lambda r: float(r["depth_mean_A"]))
         shift = float(deep["depth_mean_A"]) - max(own[k])
-        rows.append((nm, k, d + shift, rad, mine))
+        rows.append((nm, k, d + shift, rad, mine,
+                     float(deep["depth_mean_A"]), float(max(d) - min(d))))
     if not rows:
         return
-    rooms = [float(r["median_room_per_atom_A"]) for _, _, _, _, m in rows
-             for r in m]
-    deps = [float(r["depth_mean_A"]) for _, _, _, _, m in rows for r in m]
+    rooms = [float(r["median_room_per_atom_A"]) for t in rows for r in t[4]]
+    deps = [float(r["depth_mean_A"]) for t in rows for r in t[4]]
     rows.sort(key=lambda t: min(float(r["median_room_per_atom_A"])
                                 for r in t[4]))
+    # every tube the same length: WINDOW of route either side of the ligand
+    # it is anchored on. Raw route length is a property of the tracing, not
+    # of transport - it mixes how much a route winds with how far past the
+    # surface the search happened to carry on - so drawing it invites a
+    # comparison between rows that means nothing.
+    WINDOW = 30.0
     n = len(rows)
 
-    XLO, XHI = -6.0, 80.0
+    XLO = min(t[5] for t in rows) - WINDOW - 2.0
+    XHI = 80.0
     H = 6.4 + 0.62 * n
     fig = plt.figure(figsize=(11.6, H))
     title(fig, "Same room, different place",
@@ -2352,19 +2359,16 @@ def panel_ligand_in_tunnel():
     ax.tick_params(axis="both", colors="black", labelcolor="black")
     KY = 0.085
 
-    for i, (nm, k, d, rad, mine) in enumerate(rows):
+    for i, (nm, k, d, rad, mine, anchor, full) in enumerate(rows):
         y = n - 1 - i
         col = LIGCOL.get(k[0], TEAL)
-        keep = (d >= XLO) & (d <= XHI)
+        keep = np.abs(d - anchor) <= WINDOW
         ax.fill_between(d[keep], y - KY * rad[keep], y + KY * rad[keep],
                         color=tint(col, 0.85), zorder=2, linewidth=0)
         for sgn in (1, -1):
             ax.plot(d[keep], y + sgn * KY * rad[keep], color=tint(col, 0.30),
                     linewidth=1.6, zorder=3)
-        if d.min() < XLO:                        # the route carries on
-            ax.annotate(f"\u2190 {d.max() - d.min():.0f} \u00c5 route",
-                        (XLO, y), xytext=(6, 13), textcoords="offset points",
-                        ha="left", fontsize=10.5, color=tint(col, 0.25))
+
         st = site.get(k, "")
         for r in sorted(mine, key=lambda r: float(r["depth_mean_A"])):
             x = float(r["depth_mean_A"])
@@ -2385,15 +2389,21 @@ def panel_ligand_in_tunnel():
                     fontweight="bold" if k[0] in OURS else "normal")
         ax.annotate(f"{min(float(r['median_room_per_atom_A']) for r in mine):.2f}"
                     f" \u00c5", (1.0, y), xycoords=("axes fraction", "data"),
-                    xytext=(9, -5), textcoords="offset points", ha="left",
-                    fontsize=12.5, color=col, annotation_clip=False)
-    ax.annotate("Room per\natom", (1.0, n - 0.35),
+                    xytext=(9, 1), textcoords="offset points", ha="left",
+                    va="bottom", fontsize=12.5, color=col,
+                    annotation_clip=False)
+        # the full route, as a number rather than as tube length
+        ax.annotate(f"{full:.0f} \u00c5 route", (1.0, y),
+                    xycoords=("axes fraction", "data"), xytext=(9, -4),
+                    textcoords="offset points", ha="left", va="top",
+                    fontsize=10.5, color="#8a99a2", annotation_clip=False)
+    ax.annotate("Room per atom,\nand the full route", (1.0, n - 0.35),
                 xycoords=("axes fraction", "data"), xytext=(9, 2),
                 textcoords="offset points", ha="left", va="bottom",
                 fontsize=12, color=INK2, annotation_clip=False)
-    ax.plot([XLO + 2.0, XLO + 2.0], [-0.70 - KY * 4, -0.70 + KY * 4],
+    ax.plot([XLO + 1.2, XLO + 1.2], [-0.70 - KY * 4, -0.70 + KY * 4],
             color="black", linewidth=2.4, solid_capstyle="butt")
-    ax.annotate("8 \u00c5 across", (XLO + 2.0, -0.70),
+    ax.annotate("8 \u00c5 across", (XLO + 1.2, -0.70),
                 textcoords="offset points", xytext=(9, -5), ha="left",
                 fontsize=12, color=INK2)
     ax.set_xlabel("Depth into the porter domain (\u00c5 from the "
@@ -2413,27 +2423,7 @@ def panel_ligand_in_tunnel():
                handletextpad=0.35, columnspacing=1.8)
 
     fig.text(0.045, 1.55 / H,
-             "Each row is one structure's own tunnel, drawn at its measured "
-             "radius and slid so its deepest ligand sits at that ligand's "
-             "depth on the shared\nreference channel; the bar is the "
-             "stretch of channel the molecule occupies and the marker its "
-             "mean depth, sized by heavy-atom count. Room is\nmeasured atom "
-             "by atom \u2014 the median clearance to protein over the "
-             "ligand's own atoms \u2014 not at its centroid. That matters: "
-             "an elongated molecule\ncurls, so its centroid falls in "
-             "protein rather than in the cavity, which reads as 0.80 "
-             "\u00c5 for CYMAL-7, a molecule reaching 10.8 \u00c5 from its "
-             "own centre,\nagainst 2.66 \u00c5 for compact ampicillin at "
-             "6.0 \u00c5. Measured fairly, every substrate sits in much the "
-             "same room and the differences are small: EPI\nis tightest at "
-             "1.8 \u00c5 and LMNG widest at 2.3 \u00c5, with a 20-atom "
-             "antibiotic and a 69-atom detergent barely apart. Routes are "
-             "traced with ligands\nstripped, so this is the room the site "
-             "offers rather than what is left beside the molecule. 21FO's "
-             "own route runs 154 \u00c5 and extends off the left of\nthe "
-             "panel; on the shared axis its CYMAL-7 sits at 41 \u00c5, "
-             "overlapping the shallowest DDM of our three-ligand protomer. "
-             "Numbers in ligand_reach.csv.",
+             'Each row is one structure\'s own tunnel, drawn at its measured radius and slid so its deepest ligand sits at that\nligand\'s depth on the shared reference channel, then trimmed to the 30 \u00c5 of route either side of that ligand so every\nrow is the same length. Raw route length is a property of the tracing rather than of transport \u2014 it mixes how much a\nroute winds with how far past the surface the search happened to carry on, 52 to 154 \u00c5 across these seven \u2014 so it is\ngiven as a number at the right instead of drawn. The bar is the stretch of channel the molecule occupies and the\nmarker its mean depth, sized by heavy-atom count. Room is measured atom by atom \u2014 the median clearance to protein over\nthe ligand\'s own atoms \u2014 not at its centroid. That matters: an elongated molecule curls, so its centroid falls in\nprotein rather than in the cavity, which reads as 0.80 \u00c5 for CYMAL-7, a molecule reaching 10.8 \u00c5 from its own centre,\nagainst 2.66 \u00c5 for compact ampicillin at 6.0 \u00c5. Measured fairly, every substrate sits in much the same room and the\ndifferences are small: EPI is tightest at 1.8 \u00c5 and LMNG widest at 2.3 \u00c5, with a 20-atom antibiotic and a 69-atom\ndetergent barely apart. Routes are traced with ligands stripped, so this is the room the site offers rather than what\nis left beside the molecule. On the shared axis 21FO\'s CYMAL-7 sits at 41 \u00c5, overlapping the shallowest DDM of our\nthree-ligand protomer at 39 \u00c5 \u2014 the same stretch of the path, whatever the length of the route that reaches it.\nNumbers in ligand_reach.csv.',
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P19_ligand_in_tunnel")
 
