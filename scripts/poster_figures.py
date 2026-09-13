@@ -2303,7 +2303,9 @@ def panel_ligand_in_tunnel():
         P, rad = trace_of(f)
         arc = np.concatenate([[0.0], np.cumsum(
             np.linalg.norm(np.diff(P, axis=0), axis=1))])
-        rows.append((r["ligand"], k, arc[-1] - arc, rad, float(r["length_A"]),
+        # measured back from the substrate, so every row ends together at
+        # its own ligand and the ragged edge is the approach instead
+        rows.append((r["ligand"], k, arc, rad, float(r["length_A"]),
                      float(r["route_bottleneck_A"]),
                      float(np.median(room.get(k, [np.nan]))), ligs[k]))
     if not rows:
@@ -2313,7 +2315,7 @@ def panel_ligand_in_tunnel():
     # the axis ends where the longest route does, so that row reaches the
     # right edge; the shorter rows end at their own ligand, which is where
     # their route ends, and each gets a cap to say so
-    XHI = max(t[4] for t in rows) + 0.5
+    XHI = max(t[4] for t in rows) + 0.5      # the longest approach
 
     H = 6.4 + 0.62 * n
     fig = plt.figure(figsize=(11.6, H))
@@ -2329,12 +2331,12 @@ def panel_ligand_in_tunnel():
           if float(x["closest_offset_A"]) <= ON_ROUTE]
     callout(fig, 0.545, 1.0 - 1.15 / H,
             f"{min(d0):.0f}\u2013{max(d0):.0f} \u00c5",
-            "from the cleft to where they sit \u2014\nthe same site, "
-            "reached at different distances", APOLAR, size=34)
+            "of route behind them \u2014 the same site,\nreached over "
+            "very different distances", APOLAR, size=34)
 
     y0, htop = 2.85 / H, 3.30 / H
     ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
-    ax.set_xlim(-1.0, XHI); ax.set_ylim(-0.95, n - 0.15)
+    ax.set_xlim(XHI, -1.0); ax.set_ylim(-0.95, n - 0.15)   # cleft on the left
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
@@ -2351,17 +2353,17 @@ def panel_ligand_in_tunnel():
         for sgn in (1, -1):
             ax.plot(d, y + sgn * KY * rad, color=tint(col, 0.30),
                     linewidth=1.6, zorder=3)
-        # a cap where the route ends: the row stops because the trace does
-        ax.plot([L, L], [y - KY * rad[0] - 0.06, y + KY * rad[0] + 0.06],
+        # a cap at the cleft end, where the route stops
+        ax.plot([L, L], [y - KY * rad[-1] - 0.06, y + KY * rad[-1] + 0.06],
                 color=tint(col, 0.30), linewidth=2.2, zorder=4,
                 solid_capstyle="butt")
         st = site.get(k, "")
         for r in sorted(mine, key=lambda r: float(r["along_route_A"])):
             if float(r["closest_offset_A"]) > ON_ROUTE:
                 continue                 # sits off this route, not on it
-            x = float(r["along_route_A"])
-            ax.plot([float(r["along_route_min_A"]),
-                     float(r["along_route_max_A"])], [y, y], color=col,
+            x = L - float(r["along_route_A"])
+            ax.plot([L - float(r["along_route_min_A"]),
+                     L - float(r["along_route_max_A"])], [y, y], color=col,
                     linewidth=7, alpha=.40, solid_capstyle="round", zorder=4)
             ax.scatter([x], [y], s=80 + 2.4 * int(r["heavy_atoms"]), zorder=5,
                        color=SITECOL.get(st, "#b9c3c8"), edgecolor=col,
@@ -2382,12 +2384,13 @@ def panel_ligand_in_tunnel():
                 xycoords=("axes fraction", "data"), xytext=(9, 2),
                 textcoords="offset points", ha="left", va="bottom",
                 fontsize=12, color=INK2, annotation_clip=False)
-    ax.plot([0.8, 0.8], [-0.70 - KY * 4, -0.70 + KY * 4], color="black",
-            linewidth=2.4, solid_capstyle="butt")
-    ax.annotate("8 \u00c5 across", (0.8, -0.70), textcoords="offset points",
-                xytext=(9, -5), ha="left", fontsize=12, color=INK2)
-    ax.set_xlabel("Distance from the periplasmic cleft along the route "
-                  "(\u00c5)", labelpad=10)
+    ax.plot([XHI - 1.5, XHI - 1.5], [-0.70 - KY * 4, -0.70 + KY * 4],
+            color="black", linewidth=2.4, solid_capstyle="butt")
+    ax.annotate("8 \u00c5 across", (XHI - 1.5, -0.70),
+                textcoords="offset points", xytext=(9, -5), ha="left",
+                fontsize=12, color=INK2)
+    ax.set_xlabel("Distance back from the substrate towards the "
+                  "periplasmic cleft (\u00c5)", labelpad=10)
     ax.xaxis.label.set_size(16)
     ax.xaxis.label.set_color("black")
 
@@ -2402,43 +2405,7 @@ def panel_ligand_in_tunnel():
                bbox_to_anchor=(0.58, 1.0 - 2.55 / H), fontsize=13.5,
                handletextpad=0.35, columnspacing=1.8)
 
-    body = ("Each row is the widest route from the periplasmic cleft to that "
-            "structure's own bound substrate, drawn at its measured radius. "
-            "Both ends are fixed, which is what makes the rows comparable: "
-            "the search starts at the ligand and must leave through the "
-            "cleft mouth of the reference channel, mapped into each "
-            "structure's frame by superposition, rather than by whatever "
-            "opening happens to be widest. It runs in two stages, because a "
-            "widest-path search has no preference among routes that share "
-            "its bottleneck and will wander - taking the shortest route "
-            "through voxels at least as wide as that bottleneck gives the "
-            "same number by a direct path. Every row therefore starts at the "
-            "cleft and ends where its substrate sits, 24 to 50 A in; the "
-            "vertical cap on each row marks that end, and the axis stops "
-            "where the longest route does. The rows cannot be made to finish "
-            "together without inventing tunnel: past its ligand a route has "
-            "nothing left to trace, because the ligand is where the search "
-            "was seeded and the pocket beyond it is a chamber rather than a "
-            "continuing passage. The bar "
-            "is the stretch the molecule occupies and the marker its mean "
-            "position, sized by heavy-atom count. Whether a ligand is on "
-            "the route is judged by its nearest atom rather than its "
-            "mean, since a 69-atom detergent 12 A long has a large mean "
-            "offset however squarely it sits on the line; on that test "
-            "eight of the nine ligands are within 1.5 A of their route "
-            "and the ninth, one of the three DDM of our protomer, is "
-            "11 A off it and is not drawn. Room is the median clearance "
-            "to protein over the ligand's own atoms, not at its centroid: an "
-            "elongated molecule curls, so its centroid falls in protein, "
-            "which reads as 0.80 A for CYMAL-7 against 2.66 A for compact "
-            "ampicillin. Measured fairly every substrate sits in much the "
-            "same room. Routes are traced with ligands stripped, so this is "
-            "the room the site offers rather than what is left beside the "
-            "molecule. Numbers in cleft_routes.csv and cleft_ligands.csv.")
-    body = body.replace(" A ", " \u00c5 ").replace(" A.", " \u00c5.")
-    body = body.replace(" - ", " \u2014 ")
-    import textwrap
-    fig.text(0.045, 1.55 / H, "\n".join(textwrap.wrap(body, width=118)),
+    fig.text(0.045, 1.55 / H, 'Each row is the widest route from the periplasmic cleft to that structure\'s own bound substrate, drawn at its measured\nradius and aligned on the substrate, so every row ends together at 0 and the ragged edge is the approach. Both ends of\nthe search are fixed, which is what makes the rows comparable: it starts at the ligand and must leave through the\ncleft mouth of the reference channel, mapped into each structure\'s frame by superposition, rather than by whatever\nopening happens to be widest. It runs in two stages, because a widest-path search has no preference among routes that\nshare its bottleneck and will wander \u2014 taking the shortest route through voxels at least as wide as that bottleneck\ngives the same number by a direct path. The cap at the left of each row is the cleft end; the approach runs 24 to 50\n\u00c5. Nothing is drawn to the right of the substrate because there is no channel there: the cavity does carry on past\nevery ligand, but its deepest point lies only 11 to 18 \u00c5 away in space with 1.4 to 1.6 \u00c5 of room, a water-width recess\nreached by a winding crevice rather than a continuation of the path (pocket_end.csv). The bar is the stretch the\nmolecule occupies and the marker its mean position, sized by heavy-atom count. Whether a ligand counts as on the route\nis judged by its nearest atom rather than its mean, since a 69-atom detergent 12 \u00c5 long has a large mean offset\nhowever squarely it sits on the line; on that test eight of the nine ligands are within 1.5 \u00c5 of their route and the\nninth, one of the three DDM of our protomer, is 11 \u00c5 off it and is not drawn. Room is the median clearance to protein\nover the ligand\'s own atoms, not at its centroid: an elongated molecule curls, so its centroid falls in protein, which\nreads as 0.80 \u00c5 for CYMAL-7 against 2.66 \u00c5 for compact ampicillin. Measured fairly every substrate sits in much the\nsame room. Routes are traced with ligands stripped, so this is the room the site offers rather than what is left\nbeside the molecule. Numbers in cleft_routes.csv and cleft_ligands.csv.',
              fontsize=13, color=INK2, va="top", linespacing=1.5)
     save(fig, "P19_ligand_in_tunnel")
 
