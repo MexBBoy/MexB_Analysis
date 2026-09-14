@@ -2321,26 +2321,26 @@ CAP21 = (
 
 
 CAP23 = (
-    'Buried room in the proximal and distal pockets of all seven structures. A voxel counts only if a probe fits in it\n'
-    'and it is not connected to bulk solvent, so this is enclosed room rather than surface, and the ligands are\n'
-    'stripped before the grid is built, so it is the volume of the empty site. Three probe radii are drawn nested\n'
-    'because a pocket volume is a function of the probe, not a constant: both pockets lose about two thirds of their\n'
-    'volume between the 1.4 and 2.2 A probes, which says these are networks of crevices rather than clean chambers.\n'
-    'The pockets are conserved. Across seven structures the proximal pocket runs 2025 to 2272 A^3 at the water probe\n'
-    'and the distal 888 to 1143, a spread of 4 and 8 percent about the mean, and the proximal holds 2.0 to 2.4 times\n'
-    'the distal in every one. So the protein offers much the same room whatever is bound, and what differs is\n'
-    'occupancy, which runs 0.4 to 39 percent: the three DDM of our protomer fill the most, a third of the distal\n'
-    'pocket and a sixth of the proximal, while ampicillin leaves the proximal essentially untouched at 0.4 percent.\n'
-    'Chloramphenicol is the lowest in both at 5.4 and 2.5 percent, which agrees with the tunnel panels: it sits in a\n'
-    'side chamber off the route rather than in either pocket proper. Even the fullest pocket here is three fifths\n'
-    'empty. Space counts as pocket only within 8 A of a lining residue. That cutoff was first set at a generous 12 A,\n'
-    'which roughly doubled both pockets, and tightening it corrected something stated here earlier: the generous cut\n'
-    'was NOT why the proximal pocket reads larger. Both pockets keep 41 to 49 percent of their volume at 8 A, the same\n'
-    'fraction either side, so the proximal pocket is simply the larger of the two. The remaining caution stands: the\n'
-    'buried space around the porter domain is one connected system rather than two separate cavities, so the split\n'
-    'between proximal and distal is imposed - each voxel is assigned to whichever pocket\'s lining residues are nearer\n'
-    '- and a different rule would move room between the two rows, though not the total. Numbers in\n'
-    'porter_pocket_volumes.csv.')
+    'Buried room in the proximal and distal pockets of our ampicillin and DDM structures, at a 1.4 A probe - the size\n'
+    'of a water molecule, and the usual convention. A voxel counts only if that probe fits in it and it is not\n'
+    'connected to bulk solvent, so this is enclosed room rather than surface, and the ligands are stripped before the\n'
+    'grid is built, so it is the volume of the empty site. The bar is the room the pocket offers and the solid inset\n'
+    'the part of it the bound substrate fills.\n'
+    'The two structures give near-identical pockets - proximal 2121 against 2214 A^3 and distal 941 against 1021,\n'
+    'within 5 percent - so what separates them is not size but occupancy: ampicillin leaves the proximal essentially\n'
+    'untouched at 0.4 percent and fills a fifth of the distal, while the three DDM fill a sixth and two fifths. Even\n'
+    'the fullest is three fifths empty. The same holds across all seven structures measured, where the proximal pocket\n'
+    'runs 2025 to 2272 A^3 and the distal 888 to 1143, spreads of 4 and 8 percent about the mean: the protein offers\n'
+    'much the same room whatever is bound.\n'
+    'Three caveats, all of them choices rather than measurements. A pocket volume is a function of the probe, not a\n'
+    'constant - both pockets lose about two thirds of their volume at a 2.2 A probe, which says these are networks of\n'
+    'crevices rather than clean chambers - and the other two probes are in the table rather than on the panel. Space\n'
+    'counts as pocket only within 8 A of a lining residue; at the 12 A first used both pockets roughly doubled, in the\n'
+    'same proportion either side, so the cutoff is not what makes the proximal the larger. And the buried space around\n'
+    'the porter domain is one connected system rather than two separate cavities, so the split between proximal and\n'
+    'distal is imposed, each voxel going to whichever pocket\'s lining residues are nearer; a different rule would move\n'
+    'room between the two rows, though not the total. Numbers, including the other five structures and the other two\n'
+    'probes, in porter_pocket_volumes.csv.')
 
 
 def panel_ligand_in_tunnel():
@@ -2823,12 +2823,18 @@ def panel_pocket_volumes():
     vol = R("porter_pocket_volumes.csv")
     if not vol:
         return
-    PROBE = ("1.40", "1.80", "2.20")
-    SH = {"1.40": 0.62, "1.80": 0.42, "2.20": 0.22}
+    # our two structures at the water probe; the other five and the other
+    # two probes stay in porter_pocket_volumes.csv
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+    PROBE = ("1.40",)
+    SH = {"1.40": 0.52}
 
     got = {}
     for r in vol:
         got[(r["structure"], r["pocket"], r["probe_A"])] = r
+    vol = [r for r in vol if r["pdb"] in OURS]
+    if not vol:
+        return
     structs = sorted({r["structure"] for r in vol})
     keys = [(st, pk) for st in structs for pk in ("proximal", "distal")
             if (st, pk, "1.40") in got]
@@ -2838,27 +2844,27 @@ def panel_pocket_volumes():
     XHI = max(float(got[(st, pk, "1.40")]["volume_A3"])
               for (st, pk) in keys) * 1.06
 
-    H = 7.3 + 0.85 * n
+    H = 7.3 + 0.95 * n
     fig = plt.figure(figsize=(11.6, H))
     title(fig, "The same pockets, differently filled",
-          "Buried room in the two binding pockets of every structure, and how "
-          "much of it the bound substrate occupies.")
+          "Buried room in each binding pocket of our two structures, measured "
+          "with a water-sized probe.")
     rat = [float(got[(st, "proximal", p)]["volume_A3"])
            / float(got[(st, "distal", p)]["volume_A3"])
            for st in structs for p in PROBE
            if (st, "proximal", p) in got and (st, "distal", p) in got]
-    callout(fig, 0.055, 1.0 - 2.70 / H,
+    callout(fig, 0.055, 1.0 - 1.85 / H,
             f"{min(rat):.1f}\u2013{max(rat):.1f}\u00d7",
-            "more room in the proximal pocket than\nthe distal, at every probe "
-            "and in every structure", TEAL, size=34)
+            "more room in the proximal pocket than\nthe distal, in both of our "
+            "structures", TEAL, size=34)
     fills = [float(got[(st, pk, "1.40")]["ligand_fills_pct"])
              for (st, pk) in keys]
-    callout(fig, 0.545, 1.0 - 2.70 / H,
+    callout(fig, 0.545, 1.0 - 1.85 / H,
             f"{min(fills):.1f}\u2013{max(fills):.0f}%",
             "of that room is occupied \u2014 every\npocket is mostly empty",
             APOLAR, size=34)
 
-    y0, htop = 3.15 / H, 5.40 / H
+    y0, htop = 3.15 / H, 4.50 / H
     ax = fig.add_axes([0.235, y0, 0.645, 1.0 - y0 - htop])
     ax.set_xlim(0, XHI); ax.set_ylim(-0.75, n - 0.25)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
@@ -2873,7 +2879,7 @@ def panel_pocket_volumes():
         col = LIGCOL.get(next((r["pdb"] for r in vol
                                if r["structure"] == st), ""), TEAL)
         pcol = POLAR if pk == "proximal" else APOLAR
-        for q, f in zip(PROBE, (0.86, 0.66, 0.44)):
+        for q, f in zip(PROBE, (0.80,)):
             v = float(got[(st, pk, q)]["volume_A3"])
             ax.barh(y, v, height=SH[q], color=tint(pcol, f), zorder=2,
                     edgecolor=tint(pcol, 0.25), linewidth=1.1)
@@ -2902,14 +2908,13 @@ def panel_pocket_volumes():
     ax.xaxis.label.set_color("black")
 
     import matplotlib.patches as _mp
-    handles = [_mp.Patch(facecolor=tint("#7a8891", f),
+    handles = [_mp.Patch(facecolor=tint("#7a8891", 0.80),
                          edgecolor=tint("#7a8891", 0.25), linewidth=1.1,
-                         label=f"probe {q} \u00c5")
-               for q, f in zip(PROBE, (0.86, 0.66, 0.44))]
-    handles.append(_mp.Patch(facecolor=INK2,
-                             label="volume the substrate fills"))
-    fig.legend(handles=handles, loc="upper center", ncol=4,
-               bbox_to_anchor=(0.58, 1.0 - 4.70 / H), fontsize=13,
+                         label="room in the empty pocket"),
+               _mp.Patch(facecolor=INK2,
+                         label="volume the substrate fills")]
+    fig.legend(handles=handles, loc="upper center", ncol=2,
+               bbox_to_anchor=(0.58, 1.0 - 3.80 / H), fontsize=13,
                handletextpad=0.45, columnspacing=1.6)
 
     fig.text(0.045, 2.45 / H, CAP23, fontsize=13, color=INK2, va="top",
