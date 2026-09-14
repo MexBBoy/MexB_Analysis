@@ -229,8 +229,16 @@ def main():
         if not pl:
             print(f"  {nm}: no pocket ligand"); continue
 
+        # copies of one ligand share a resname, so tag them apart or each
+        # trace overwrites the last and only the final copy survives on disk
+        ntag = {}
+        for r in pl:
+            ntag[r[0]] = ntag.get(r[0], 0) + 1
+        seen_n = {}
         for (rn, heavy) in sorted(pl, key=lambda x: float(np.linalg.norm(
                 coords(x[1]).mean(0) - dbp))):
+            seen_n[rn] = seen_n.get(rn, 0) + 1
+            tag = f"{rn}{seen_n[rn]}" if ntag[rn] > 1 else rn
             rloc, rwhole, length = girth(heavy)
             rsph = sphere_radius(heavy)
             seed, clr = free_point(clear_fn, coords(heavy).mean(0))
@@ -255,9 +263,9 @@ def main():
             need = np.maximum(0.0, rloc - rad)
             frac = float((need > 0.05).mean())
 
-            out = os.path.join(CXDIR, f"lig_{pid}_{ch}_{rn}_tunnel.pdb")
+            out = os.path.join(CXDIR, f"lig_{pid}_{ch}_{tag}_tunnel.pdb")
             T.write_trace(out, pts, rad)
-            rows.append([pid, ch, nm, rn, len(heavy), fmt(rloc), fmt(rwhole),
+            rows.append([pid, ch, nm, tag, len(heavy), fmt(rloc), fmt(rwhole),
                          fmt(rsph), fmt(length),
                          fmt(Rmax if Rmax is not None else np.nan),
                          fmt(total), fmt(straight),

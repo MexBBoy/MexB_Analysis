@@ -2267,6 +2267,26 @@ def panel_state_channels():
 
 
 # ------------------------------------------------------------------ P19
+CAP20 = (
+    'Each row is one bound substrate, drawn along the route it takes from the periplasmic cleft to its own site. The\n'
+    'solid tube is the radius the channel offers, measured to van der Waals surfaces with the ligands stripped out; the\n'
+    'dashed tube is the radius that molecule needs. Wherever the dashed line lies outside the solid one the protein has\n'
+    'to open for the substrate to pass, and on every route here it does so along most of the length. That is the point\n'
+    'of the panel: these are snapshots with the ligand already bound, so a rigid protein has no opening wide enough to\n'
+    'have admitted it, and transport cannot be read off a static structure. A ligand\'s thickness is measured about its\n'
+    'own curved centre line rather than a straight axis, which would charge a curled molecule for its own bend: LMNG\n'
+    'reads 8.3 A rather than 11.0, EPI 4.3 rather than 6.0. The route is the line of least deformation, the one\n'
+    'minimising how far the protein must open integrated along it, kept inside the protein so it cannot escape into\n'
+    'solvent and travel round the outside. Those routes turn out to sit within 4 A of the plain widest paths for eight\n'
+    'of the nine, so the line into the pocket is a property of the protein and not of the molecule; what is per-ligand\n'
+    'is the cost of using it. The total opening demanded tracks how thick the molecule is (Spearman 0.73, p = 0.03) and\n'
+    'the worst single point tracks it harder (0.85, p = 0.004), while neither tracks how far the molecule has to travel\n'
+    '(0.25, p = 0.52), so the measure responds to bulk rather than distance. Two cautions: LMNG is branched and one\n'
+    'centre line cannot represent a branch point, so its figure is an overestimate; and the third DDM of our protomer\n'
+    'is the copy P19 finds sitting 11 A off the route, which may be a surface site rather than a bound substrate.\n'
+    'Numbers in ligand_routes.csv.')
+
+
 def panel_ligand_in_tunnel():
     """Cleft to ligand: where each substrate sits on the way in."""
     routes = R("cleft_routes.csv")
@@ -2410,6 +2430,117 @@ def panel_ligand_in_tunnel():
     save(fig, "P19_ligand_in_tunnel")
 
 
+
+def panel_ligand_strain():
+    """What each substrate needs against what the channel offers."""
+    import matplotlib.patches as _mp
+    rt = R("ligand_routes.csv")
+    if not rt:
+        return
+    SQUEEZE = "#C0392B"
+
+    rows = []
+    for r in rt:
+        f = os.path.join(CXDIR, r["trace_file"])
+        if not os.path.exists(f):
+            continue
+        P, rad = trace_of(f)
+        arc = np.concatenate([[0.0], np.cumsum(
+            np.linalg.norm(np.diff(P, axis=0), axis=1))])
+        rows.append((r["ligand"], r["pdb"], float(r["local_girth_A"]),
+                     arc[-1] - arc, rad, float(r["strain_integral_A2"]),
+                     float(r["peak_opening_A"]),
+                     float(r["percent_pinched"]), r["resname"]))
+    if not rows:
+        return
+    rows.sort(key=lambda t: t[5])
+    n = len(rows)
+    XHI = max(t[3].max() for t in rows) + 0.5
+
+    H = 6.9 + 0.62 * n
+    fig = plt.figure(figsize=(11.6, H))
+    title(fig, "Every substrate has to force the door",
+          "What each molecule needs to get through, against what the "
+          "channel actually offers.")
+    callout(fig, 0.055, 1.0 - 1.15 / H,
+            f"{min(t[6] for t in rows):.1f}\u2013"
+            f"{max(t[6] for t in rows):.1f} \u00c5", "more room than the "
+            "structure gives,\nat the tightest point of every route",
+            SQUEEZE, size=34)
+    callout(fig, 0.545, 1.0 - 1.15 / H,
+            f"{min(t[7] for t in rows):.0f}\u2013"
+            f"{max(t[7] for t in rows):.0f}%",
+            "of every route is too narrow \u2014 the\nsqueeze is the whole "
+            "way, not one gate", APOLAR, size=34)
+
+    y0, htop = 3.35 / H, 3.30 / H
+    ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
+    ax.set_xlim(XHI, -1.0); ax.set_ylim(-1.30, n - 0.15)
+    ax.set_yticks([]); ax.grid(axis="y", visible=False)
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    for sp in ax.spines.values():
+        sp.set_color("black")
+    ax.tick_params(axis="both", colors="black", labelcolor="black")
+    KY = 0.062
+
+    for i, (nm, pid, rl, d, rad, st, pk, frac, rn) in enumerate(rows):
+        y = n - 1 - i
+        col = LIGCOL.get(pid, TEAL)
+        # what the molecule needs: a tube of its own thickness
+        ax.fill_between(d, y - KY * rl, y + KY * rl, color=tint(SQUEEZE, 0.88),
+                        zorder=1, linewidth=0)
+        for sgn in (1, -1):
+            ax.plot(d, np.full_like(d, y + sgn * KY * rl), color=SQUEEZE,
+                    linewidth=1.1, linestyle=(0, (4, 2.5)), zorder=3)
+        # what the channel offers
+        ax.fill_between(d, y - KY * rad, y + KY * rad, color=tint(col, 0.80),
+                        zorder=2, linewidth=0)
+        for sgn in (1, -1):
+            ax.plot(d, y + sgn * KY * rad, color=tint(col, 0.30),
+                    linewidth=1.6, zorder=4)
+        ax.annotate(nm if rn[-1] not in "123" else f"{nm} ({rn[-1]})",
+                    (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-12, -5), textcoords="offset points", ha="right",
+                    fontsize=13.5, color=col,
+                    fontweight="bold" if pid in (
+                        "Amp_MexB_20260826", "MexB_DDM_3_20260730")
+                    else "normal")
+        ax.annotate(f"{st:.0f} \u00c5\u00b2", (1.0, y),
+                    xycoords=("axes fraction", "data"), xytext=(9, 1),
+                    textcoords="offset points", ha="left", va="bottom",
+                    fontsize=12.5, color=col, annotation_clip=False)
+        ax.annotate(f"needs {pk:.1f} \u00c5 more", (1.0, y),
+                    xycoords=("axes fraction", "data"), xytext=(9, -4),
+                    textcoords="offset points", ha="left", va="top",
+                    fontsize=10.5, color="#8a99a2", annotation_clip=False)
+    ax.annotate("Total opening demanded,\nand the worst single point",
+                (1.0, n - 0.35), xycoords=("axes fraction", "data"),
+                xytext=(9, 2), textcoords="offset points", ha="left",
+                va="bottom", fontsize=12, color=INK2, annotation_clip=False)
+    ax.plot([XHI - 1.5, XHI - 1.5], [-1.00 - KY * 4, -1.00 + KY * 4],
+            color="black", linewidth=2.4, solid_capstyle="butt")
+    ax.annotate("8 \u00c5 across", (XHI - 1.5, -1.00),
+                textcoords="offset points", xytext=(9, -5), ha="left",
+                fontsize=12, color=INK2)
+    ax.set_xlabel("Distance from the periplasmic cleft (\u00c5)", labelpad=10)
+    ax.xaxis.label.set_size(16)
+    ax.xaxis.label.set_color("black")
+
+    handles = [
+        _mp.Patch(facecolor=tint(SQUEEZE, 0.88), edgecolor=SQUEEZE,
+                       linewidth=1.1, linestyle="--",
+                       label="what the molecule needs"),
+        _mp.Patch(facecolor=tint(TEAL, 0.80), edgecolor=tint(TEAL, 0.30),
+                       linewidth=1.6, label="what the channel offers")]
+    fig.legend(handles=handles, loc="upper center", ncol=2,
+               bbox_to_anchor=(0.58, 1.0 - 2.55 / H), fontsize=13.5,
+               handletextpad=0.6, columnspacing=2.0)
+
+    fig.text(0.045, 2.05 / H, CAP20, fontsize=13, color=INK2, va="top",
+             linespacing=1.5)
+    save(fig, "P20_ligand_strain")
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -2431,6 +2562,7 @@ def main():
     panel_pocket_chemistry()
     panel_state_channels()
     panel_ligand_in_tunnel()
+    panel_ligand_strain()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
