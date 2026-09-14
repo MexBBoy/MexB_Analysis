@@ -1,2 +1,2 @@
 pdb,chain,ligand,length_A,leg_bottleneck_A,trace_min_radius_A,entrance,mouth_PC_pct,mouth_PN_pct,mouth_TM_pct,mouth_dock_pct,trace_file
-21FP,B,Chloramphenicol,171.32,2.42,2.64,CH1 - PC1/PC2 periplasmic cleft,85.71,0.00,0.00,14.29,ch3_21FP_B.pdb
+21FP,B,Chloramphenicol,171.32,2.42,2.64,CH1 - PC1/PC2 periplasmic cleft,85.71,0.00,0.00,14.29,side_21FP_B.pdb

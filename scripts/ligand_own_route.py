@@ -24,8 +24,8 @@ From the ligand the route carries on the way a substrate travels, through the
 distal pocket and out at the funnel on the trimer's three-fold axis, so the
 result is comparable end to end with the CH1 rows.
 
-Writes results/tables/ch3_tunnels.csv, results/tables/ch3_tunnel_ligands.csv
-and a trace per protomer under results/chimerax/ch3_<pdb>_<chain>.pdb
+Writes results/tables/side_chamber_tunnels.csv, results/tables/side_chamber_tunnel_ligands.csv
+and a trace per protomer under results/chimerax/side_<pdb>_<chain>.pdb
 """
 from __future__ import annotations
 
@@ -119,7 +119,7 @@ def main():
         arc = np.concatenate([[0.0], np.cumsum(
             np.linalg.norm(np.diff(pts, axis=0), axis=1))])
         total = float(arc[-1])
-        out = os.path.join(CXDIR, f"ch3_{pid}_{ch}.pdb")
+        out = os.path.join(CXDIR, f"side_{pid}_{ch}.pdb")
         T.write_trace(out, pts, rad)
         rows.append([pid, ch, nm, fmt(total), fmt(min(ra, rm, rb)),
                      fmt(float(rad.min())), name, fmt(100 * fpc), fmt(100 * fpn),
@@ -145,16 +145,16 @@ def main():
             print(f"    {r2} now sits {off.min():.2f} A from this line, "
                   f"{100*arc[j].mean()/total:.0f}% along")
 
-    write_csv(os.path.join(TABLES, "ch3_tunnels.csv"),
+    write_csv(os.path.join(TABLES, "side_chamber_tunnels.csv"),
               ["pdb", "chain", "ligand", "length_A", "leg_bottleneck_A",
                "trace_min_radius_A", "entrance", "mouth_PC_pct", "mouth_PN_pct",
                "mouth_TM_pct", "mouth_dock_pct", "trace_file"], rows)
-    write_csv(os.path.join(TABLES, "ch3_tunnel_ligands.csv"),
+    write_csv(os.path.join(TABLES, "side_chamber_tunnel_ligands.csv"),
               ["pdb", "chain", "ligand", "resname", "heavy_atoms",
                "along_tunnel_A", "along_min_A", "along_max_A", "mean_offset_A",
                "closest_offset_A", "radius_there_A", "tunnel_length_A"],
               ligrows)
-    print(f"\nwrote results/tables/ch3_tunnels.csv ({len(rows)})")
+    print(f"\nwrote results/tables/side_chamber_tunnels.csv ({len(rows)})")
 
 
 if __name__ == "__main__":

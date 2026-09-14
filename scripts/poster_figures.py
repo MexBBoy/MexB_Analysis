@@ -2306,10 +2306,12 @@ CAP21 = (
     'own way out refuted that, the widest opening from it being 86 percent PC1/PC2 and 0 percent PN1/PN2, the same\n'
     'periplasmic cleft as every other row. The PN-rich lining describes where it sits, not how it arrived: it occupies\n'
     'a side branch off the CH1 route, which a line drawn through the porter pockets misses by 13 A while a line seeded\n'
-    'at the ligand passes within 1.4 A of it. The last stretch opens into solvent\n'
+    'at the ligand passes within 1.4 A of it. The last row is that route, drawn on the same two ends as the rest so it\n'
+    'stays comparable: it reaches the chamber the porter-pocket line misses, and chloramphenicol sits on it filled, 1.4\n'
+    'A off at 19 percent along. The last stretch opens into solvent\n'
     'at the funnel, where the radius runs away from the channel it came from, so the drawn width is capped at 5 A;\n'
-    'the narrowest point quoted per row is measured on the uncapped trace. Numbers in full_tunnels.csv and\n'
-    'full_tunnel_ligands.csv.')
+    'the narrowest point quoted per row is measured on the uncapped trace. Numbers in full_tunnels.csv,\n'
+    'full_tunnel_ligands.csv and side_chamber_tunnels.csv.')
 
 
 def panel_ligand_in_tunnel():
@@ -2571,6 +2573,10 @@ def panel_whole_tunnel():
     """The whole tunnel of every structure, entrance to exit, ligands on it."""
     tun = R("full_tunnels.csv")
     lig = R("full_tunnel_ligands.csv")
+    # the route seeded at chloramphenicol itself, which reaches the chamber
+    # the porter-pocket line misses; same two ends, so it is a comparable row
+    side = R("side_chamber_tunnels.csv") or []
+    sidelig = R("side_chamber_tunnel_ligands.csv") or []
     env = R("ligand_environment.csv")
     if not tun or not lig:
         return
@@ -2588,21 +2594,27 @@ def panel_whole_tunnel():
     ligs = {}
     for r in lig:
         ligs.setdefault((r["pdb"], r["chain"]), []).append(r)
+    sligs = {}
+    for r in sidelig:
+        sligs.setdefault((r["pdb"], r["chain"]), []).append(r)
 
     rows = []
-    for r in tun:
+    for r in list(tun) + list(side):
         k = (r["pdb"], r["chain"])
         f = os.path.join(CXDIR, r["trace_file"])
         if not os.path.exists(f):
             continue
+        aside = r["trace_file"].startswith("side_")
         P, rad = trace_of(f)
         arc = np.concatenate([[0.0], np.cumsum(
             np.linalg.norm(np.diff(P, axis=0), axis=1))])
         L = float(r["length_A"])
-        rows.append((r["ligand"], k, 100.0 * arc / arc[-1],
+        rows.append((r["ligand"] + ("\nvia its own chamber" if aside else ""),
+                     k, 100.0 * arc / arc[-1],
                      np.minimum(rad, RCAP), L,
-                     float(r["trace_min_radius_A"]), r["route_notes"],
-                     ligs.get(k, [])))
+                     float(r["trace_min_radius_A"]),
+                     "clean" if aside else r["route_notes"],
+                     (sligs if aside else ligs).get(k, [])))
     if not rows:
         return
     rows.sort(key=lambda t: t[4])
