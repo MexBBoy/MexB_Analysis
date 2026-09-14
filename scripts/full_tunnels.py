@@ -8,10 +8,18 @@ ligand, so the rows are directly comparable end to end:
 
   entrance  the periplasmic cleft mouth of the reference channel, mapped into
             each structure's frame by superposition on the lining residues
-  waypoint  the protomer's own porter pocket, which forces the route through
-            the site the substrate occupies instead of round it
+  proximal  the proximal binding pocket, the first site on the way in
+  distal    the distal binding pocket, across the switch loop from it
   exit      the funnel on the trimer's three-fold axis, above the docking
             domain, where MexB delivers into TolC
+
+Both pockets are waypoints because that is the path MexB actually takes, and
+because one of them alone does not reach every substrate: routed through the
+distal pocket only, chloramphenicol sat 13.2 A off the line and dropped out of
+the panel altogether. It binds the proximal pocket - 11.8 A from it against
+15.4 A from the distal - and so do LMNG and one of the three DDM. Threading
+both, in order, is what makes a single line comparable across structures
+whichever pocket their ligand occupies.
 
 The funnel is the one exit all three protomers share, which is what makes it
 the right common terminus: the axis is taken from the docking-domain centroid
@@ -149,38 +157,44 @@ def main():
             print(f"  {nm}: no {'entrance' if ent is None else 'exit'} target")
             continue
 
-        # --- the waypoint: the pocket, so the route goes through the site
+        # --- both pockets as waypoints, in the order the substrate meets them
         ca = s.ca(ch)
         pl = [h for (c, rn, h) in pocket_ligands(s) if c == ch]
-        cands = [("distal pocket", centroid(ca, DBP)),
-                 ("proximal pocket", centroid(ca, PBP))]
-        if pl:
-            cands.append(("the ligand itself",
-                          min((coords(h).mean(0) for h in pl),
-                              key=lambda c: float(np.linalg.norm(
-                                  c - centroid(ca, DBP))))))
-        got = None
-        for (why, p0) in cands:
-            seed, _ = free_point(clear_fn, p0)
-            if seed is None:
+        sp = sd = None
+        for (lbl, res) in (("proximal", PBP), ("distal", DBP)):
+            q, _ = free_point(clear_fn, centroid(ca, res))
+            if q is None:
                 continue
-            sidx = grid.free_seed(seed)[0]
-            A, ra = leg(grid, clear_fn, sidx, ent)      # pocket -> cleft
-            if A is None:
-                continue
-            B, rb = leg(grid, clear_fn, sidx, exi)      # pocket -> funnel
-            if B is None:
-                continue
-            got = (why, A, ra, B, rb)
-            if why != "distal pocket":
-                notes.append(f"waypoint {why}")
-            break
-        if got is None:
-            print(f"  {nm}: no route through any pocket waypoint"); continue
-        why, A, ra, B, rb = got
+            if lbl == "proximal":
+                sp = grid.free_seed(q)[0]
+            else:
+                sd = grid.free_seed(q)[0]
+        if (sp is None or sd is None) and pl:
+            q, _ = free_point(clear_fn, min(
+                (coords(h).mean(0) for h in pl),
+                key=lambda c: float(np.linalg.norm(c - centroid(ca, DBP)))))
+            if q is not None:
+                notes.append("waypoint the ligand itself")
+                if sp is None:
+                    sp = grid.free_seed(q)[0]
+                if sd is None:
+                    sd = grid.free_seed(q)[0]
+        if sp is None or sd is None:
+            print(f"  {nm}: no free voxel at a pocket"); continue
 
-        # A runs pocket->cleft and B pocket->funnel; join as cleft->funnel
-        pts = np.vstack([A[::-1], B[1:]])
+        why = "proximal then distal"
+        A, ra = leg(grid, clear_fn, sp, ent)            # proximal -> cleft
+        tgt = np.zeros(grid.shape, bool)         # the distal seed alone
+        tgt[sd] = True
+        M, rm = leg(grid, clear_fn, sp, tgt)     # proximal -> distal
+        B, rb = leg(grid, clear_fn, sd, exi)            # distal -> funnel
+        if A is None or M is None or B is None:
+            miss = "cleft" if A is None else ("switch loop" if M is None
+                                              else "funnel")
+            print(f"  {nm}: no route on the {miss} leg"); continue
+
+        # A runs proximal->cleft, M proximal->distal, B distal->funnel
+        pts = np.vstack([A[::-1], M[1:], B[1:]])
         pts = T.densify(T.refine_path(T.smooth_path(pts, n=1), clear_fn),
                         spacing=0.15)
         rad = clear_fn(pts)
@@ -189,11 +203,11 @@ def main():
         total = float(arc[-1])
         out = os.path.join(CXDIR, f"whole_{pid}_{ch}.pdb")
         T.write_trace(out, pts, rad)
-        rows.append([pid, ch, nm, fmt(total), fmt(min(ra, rb)),
+        rows.append([pid, ch, nm, fmt(total), fmt(min(ra, rm, rb)),
                      fmt(float(rad.min())), why, "; ".join(notes) or "clean",
                      os.path.basename(out)])
         print(f"  {nm:16} {pid} {ch}: {total:5.1f} A end to end, "
-              f"neck {min(ra, rb):.2f} A  [{'; '.join(notes) or 'clean'}]"
+              f"neck {min(ra, rm, rb):.2f} A  [{'; '.join(notes) or 'clean'}]"
               f"  ({time.time() - t0:.0f}s)")
 
         # --- where each ligand sits along the whole tunnel
