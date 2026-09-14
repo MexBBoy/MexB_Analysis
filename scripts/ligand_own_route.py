@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
-"""The CH3 tunnel: the entrance chloramphenicol actually uses.
+"""Chloramphenicol's own route out, and what it says about its site.
 
-P21 traces one route per protomer, in at the CH1 periplasmic cleft. Every
+P21 traces one route per protomer, in at the CH1 periplasmic cleft, and every
 ligand sits on it except chloramphenicol, which stays 13 A off however the
-porter pockets are threaded, because its site is lined 64 percent by PN1/PN2
-and only 5 percent by PC1/PC2: it binds at the CH3 groove, a different way
-into the transporter. Routing harder was never going to reach it.
+porter pockets are threaded. Its site is lined 64 percent by PN1/PN2 and only
+5 percent by PC1/PC2, which looked like it bound at the CH3 groove - a
+different entrance that no rerouting through the porter pockets could reach.
 
-So this traces that entrance instead. The route is seeded at the ligand and
-allowed to leave by whatever opening is widest, which is the honest way to ask
-"where does this site open to" - the answer is not assumed. The exit it finds
-is then named by the subdomains lining its last 12 A, the same test P18 uses,
-so the claim that it is CH3 is measured rather than asserted. From the ligand
-the route carries on the way a substrate would travel, through the distal
-pocket and out at the funnel on the trimer's three-fold axis, so the result is
-comparable end to end with the CH1 rows.
+This was written to trace that entrance, and it refuted the idea. The route is
+seeded at the ligand and allowed to leave by whatever opening is widest, with
+the mouth it finds then named by the subdomains lining its last 12 A, the same
+test P18 uses - so the exit is measured, not assumed. The measured mouth is
+CH1: 86 percent PC1/PC2 and 0 percent PN1/PN2, the same periplasmic cleft
+every other row already uses.
+
+So the PN-rich lining describes the chamber chloramphenicol sits in, not the
+way it got there. It occupies a side branch off the CH1 route rather than a
+separate entrance, which is why a line drawn through the porter pockets misses
+it by 13 A while a line seeded at the ligand passes within 1.4 A. The file is
+named for the route rather than for the channel it was expected to find.
+
+From the ligand the route carries on the way a substrate travels, through the
+distal pocket and out at the funnel on the trimer's three-fold axis, so the
+result is comparable end to end with the CH1 rows.
 
 Writes results/tables/ch3_tunnels.csv, results/tables/ch3_tunnel_ligands.csv
 and a trace per protomer under results/chimerax/ch3_<pdb>_<chain>.pdb
@@ -40,7 +48,7 @@ WANT = {("21FP", "B"): "Chloramphenicol"}
 
 
 def main():
-    print("=== the CH3 tunnel: the entrance chloramphenicol uses ===")
+    print("=== chloramphenicol's own route out, exit measured not assumed ===")
     rows, ligrows = [], []
     for (pid, ch), nm in sorted(WANT.items(), key=lambda x: x[1]):
         t0 = time.time()

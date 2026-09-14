@@ -2301,11 +2301,12 @@ CAP21 = (
     'Whether a ligand counts as on the tunnel is judged by its nearest atom rather than its mean, since an elongated\n'
     'detergent has a large mean offset however squarely it lies on the line. The radius drawn is what the empty\n'
     'channel offers, traced with the ligands stripped out, so it is the room the site provides rather than what is\n'
-    'left beside the molecule. Chloramphenicol is drawn hollow because it is not on this line: its site is lined 64\n'
-    'percent by PN1/PN2 and only 5 percent by PC1/PC2, so it sits at the CH3 groove entrance rather than on the CH1\n'
-    'periplasmic-cleft route every row traces, and no reasonable route through the porter pockets passes within 13 A of\n'
-    'it. Threading the proximal pocket as well as the distal was tried and did not bring it closer, which is what\n'
-    'identified the site as a different entrance rather than a missed waypoint. The last stretch opens into solvent\n'
+    'left beside the molecule. Chloramphenicol is drawn hollow because it is not on this line. Its chamber is lined 64\n'
+    'percent by PN1/PN2 against 5 percent by PC1/PC2, which suggested it entered by the CH3 groove instead; tracing its\n'
+    'own way out refuted that, the widest opening from it being 86 percent PC1/PC2 and 0 percent PN1/PN2, the same\n'
+    'periplasmic cleft as every other row. The PN-rich lining describes where it sits, not how it arrived: it occupies\n'
+    'a side branch off the CH1 route, which a line drawn through the porter pockets misses by 13 A while a line seeded\n'
+    'at the ligand passes within 1.4 A of it. The last stretch opens into solvent\n'
     'at the funnel, where the radius runs away from the channel it came from, so the drawn width is capped at 5 A;\n'
     'the narrowest point quoted per row is measured on the uncapped trace. Numbers in full_tunnels.csv and\n'
     'full_tunnel_ligands.csv.')
@@ -2654,7 +2655,7 @@ def panel_whole_tunnel():
                 ax.scatter([x], [y], s=70 + 2.2 * int(r["heavy_atoms"]),
                            zorder=5, facecolor="white", edgecolor=col,
                            linewidth=2.4)
-                ax.annotate(f"{off:.0f} \u00c5 off this line \u2014 CH3 groove",
+                ax.annotate(f"{off:.0f} \u00c5 off this line \u2014 a side chamber",
                             (x, y), xytext=(16, 0),
                             textcoords="offset points", ha="left",
                             va="center", fontsize=10.5, color=col)

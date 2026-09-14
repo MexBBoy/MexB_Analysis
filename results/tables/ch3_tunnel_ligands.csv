@@ -1,0 +1,2 @@
+pdb,chain,ligand,resname,heavy_atoms,along_tunnel_A,along_min_A,along_max_A,mean_offset_A,closest_offset_A,radius_there_A,tunnel_length_A
+21FP,B,Chloramphenicol,CLM,20,32.71,31.75,32.87,4.38,1.39,3.33,171.32
