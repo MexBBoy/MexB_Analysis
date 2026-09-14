@@ -2301,7 +2301,9 @@ CAP21 = (
     'Whether a ligand counts as on the tunnel is judged by its nearest atom rather than its mean, since an elongated\n'
     'detergent has a large mean offset however squarely it lies on the line. The radius drawn is what the empty\n'
     'channel offers, traced with the ligands stripped out, so it is the room the site provides rather than what is\n'
-    'left beside the molecule. Numbers in full_tunnels.csv and full_tunnel_ligands.csv.')
+    'left beside the molecule. The last stretch opens into solvent at the funnel, where the radius runs away from the\n'
+    'channel it came from, so the drawn width is capped at 5 A; the narrowest point quoted per row is measured on the\n'
+    'uncapped trace. Numbers in full_tunnels.csv and full_tunnel_ligands.csv.')
 
 
 def panel_ligand_in_tunnel():
@@ -2570,6 +2572,9 @@ def panel_whole_tunnel():
                "neither": "#b9c3c8"}
     OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
     ON_ROUTE = 4.0
+    # the funnel end opens into bulk, where the radius runs away and the
+    # rows would overlap; cap what is drawn and say so in the caption
+    RCAP = 5.0
 
     site = {}
     for r in (env or []):
@@ -2588,7 +2593,8 @@ def panel_whole_tunnel():
         arc = np.concatenate([[0.0], np.cumsum(
             np.linalg.norm(np.diff(P, axis=0), axis=1))])
         L = float(r["length_A"])
-        rows.append((r["ligand"], k, 100.0 * arc / arc[-1], rad, L,
+        rows.append((r["ligand"], k, 100.0 * arc / arc[-1],
+                     np.minimum(rad, RCAP), L,
                      float(r["trace_min_radius_A"]), r["route_notes"],
                      ligs.get(k, [])))
     if not rows:
@@ -2616,14 +2622,14 @@ def panel_whole_tunnel():
 
     y0, htop = 3.45 / H, 3.30 / H
     ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
-    ax.set_xlim(-1.5, 101.5); ax.set_ylim(-0.95, n - 0.15)
+    ax.set_xlim(-1.5, 101.5); ax.set_ylim(-1.25, n - 0.15)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
     ax.set_axisbelow(True)
     ax.spines["left"].set_visible(False)
     for sp in ax.spines.values():
         sp.set_color("black")
     ax.tick_params(axis="both", colors="black", labelcolor="black")
-    KY = 0.075
+    KY = 0.070
 
     for i, (nm, k, d, rad, L, mn, note, mine) in enumerate(rows):
         y = n - 1 - i
@@ -2664,11 +2670,11 @@ def panel_whole_tunnel():
                 xytext=(9, 2), textcoords="offset points", ha="left",
                 va="bottom", fontsize=12, color=INK2, annotation_clip=False)
     for xq, lab in ((0, "periplasmic\ncleft"), (100, "funnel\nto TolC")):
-        ax.annotate(lab, (xq, -0.62), ha="center", va="top", fontsize=11.5,
+        ax.annotate(lab, (xq, -0.52), ha="center", va="top", fontsize=11.5,
                     color=INK2, annotation_clip=False)
-    ax.plot([2, 2], [-0.72 - KY * 4, -0.72 + KY * 4], color="black",
+    ax.plot([50, 50], [-1.02 - KY * 4, -1.02 + KY * 4], color="black",
             linewidth=2.4, solid_capstyle="butt")
-    ax.annotate("8 \u00c5 across", (2, -0.72), textcoords="offset points",
+    ax.annotate("8 \u00c5 across", (50, -1.02), textcoords="offset points",
                 xytext=(9, -5), ha="left", fontsize=12, color=INK2)
     ax.set_xlabel("Position along the tunnel (% of the traversal)",
                   labelpad=26)
