@@ -1,0 +1,29 @@
+pdb,chain,ligand,route,pocket,lining_residues,band_lo_pct,band_hi_pct,centroid_pct,centroid_offset_A,tunnel_length_A
+Amp_MexB_20260826,E,Ampicillin,fixed,proximal,17,13.94,32.05,30.84,2.11,155.69
+Amp_MexB_20260826,E,Ampicillin,fixed,distal,14,26.69,27.40,27.40,6.83,155.69
+21FO,B,CYMAL-7,fixed,proximal,17,18.99,38.03,29.24,6.41,149.34
+21FO,B,CYMAL-7,fixed,distal,14,27.21,35.29,29.24,5.71,149.34
+21FP,B,Chloramphenicol,fixed,proximal,17,15.55,29.52,18.57,7.43,166.33
+21FP,B,Chloramphenicol,fixed,distal,14,25.87,25.91,25.87,6.46,166.33
+2V50,B,DDM,fixed,proximal,17,13.44,40.51,19.97,2.30,170.21
+2V50,B,DDM,fixed,distal,14,18.30,33.12,31.13,8.44,170.21
+MexB_DDM_3_20260730,E,DDM x3,fixed,proximal,17,17.08,38.23,28.39,1.76,157.32
+MexB_DDM_3_20260730,E,DDM x3,fixed,distal,14,25.21,38.56,25.57,9.50,157.32
+3W9J,B,EPI,fixed,proximal,17,17.01,35.78,29.24,1.62,153.52
+3W9J,B,EPI,fixed,distal,14,13.37,29.81,27.90,10.93,153.52
+6IIA,B,LMNG,fixed,proximal,17,11.19,36.18,31.24,1.83,168.35
+6IIA,B,LMNG,fixed,distal,14,26.87,37.52,27.08,7.14,168.35
+Amp_MexB_20260826,E,Ampicillin,seeded,proximal,17,4.59,28.39,15.67,2.10,155.54
+Amp_MexB_20260826,E,Ampicillin,seeded,distal,14,22.86,27.23,26.77,6.30,155.54
+21FO,B,CYMAL-7,seeded,proximal,17,5.99,27.83,21.51,6.41,134.64
+21FO,B,CYMAL-7,seeded,distal,14,19.26,28.23,21.51,5.71,134.64
+21FP,B,Chloramphenicol,seeded,proximal,17,3.06,31.57,14.34,5.70,171.32
+21FP,B,Chloramphenicol,seeded,distal,14,15.64,27.68,26.23,5.19,171.32
+2V50,B,DDM,seeded,proximal,17,0.00,35.77,6.63,2.29,145.62
+2V50,B,DDM,seeded,distal,14,7.32,21.82,19.50,8.44,145.62
+MexB_DDM_3_20260730,E,DDM x3,seeded,proximal,17,10.44,33.03,22.36,1.76,145.10
+MexB_DDM_3_20260730,E,DDM x3,seeded,distal,14,11.21,31.46,19.40,9.49,145.10
+3W9J,B,EPI,seeded,proximal,17,15.28,40.57,13.55,1.26,161.00
+3W9J,B,EPI,seeded,distal,14,5.00,28.68,15.88,10.43,161.00
+6IIA,B,LMNG,seeded,proximal,17,0.88,28.71,23.19,1.83,150.70
+6IIA,B,LMNG,seeded,distal,14,18.31,30.21,18.54,7.14,150.70

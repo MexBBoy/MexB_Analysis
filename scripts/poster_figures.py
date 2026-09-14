@@ -2306,11 +2306,18 @@ CAP21 = (
     'own way out refuted that, the widest opening from it being 86 percent PC1/PC2 and 0 percent PN1/PN2, the same\n'
     'periplasmic cleft as every other row. The PN-rich lining describes where it sits, not how it arrived: it occupies\n'
     'a side branch off the CH1 route, which a line drawn through the porter pockets misses by 13 A while a line seeded\n'
+    'The two binding pockets are marked as the extent each occupies, proximal above the tube and distal below, taken by\n'
+    'projecting every lining residue onto the trace and spanning the 10th to 90th percentile. They are drawn as extents\n'
+    'rather than ticks because a pocket is a chamber the line touches, not a point on it: the centroids sit 1.3 to 10.9\n'
+    'A off their own trace, and a centroid tick can even place the distal mark earlier along the path than the proximal,\n'
+    'inverting the order the mechanism runs in. Where the two bands coincide it is because the pockets lie across the\n'
+    'path rather than along it - the centroids are 10.4 A apart in every structure, but that separation runs along the\n'
+    'route by 10.1 A in ampicillin and by 0.0 A in CYMAL-7, so a one-dimensional axis cannot always separate them.\n'
     'at the ligand passes within 1.4 A of it. The companion panel traces that route for every structure, and puts\n'
     'chloramphenicol on a line at 1.4 A. The last stretch opens into solvent\n'
     'at the funnel, where the radius runs away from the channel it came from, so the drawn width is capped at 5 A;\n'
     'the narrowest point quoted per row is measured on the uncapped trace. Numbers in full_tunnels.csv,\n'
-    'full_tunnel_ligands.csv and own_route_tunnels.csv.')
+    'full_tunnel_ligands.csv, own_route_tunnels.csv and pocket_marks.csv.')
 
 
 def panel_ligand_in_tunnel():
@@ -2584,7 +2591,14 @@ CAP22 = (
     '11 A that keeps it undrawn in P19. Rows are ordered by length, the bar is the stretch each ligand occupies and the\n'
     'marker its mean position, sized by heavy-atom count and coloured by pocket. Radii are measured to van der Waals\n'
     'surfaces with the ligands stripped out, and the drawn width is capped at 5 A where the funnel opens into solvent.\n'
-    'Numbers in own_route_tunnels.csv and own_route_tunnel_ligands.csv.')
+    'The two binding pockets are marked as the extent each occupies, proximal above the tube and distal below, taken by\n'
+    'projecting every lining residue onto the trace and spanning the 10th to 90th percentile. They are drawn as extents\n'
+    'rather than ticks because a pocket is a chamber the line touches, not a point on it: the centroids sit 1.3 to 10.9\n'
+    'A off their own trace, and a centroid tick can even place the distal mark earlier along the path than the proximal,\n'
+    'inverting the order the mechanism runs in. Where the two bands coincide it is because the pockets lie across the\n'
+    'path rather than along it - the centroids are 10.4 A apart in every structure, but that separation runs along the\n'
+    'route by 10.1 A in ampicillin and by 0.0 A in CYMAL-7, so a one-dimensional axis cannot always separate them.\n'
+    'Numbers in own_route_tunnels.csv, own_route_tunnel_ligands.csv and pocket_marks.csv.')
 
 
 def panel_whole_tunnel(kind="fixed"):
@@ -2599,6 +2613,10 @@ def panel_whole_tunnel(kind="fixed"):
     # between fixed ends, so each structure shows both views on one axis
     side = R("own_route_tunnels.csv") or []
     sidelig = R("own_route_tunnel_ligands.csv") or []
+    marks = {}
+    for r in (R("pocket_marks.csv") or []):
+        if r["route"] == kind:
+            marks.setdefault((r["pdb"], r["chain"]), []).append(r)
     env = R("ligand_environment.csv")
     if not tun or not lig:
         return
@@ -2694,6 +2712,15 @@ def panel_whole_tunnel(kind="fixed"):
         for sgn in (1, -1):
             ax.plot(d, y + sgn * KY * rad, color=tint(col, 0.30),
                     linewidth=1.6, zorder=3)
+        # the two pockets as the extent they occupy, proximal above the tube
+        # and distal below: on this axis they often coincide, because they lie
+        # across the path as much as along it
+        for m in marks.get(k, []):
+            up = m["pocket"] == "proximal"
+            ax.plot([float(m["band_lo_pct"]), float(m["band_hi_pct"])],
+                    [y + (0.40 if up else -0.40)] * 2,
+                    color=POLAR if up else APOLAR, linewidth=3.4,
+                    solid_capstyle="butt", zorder=6, alpha=.85)
         st = site.get(k, "")
         for r in sorted(mine, key=lambda r: float(r["along_tunnel_A"])):
             tl = float(r["tunnel_length_A"])
@@ -2754,6 +2781,10 @@ def panel_whole_tunnel(kind="fixed"):
                                  "PBP": "proximal pocket",
                                  "both": "spans both"}[q])
                for q in ("DBP", "PBP", "both")]
+    handles += [plt.Line2D([], [], color=POLAR, linewidth=3.4,
+                           label="proximal pocket, its extent"),
+                plt.Line2D([], [], color=APOLAR, linewidth=3.4,
+                           label="distal pocket, its extent")]
     fig.legend(handles=handles, loc="upper center", ncol=3,
                bbox_to_anchor=(0.58, 1.0 - 3.75 / H), fontsize=13.5,
                handletextpad=0.35, columnspacing=1.8)
