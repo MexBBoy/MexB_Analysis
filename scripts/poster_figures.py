@@ -2335,7 +2335,7 @@ CAP23 = (
     'cavities, so the split between proximal and distal is imposed - each voxel is assigned to whichever pocket\'s\n'
     'lining residues are nearer - and a different rule would move room between the two rows, though not the total. And\n'
     'the neighbourhood is cut 12 A from the lining residues, which is generous and is part of why the proximal figure\n'
-    'is the larger. Numbers in pocket_volumes.csv.')
+    'is the larger. Numbers in porter_pocket_volumes.csv.')
 
 
 def panel_ligand_in_tunnel():
@@ -2815,7 +2815,7 @@ def panel_whole_tunnel(kind="fixed"):
 
 def panel_pocket_volumes():
     """How much room each pocket encloses, and how little of it is used."""
-    vol = R("pocket_volumes.csv")
+    vol = R("porter_pocket_volumes.csv")
     if not vol:
         return
     PROBE = ("1.40", "1.80", "2.20")

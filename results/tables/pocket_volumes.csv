@@ -1,13 +1,7 @@
-pdb,chain,structure,pocket,probe_A,volume_A3,volume_nm3,ligand_fills_pct
-Amp_MexB_20260826,E,Ampicillin,proximal,1.40,4595.83,4.60,0.19
-Amp_MexB_20260826,E,Ampicillin,distal,1.40,2003.83,2.00,9.65
-Amp_MexB_20260826,E,Ampicillin,proximal,1.80,2777.54,2.78,0.29
-Amp_MexB_20260826,E,Ampicillin,distal,1.80,1251.29,1.25,11.22
-Amp_MexB_20260826,E,Ampicillin,proximal,2.20,1525.39,1.53,0.44
-Amp_MexB_20260826,E,Ampicillin,distal,2.20,695.30,0.70,12.08
-MexB_DDM_3_20260730,E,DDM x3,proximal,1.40,4675.54,4.68,8.84
-MexB_DDM_3_20260730,E,DDM x3,distal,1.40,2082.89,2.08,21.31
-MexB_DDM_3_20260730,E,DDM x3,proximal,1.80,2823.34,2.82,10.53
-MexB_DDM_3_20260730,E,DDM x3,distal,1.80,1314.58,1.31,25.14
-MexB_DDM_3_20260730,E,DDM x3,proximal,2.20,1570.54,1.57,11.20
-MexB_DDM_3_20260730,E,DDM x3,distal,2.20,759.46,0.76,28.75
+structure,chain,site_sphere_radius_A,grid_step_A,volume_ligands_stripped_A3,volume_with_ligands_A3,occluded_volume_A3,occluded_pct,note
+Amp_MexB_20260826,D,16,0.50,1476,1476,0,0.0,
+Amp_MexB_20260826,E,16,0.50,1843,1456,387,21.0,
+Amp_MexB_20260826,F,16,0.50,1402,1402,0,0.0,
+MexB_DDM_3_20260730,D,16,0.50,964,964,0,0.0,
+MexB_DDM_3_20260730,E,16,0.50,2018,36,1982,98.2,
+MexB_DDM_3_20260730,F,16,0.50,1543,1543,0,0.0,

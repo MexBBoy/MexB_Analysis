@@ -25,7 +25,7 @@ large may be mostly occupied.
 Ligands are stripped before the grid is built, so these are the volumes of the
 empty site.
 
-Writes results/tables/pocket_volumes.csv
+Writes results/tables/porter_pocket_volumes.csv
 """
 from __future__ import annotations
 
@@ -130,10 +130,10 @@ def main():
                       f"{vol:7.0f} A^3   ligand fills {occ:4.1f}%")
         print(f"    [{nm} {time.time()-t0:.0f}s]")
 
-    write_csv(os.path.join(TABLES, "pocket_volumes.csv"),
+    write_csv(os.path.join(TABLES, "porter_pocket_volumes.csv"),
               ["pdb", "chain", "structure", "pocket", "probe_A", "volume_A3",
                "volume_nm3", "ligand_fills_pct"], rows)
-    print("\nwrote results/tables/pocket_volumes.csv")
+    print("\nwrote results/tables/porter_pocket_volumes.csv")
 
 
 if __name__ == "__main__":
