@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""How much room each binding pocket actually encloses, in our two structures.
+"""How much room each binding pocket actually encloses, in every structure.
 
 The tunnel panels reduce each pocket to where it falls along a line, and that
 projection loses most of what a pocket is: the centroids sit up to 11 A off
@@ -38,20 +38,21 @@ from scipy import ndimage
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tunnels as T
+import per_structure_tunnels as pst
 from published_pockets import PDBDIR, pocket_ligands
 from mexb_common import (DBP, PBP, STRUCT_DIR, TABLES, Structure, coords,
                          centroid, fmt, vdw, write_csv)
 
 PROBES = (1.4, 1.8, 2.2)        # water, then two larger spheres
 REACH = 8.0                     # how far from the lining residues counts as pocket
-OURS = {("Amp_MexB_20260826", "E"): "Ampicillin",
-        ("MexB_DDM_3_20260730", "E"): "DDM x3"}
+# every protomer the tunnel panels draw, so the volumes line up with them
 
 
 def main():
     print("=== pocket volumes, ligands stripped ===")
     rows = []
-    for (pid, ch), nm in sorted(OURS.items(), key=lambda x: x[1]):
+    for (pid, ch), nm in sorted(pst.panel_protomers().items(),
+                                key=lambda x: x[1]):
         t0 = time.time()
         path = os.path.join(STRUCT_DIR, f"{pid}.pdb")
         if not os.path.exists(path):

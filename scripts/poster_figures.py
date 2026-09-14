@@ -2827,8 +2827,8 @@ def panel_pocket_volumes():
     got = {}
     for r in vol:
         got[(r["structure"], r["pocket"], r["probe_A"])] = r
-    keys = [(st, pk) for st in ("Ampicillin", "DDM x3")
-            for pk in ("proximal", "distal")
+    structs = sorted({r["structure"] for r in vol})
+    keys = [(st, pk) for st in structs for pk in ("proximal", "distal")
             if (st, pk, "1.40") in got]
     if not keys:
         return
@@ -2843,12 +2843,12 @@ def panel_pocket_volumes():
           "much of it the bound substrate occupies.")
     rat = [float(got[(st, "proximal", p)]["volume_A3"])
            / float(got[(st, "distal", p)]["volume_A3"])
-           for st in ("Ampicillin", "DDM x3") for p in PROBE
+           for st in structs for p in PROBE
            if (st, "proximal", p) in got and (st, "distal", p) in got]
     callout(fig, 0.055, 1.0 - 1.60 / H,
             f"{min(rat):.1f}\u2013{max(rat):.1f}\u00d7",
             "more room in the proximal pocket than\nthe distal, at every probe "
-            "and in both", TEAL, size=34)
+            "and in every structure", TEAL, size=34)
     fills = [float(got[(st, pk, "1.40")]["ligand_fills_pct"])
              for (st, pk) in keys]
     callout(fig, 0.545, 1.0 - 1.60 / H,
@@ -2868,8 +2868,8 @@ def panel_pocket_volumes():
 
     for i, (st, pk) in enumerate(keys):
         y = n - 1 - i
-        col = LIGCOL["Amp_MexB_20260826" if st == "Ampicillin"
-                     else "MexB_DDM_3_20260730"]
+        col = LIGCOL.get(next((r["pdb"] for r in vol
+                               if r["structure"] == st), ""), TEAL)
         pcol = POLAR if pk == "proximal" else APOLAR
         for q, f in zip(PROBE, (0.86, 0.66, 0.44)):
             v = float(got[(st, pk, q)]["volume_A3"])
