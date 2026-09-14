@@ -2287,6 +2287,23 @@ CAP20 = (
     'Numbers in ligand_routes.csv.')
 
 
+CAP21 = (
+    'Each row is the whole tunnel through one protomer, drawn at its measured radius, with both ends fixed on anatomy\n'
+    'rather than on the ligand: in at the periplasmic cleft mouth of the reference channel, mapped into each structure\n'
+    'by superposition, and out at the funnel on the trimer\'s three-fold axis above the docking domain, the exit all\n'
+    'three protomers share and so the one common terminus. The protomer\'s own porter pocket is a forced waypoint,\n'
+    'because an unconstrained search between those two points can round the porter domain or climb through a\n'
+    'neighbouring protomer rather than crossing the site the substrate occupies. Rows are drawn as percent of the\n'
+    'traversal so that every tunnel starts and ends together; the true lengths differ by about 12 percent and each is\n'
+    'printed at the right, so nothing is hidden by the normalisation. Any route that needed a relaxed target or a\n'
+    'fallback waypoint is marked "relaxed" rather than passed off as a clean one. The bar is the stretch each ligand\n'
+    'occupies and the marker its mean position, sized by heavy-atom count and coloured by which pocket it sits in.\n'
+    'Whether a ligand counts as on the tunnel is judged by its nearest atom rather than its mean, since an elongated\n'
+    'detergent has a large mean offset however squarely it lies on the line. The radius drawn is what the empty\n'
+    'channel offers, traced with the ligands stripped out, so it is the room the site provides rather than what is\n'
+    'left beside the molecule. Numbers in full_tunnels.csv and full_tunnel_ligands.csv.')
+
+
 def panel_ligand_in_tunnel():
     """Cleft to ligand: where each substrate sits on the way in."""
     routes = R("cleft_routes.csv")
@@ -2541,6 +2558,138 @@ def panel_ligand_strain():
              linespacing=1.5)
     save(fig, "P20_ligand_strain")
 
+
+def panel_whole_tunnel():
+    """The whole tunnel of every structure, entrance to exit, ligands on it."""
+    tun = R("full_tunnels.csv")
+    lig = R("full_tunnel_ligands.csv")
+    env = R("ligand_environment.csv")
+    if not tun or not lig:
+        return
+    SITECOL = {"DBP": APOLAR, "PBP": POLAR, "both": "#7a8891",
+               "neither": "#b9c3c8"}
+    OURS = ("Amp_MexB_20260826", "MexB_DDM_3_20260730")
+    ON_ROUTE = 4.0
+
+    site = {}
+    for r in (env or []):
+        site.setdefault((r["pdb"], r["chain"]), r.get("site", ""))
+    ligs = {}
+    for r in lig:
+        ligs.setdefault((r["pdb"], r["chain"]), []).append(r)
+
+    rows = []
+    for r in tun:
+        k = (r["pdb"], r["chain"])
+        f = os.path.join(CXDIR, r["trace_file"])
+        if not os.path.exists(f):
+            continue
+        P, rad = trace_of(f)
+        arc = np.concatenate([[0.0], np.cumsum(
+            np.linalg.norm(np.diff(P, axis=0), axis=1))])
+        L = float(r["length_A"])
+        rows.append((r["ligand"], k, 100.0 * arc / arc[-1], rad, L,
+                     float(r["trace_min_radius_A"]), r["route_notes"],
+                     ligs.get(k, [])))
+    if not rows:
+        return
+    rows.sort(key=lambda t: t[4])
+    n = len(rows)
+
+    H = 7.2 + 0.66 * n
+    fig = plt.figure(figsize=(11.6, H))
+    title(fig, "One tunnel, end to end",
+          "The whole path through each protomer \u2014 in at the periplasmic "
+          "cleft, out at the funnel \u2014 with every bound ligand on it.")
+    callout(fig, 0.055, 1.0 - 1.15 / H,
+            f"{min(t[4] for t in rows):.0f}\u2013"
+            f"{max(t[4] for t in rows):.0f} \u00c5",
+            "of tunnel from the cleft mouth to the\nfunnel, in every "
+            "structure measured", TEAL, size=34)
+    on = [float(x["along_tunnel_A"]) / float(x["tunnel_length_A"]) * 100.0
+          for t in rows for x in t[7]
+          if float(x["closest_offset_A"]) <= ON_ROUTE]
+    callout(fig, 0.545, 1.0 - 1.15 / H,
+            f"{min(on):.0f}\u2013{max(on):.0f}%",
+            "of the way along it is where every\nsubstrate sits \u2014 all in "
+            "the same third", APOLAR, size=34)
+
+    y0, htop = 3.45 / H, 3.30 / H
+    ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
+    ax.set_xlim(-1.5, 101.5); ax.set_ylim(-0.95, n - 0.15)
+    ax.set_yticks([]); ax.grid(axis="y", visible=False)
+    ax.set_axisbelow(True)
+    ax.spines["left"].set_visible(False)
+    for sp in ax.spines.values():
+        sp.set_color("black")
+    ax.tick_params(axis="both", colors="black", labelcolor="black")
+    KY = 0.075
+
+    for i, (nm, k, d, rad, L, mn, note, mine) in enumerate(rows):
+        y = n - 1 - i
+        col = LIGCOL.get(k[0], TEAL)
+        ax.fill_between(d, y - KY * rad, y + KY * rad, color=tint(col, 0.85),
+                        zorder=2, linewidth=0)
+        for sgn in (1, -1):
+            ax.plot(d, y + sgn * KY * rad, color=tint(col, 0.30),
+                    linewidth=1.6, zorder=3)
+        st = site.get(k, "")
+        for r in sorted(mine, key=lambda r: float(r["along_tunnel_A"])):
+            if float(r["closest_offset_A"]) > ON_ROUTE:
+                continue
+            tl = float(r["tunnel_length_A"])
+            x = 100.0 * float(r["along_tunnel_A"]) / tl
+            ax.plot([100.0 * float(r["along_min_A"]) / tl,
+                     100.0 * float(r["along_max_A"]) / tl], [y, y], color=col,
+                    linewidth=7, alpha=.40, solid_capstyle="round", zorder=4)
+            ax.scatter([x], [y], s=70 + 2.2 * int(r["heavy_atoms"]), zorder=5,
+                       color=SITECOL.get(st, "#b9c3c8"), edgecolor=col,
+                       linewidth=2.4)
+        ax.annotate(nm, (0, y), xycoords=("axes fraction", "data"),
+                    xytext=(-12, -5), textcoords="offset points", ha="right",
+                    fontsize=13.5, color=col,
+                    fontweight="bold" if k[0] in OURS else "normal")
+        ax.annotate(f"{L:.0f} \u00c5", (1.0, y),
+                    xycoords=("axes fraction", "data"), xytext=(9, 1),
+                    textcoords="offset points", ha="left", va="bottom",
+                    fontsize=12.5, color=col, annotation_clip=False)
+        ax.annotate(f"neck {mn:.2f} \u00c5" + ("" if note == "clean"
+                                              else "  \u00b7 relaxed"),
+                    (1.0, y), xycoords=("axes fraction", "data"),
+                    xytext=(9, -4), textcoords="offset points", ha="left",
+                    va="top", fontsize=10.5, color="#8a99a2",
+                    annotation_clip=False)
+    ax.annotate("True length end to end,\nand the narrowest point",
+                (1.0, n - 0.35), xycoords=("axes fraction", "data"),
+                xytext=(9, 2), textcoords="offset points", ha="left",
+                va="bottom", fontsize=12, color=INK2, annotation_clip=False)
+    for xq, lab in ((0, "periplasmic\ncleft"), (100, "funnel\nto TolC")):
+        ax.annotate(lab, (xq, -0.62), ha="center", va="top", fontsize=11.5,
+                    color=INK2, annotation_clip=False)
+    ax.plot([2, 2], [-0.72 - KY * 4, -0.72 + KY * 4], color="black",
+            linewidth=2.4, solid_capstyle="butt")
+    ax.annotate("8 \u00c5 across", (2, -0.72), textcoords="offset points",
+                xytext=(9, -5), ha="left", fontsize=12, color=INK2)
+    ax.set_xlabel("Position along the tunnel (% of the traversal)",
+                  labelpad=26)
+    ax.xaxis.label.set_size(16)
+    ax.xaxis.label.set_color("black")
+
+    handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=12,
+                          markerfacecolor=SITECOL[q], markeredgecolor=INK2,
+                          markeredgewidth=1.6,
+                          label={"DBP": "distal pocket",
+                                 "PBP": "proximal pocket",
+                                 "both": "spans both"}[q])
+               for q in ("DBP", "PBP", "both")]
+    fig.legend(handles=handles, loc="upper center", ncol=3,
+               bbox_to_anchor=(0.58, 1.0 - 2.55 / H), fontsize=13.5,
+               handletextpad=0.35, columnspacing=1.8)
+
+    fig.text(0.045, 2.15 / H, CAP21, fontsize=13, color=INK2, va="top",
+             linespacing=1.5)
+    save(fig, "P21_whole_tunnel")
+
 def main():
     print("=== poster panels ===")
     panel_pockets()
@@ -2563,6 +2712,7 @@ def main():
     panel_state_channels()
     panel_ligand_in_tunnel()
     panel_ligand_strain()
+    panel_whole_tunnel()
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
