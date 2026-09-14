@@ -2311,7 +2311,7 @@ CAP21 = (
     'A off at 19 percent along. The last stretch opens into solvent\n'
     'at the funnel, where the radius runs away from the channel it came from, so the drawn width is capped at 5 A;\n'
     'the narrowest point quoted per row is measured on the uncapped trace. Numbers in full_tunnels.csv,\n'
-    'full_tunnel_ligands.csv and side_chamber_tunnels.csv.')
+    'full_tunnel_ligands.csv and own_route_tunnels.csv.')
 
 
 def panel_ligand_in_tunnel():
@@ -2573,10 +2573,10 @@ def panel_whole_tunnel():
     """The whole tunnel of every structure, entrance to exit, ligands on it."""
     tun = R("full_tunnels.csv")
     lig = R("full_tunnel_ligands.csv")
-    # the route seeded at chloramphenicol itself, which reaches the chamber
-    # the porter-pocket line misses; same two ends, so it is a comparable row
-    side = R("side_chamber_tunnels.csv") or []
-    sidelig = R("side_chamber_tunnel_ligands.csv") or []
+    # the same protomers traced again, seeded at the ligand instead of run
+    # between fixed ends, so each structure shows both views on one axis
+    side = R("own_route_tunnels.csv") or []
+    sidelig = R("own_route_tunnel_ligands.csv") or []
     env = R("ligand_environment.csv")
     if not tun or not lig:
         return
@@ -2604,12 +2604,12 @@ def panel_whole_tunnel():
         f = os.path.join(CXDIR, r["trace_file"])
         if not os.path.exists(f):
             continue
-        aside = r["trace_file"].startswith("side_")
+        aside = r["trace_file"].startswith("own_")
         P, rad = trace_of(f)
         arc = np.concatenate([[0.0], np.cumsum(
             np.linalg.norm(np.diff(P, axis=0), axis=1))])
         L = float(r["length_A"])
-        rows.append((r["ligand"] + ("\nvia its own chamber" if aside else ""),
+        rows.append((r["ligand"] + ("\nseeded at the ligand" if aside else ""),
                      k, 100.0 * arc / arc[-1],
                      np.minimum(rad, RCAP), L,
                      float(r["trace_min_radius_A"]),
