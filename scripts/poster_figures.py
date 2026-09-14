@@ -2614,14 +2614,7 @@ CAP22 = (
     '11 A that keeps it undrawn in P19. Rows are ordered by length, the bar is the stretch each ligand occupies and the\n'
     'marker its mean position, sized by heavy-atom count and coloured by pocket. Radii are measured to van der Waals\n'
     'surfaces with the ligands stripped out, and the drawn width is capped at 5 A where the funnel opens into solvent.\n'
-    'The two binding pockets are marked as the extent each occupies, proximal above the tube and distal below, taken by\n'
-    'projecting every lining residue onto the trace and spanning the 10th to 90th percentile. They are drawn as extents\n'
-    'rather than ticks because a pocket is a chamber the line touches, not a point on it: the centroids sit 1.3 to 10.9\n'
-    'A off their own trace, and a centroid tick can even place the distal mark earlier along the path than the proximal,\n'
-    'inverting the order the mechanism runs in. Where the two bands coincide it is because the pockets lie across the\n'
-    'path rather than along it - the centroids are 10.4 A apart in every structure, but that separation runs along the\n'
-    'route by 10.1 A in ampicillin and by 0.0 A in CYMAL-7, so a one-dimensional axis cannot always separate them.\n'
-    'Numbers in own_route_tunnels.csv, own_route_tunnel_ligands.csv and pocket_marks.csv.')
+    'Numbers in own_route_tunnels.csv and own_route_tunnel_ligands.csv.')
 
 
 def panel_whole_tunnel(kind="fixed"):
@@ -2738,7 +2731,7 @@ def panel_whole_tunnel(kind="fixed"):
         # the two pockets as the extent they occupy, proximal above the tube
         # and distal below: on this axis they often coincide, because they lie
         # across the path as much as along it
-        for m in marks.get(k, []):
+        for m in (marks.get(k, []) if kind != "seeded" else []):
             up = m["pocket"] == "proximal"
             ax.plot([float(m["band_lo_pct"]), float(m["band_hi_pct"])],
                     [y + (0.40 if up else -0.40)] * 2,
@@ -2789,10 +2782,12 @@ def panel_whole_tunnel(kind="fixed"):
         for xq, lab in ((0, "periplasmic\ncleft"), (100, "funnel\nto TolC")):
             ax.annotate(lab, (xq, -0.52), ha="center", va="top",
                         fontsize=11.5, color=INK2, annotation_clip=False)
-    ax.plot([50, 50], [-1.02 - KY * 4, -1.02 + KY * 4], color="black",
-            linewidth=2.4, solid_capstyle="butt")
-    ax.annotate("8 \u00c5 across", (50, -1.02), textcoords="offset points",
-                xytext=(9, -5), ha="left", fontsize=12, color=INK2)
+    if kind != "seeded":
+        ax.plot([50, 50], [-1.02 - KY * 4, -1.02 + KY * 4], color="black",
+                linewidth=2.4, solid_capstyle="butt")
+        ax.annotate("8 \u00c5 across", (50, -1.02),
+                    textcoords="offset points", xytext=(9, -5), ha="left",
+                    fontsize=12, color=INK2)
     ax.set_xlabel("Position along the tunnel (% of the traversal)",
                   labelpad=26)
     ax.xaxis.label.set_size(16)
@@ -2805,10 +2800,11 @@ def panel_whole_tunnel(kind="fixed"):
                                  "PBP": "proximal pocket",
                                  "both": "spans both"}[q])
                for q in ("DBP", "PBP", "both")]
-    handles += [plt.Line2D([], [], color=POLAR, linewidth=3.4,
-                           label="proximal pocket, its extent"),
-                plt.Line2D([], [], color=APOLAR, linewidth=3.4,
-                           label="distal pocket, its extent")]
+    if kind != "seeded":
+        handles += [plt.Line2D([], [], color=POLAR, linewidth=3.4,
+                               label="proximal pocket, its extent"),
+                    plt.Line2D([], [], color=APOLAR, linewidth=3.4,
+                               label="distal pocket, its extent")]
     fig.legend(handles=handles, loc="upper center", ncol=3,
                bbox_to_anchor=(0.58, 1.0 - 3.75 / H), fontsize=13.5,
                handletextpad=0.35, columnspacing=1.8)
