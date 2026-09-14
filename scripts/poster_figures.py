@@ -2306,9 +2306,12 @@ CAP21 = (
     'own way out refuted that, the widest opening from it being 86 percent PC1/PC2 and 0 percent PN1/PN2, the same\n'
     'periplasmic cleft as every other row. The PN-rich lining describes where it sits, not how it arrived: it occupies\n'
     'a side branch off the CH1 route, which a line drawn through the porter pockets misses by 13 A while a line seeded\n'
-    'at the ligand passes within 1.4 A of it. The last row is that route, drawn on the same two ends as the rest so it\n'
-    'stays comparable: it reaches the chamber the porter-pocket line misses, and chloramphenicol sits on it filled, 1.4\n'
-    'A off at 19 percent along. The last stretch opens into solvent\n'
+    'at the ligand passes within 1.4 A of it. Every structure therefore appears twice: the line between the two fixed\n'
+    'ends, and beneath it the line seeded at its own ligand, drawn on the same ends so the pair stays comparable. All\n'
+    'seven of those measured mouths are CH1, 82 to 89 percent PC1/PC2, the exception being DDM at 50 percent with 38\n'
+    'percent PN1/PN2 - so no ligand here enters by a channel other than the periplasmic cleft, chloramphenicol\n'
+    'included, and on its own line it sits filled 1.4 A off at 19 percent along. Where the two lines differ in length\n'
+    'the seeded one is usually shorter, being free of the detour through both porter pockets. The last stretch opens into solvent\n'
     'at the funnel, where the radius runs away from the channel it came from, so the drawn width is capped at 5 A;\n'
     'the narrowest point quoted per row is measured on the uncapped trace. Numbers in full_tunnels.csv,\n'
     'full_tunnel_ligands.csv and own_route_tunnels.csv.')
@@ -2617,27 +2620,28 @@ def panel_whole_tunnel():
                      (sligs if aside else ligs).get(k, [])))
     if not rows:
         return
-    rows.sort(key=lambda t: t[4])
+    # each structure's two views adjacent, so the pair can be compared
+    rows.sort(key=lambda t: (t[0].split("\n")[0], "seeded" in t[0]))
     n = len(rows)
 
-    H = 7.2 + 0.66 * n
+    H = 9.2 + 0.66 * n
     fig = plt.figure(figsize=(11.6, H))
     title(fig, "One tunnel, end to end",
           "The whole path through each protomer \u2014 in at the periplasmic "
           "cleft, out at the funnel \u2014 with every bound ligand on it.")
-    callout(fig, 0.055, 1.0 - 1.15 / H,
+    callout(fig, 0.055, 1.0 - 2.10 / H,
             f"{min(t[4] for t in rows):.0f}\u2013"
             f"{max(t[4] for t in rows):.0f} \u00c5",
             "of tunnel from the cleft mouth to the\nfunnel, in every "
             "structure measured", TEAL, size=34)
     on = [float(x["along_tunnel_A"]) / float(x["tunnel_length_A"]) * 100.0
           for t in rows for x in t[7]]
-    callout(fig, 0.545, 1.0 - 1.15 / H,
+    callout(fig, 0.545, 1.0 - 2.10 / H,
             f"{min(on):.0f}\u2013{max(on):.0f}%",
             "of the way along it is where every\nsubstrate sits, all nine of them",
             APOLAR, size=34)
 
-    y0, htop = 3.45 / H, 3.30 / H
+    y0, htop = 3.45 / H, 5.10 / H
     ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
     ax.set_xlim(-1.5, 101.5); ax.set_ylim(-1.25, n - 0.15)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
@@ -2717,10 +2721,10 @@ def panel_whole_tunnel():
                                  "both": "spans both"}[q])
                for q in ("DBP", "PBP", "both")]
     fig.legend(handles=handles, loc="upper center", ncol=3,
-               bbox_to_anchor=(0.58, 1.0 - 2.55 / H), fontsize=13.5,
+               bbox_to_anchor=(0.58, 1.0 - 4.40 / H), fontsize=13.5,
                handletextpad=0.35, columnspacing=1.8)
 
-    fig.text(0.045, 2.15 / H, CAP21, fontsize=13, color=INK2, va="top",
+    fig.text(0.045, 2.25 / H, CAP21, fontsize=13, color=INK2, va="top",
              linespacing=1.5)
     save(fig, "P21_whole_tunnel")
 

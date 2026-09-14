@@ -1,0 +1,8 @@
+pdb,chain,ligand,length_A,leg_bottleneck_A,trace_min_radius_A,entrance,mouth_PC_pct,mouth_PN_pct,mouth_TM_pct,mouth_dock_pct,trace_file
+Amp_MexB_20260826,E,Ampicillin,155.54,1.93,2.20,CH1 - PC1/PC2 periplasmic cleft,88.89,0.00,0.00,11.11,own_Amp_MexB_20260826_E.pdb
+21FO,B,CYMAL-7,134.63,2.21,2.32,CH1 - PC1/PC2 periplasmic cleft,87.50,0.00,0.00,12.50,own_21FO_B.pdb
+21FP,B,Chloramphenicol,171.32,2.42,2.64,CH1 - PC1/PC2 periplasmic cleft,85.71,0.00,0.00,14.29,own_21FP_B.pdb
+2V50,B,DDM,145.62,2.12,2.33,CH1 - PC1/PC2 periplasmic cleft,50.00,37.50,0.00,12.50,own_2V50_B.pdb
+MexB_DDM_3_20260730,E,DDM x3,145.10,2.17,2.34,CH1 - PC1/PC2 periplasmic cleft,88.89,0.00,0.00,11.11,own_MexB_DDM_3_20260730_E.pdb
+3W9J,B,EPI,161.00,1.77,2.16,CH1 - PC1/PC2 periplasmic cleft,81.82,0.00,0.00,18.18,own_3W9J_B.pdb
+6IIA,B,LMNG,150.70,2.46,2.60,CH1 - PC1/PC2 periplasmic cleft,88.89,0.00,0.00,11.11,own_6IIA_B.pdb
