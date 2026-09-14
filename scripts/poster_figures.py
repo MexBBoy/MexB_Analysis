@@ -2321,17 +2321,19 @@ CAP21 = (
 
 
 CAP23 = (
-    'Buried room in the proximal and distal pockets of our ampicillin and DDM structures. A voxel counts only if a\n'
-    'probe fits in it and it is not connected to bulk solvent, so this is enclosed room rather than surface, and the\n'
-    'ligands are stripped before the grid is built, so it is the volume of the empty site. Three probe radii are drawn\n'
-    'nested because a pocket volume is a function of the probe, not a constant: both pockets lose about two thirds of\n'
-    'their volume between the 1.4 and 2.2 A probes, which says these are networks of crevices rather than clean\n'
-    'chambers. The robust figure is the ratio, the proximal pocket holding 1.9 to 2.3 times the distal at every probe\n'
-    'in both structures. The two structures give near-identical pockets - proximal 2121 against 2214 A^3 and distal\n'
-    '941 against 1021 at the water probe, within 5 percent - so what separates them is not size but occupancy:\n'
-    'ampicillin leaves the proximal pocket essentially empty at 0.4 percent and fills a fifth of the distal, while the\n'
-    'three DDM fill 16.9 and 39.1 percent. Even that leaves the distal pocket three fifths empty with three detergents\n'
-    'in it. Space counts as pocket only within 8 A of a lining residue. That cutoff was first set at a generous 12 A,\n'
+    'Buried room in the proximal and distal pockets of all seven structures. A voxel counts only if a probe fits in it\n'
+    'and it is not connected to bulk solvent, so this is enclosed room rather than surface, and the ligands are\n'
+    'stripped before the grid is built, so it is the volume of the empty site. Three probe radii are drawn nested\n'
+    'because a pocket volume is a function of the probe, not a constant: both pockets lose about two thirds of their\n'
+    'volume between the 1.4 and 2.2 A probes, which says these are networks of crevices rather than clean chambers.\n'
+    'The pockets are conserved. Across seven structures the proximal pocket runs 2025 to 2272 A^3 at the water probe\n'
+    'and the distal 888 to 1143, a spread of 4 and 8 percent about the mean, and the proximal holds 2.0 to 2.4 times\n'
+    'the distal in every one. So the protein offers much the same room whatever is bound, and what differs is\n'
+    'occupancy, which runs 0.4 to 39 percent: the three DDM of our protomer fill the most, a third of the distal\n'
+    'pocket and a sixth of the proximal, while ampicillin leaves the proximal essentially untouched at 0.4 percent.\n'
+    'Chloramphenicol is the lowest in both at 5.4 and 2.5 percent, which agrees with the tunnel panels: it sits in a\n'
+    'side chamber off the route rather than in either pocket proper. Even the fullest pocket here is three fifths\n'
+    'empty. Space counts as pocket only within 8 A of a lining residue. That cutoff was first set at a generous 12 A,\n'
     'which roughly doubled both pockets, and tightening it corrected something stated here earlier: the generous cut\n'
     'was NOT why the proximal pocket reads larger. Both pockets keep 41 to 49 percent of their volume at 8 A, the same\n'
     'fraction either side, so the proximal pocket is simply the larger of the two. The remaining caution stands: the\n'
@@ -2839,24 +2841,24 @@ def panel_pocket_volumes():
     H = 7.3 + 0.85 * n
     fig = plt.figure(figsize=(11.6, H))
     title(fig, "The same pockets, differently filled",
-          "Buried room in each binding pocket of our two structures, and how "
+          "Buried room in the two binding pockets of every structure, and how "
           "much of it the bound substrate occupies.")
     rat = [float(got[(st, "proximal", p)]["volume_A3"])
            / float(got[(st, "distal", p)]["volume_A3"])
            for st in structs for p in PROBE
            if (st, "proximal", p) in got and (st, "distal", p) in got]
-    callout(fig, 0.055, 1.0 - 1.60 / H,
+    callout(fig, 0.055, 1.0 - 2.70 / H,
             f"{min(rat):.1f}\u2013{max(rat):.1f}\u00d7",
             "more room in the proximal pocket than\nthe distal, at every probe "
             "and in every structure", TEAL, size=34)
     fills = [float(got[(st, pk, "1.40")]["ligand_fills_pct"])
              for (st, pk) in keys]
-    callout(fig, 0.545, 1.0 - 1.60 / H,
+    callout(fig, 0.545, 1.0 - 2.70 / H,
             f"{min(fills):.1f}\u2013{max(fills):.0f}%",
             "of that room is occupied \u2014 every\npocket is mostly empty",
             APOLAR, size=34)
 
-    y0, htop = 3.15 / H, 4.15 / H
+    y0, htop = 3.15 / H, 5.40 / H
     ax = fig.add_axes([0.235, y0, 0.645, 1.0 - y0 - htop])
     ax.set_xlim(0, XHI); ax.set_ylim(-0.75, n - 0.25)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
@@ -2907,10 +2909,10 @@ def panel_pocket_volumes():
     handles.append(_mp.Patch(facecolor=INK2,
                              label="volume the substrate fills"))
     fig.legend(handles=handles, loc="upper center", ncol=4,
-               bbox_to_anchor=(0.58, 1.0 - 3.45 / H), fontsize=13,
+               bbox_to_anchor=(0.58, 1.0 - 4.70 / H), fontsize=13,
                handletextpad=0.45, columnspacing=1.6)
 
-    fig.text(0.045, 2.35 / H, CAP23, fontsize=13, color=INK2, va="top",
+    fig.text(0.045, 2.45 / H, CAP23, fontsize=13, color=INK2, va="top",
              linespacing=1.5)
     save(fig, "P23_pocket_volumes")
 
