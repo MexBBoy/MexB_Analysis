@@ -1,31 +1,27 @@
 #!/usr/bin/env python3
-"""Chloramphenicol's own route out, and what it says about its site.
+"""Each ligand's own route out, with the exit measured rather than assumed.
 
-P21 traces one route per protomer, in at the CH1 periplasmic cleft, and every
-ligand sits on it except chloramphenicol, which stays 13 A off however the
-porter pockets are threaded. Its site is lined 64 percent by PN1/PN2 and only
-5 percent by PC1/PC2, which looked like it bound at the CH3 groove - a
-different entrance that no rerouting through the porter pockets could reach.
+P21 traces one route per protomer between two fixed anatomical ends, in at the
+CH1 periplasmic cleft and out at the funnel, threading both porter pockets.
+Every ligand sits on that line except chloramphenicol, which stays 13 A off it
+however the pockets are threaded.
 
-This was written to trace that entrance, and it refuted the idea. The route is
-seeded at the ligand and allowed to leave by whatever opening is widest, with
-the mouth it finds then named by the subdomains lining its last 12 A, the same
-test P18 uses - so the exit is measured, not assumed. The measured mouth is
-CH1: 86 percent PC1/PC2 and 0 percent PN1/PN2, the same periplasmic cleft
-every other row already uses.
+This asks the complementary question for every structure: seeded at the ligand
+and allowed to leave by whatever opening is widest, where does each site
+actually open to? The mouth that search finds is then named by the subdomains
+lining its last 12 A, the same test P18 uses, so the entrance is a measurement
+and not an assumption. That matters - chloramphenicol's chamber is lined 64
+percent by PN1/PN2 and 5 percent by PC1/PC2, which looked like a CH3 entrance
+until this search returned a mouth that is 86 percent PC1/PC2 and 0 percent
+PN1/PN2. The lining describes where a ligand sits, not how it arrived.
 
-So the PN-rich lining describes the chamber chloramphenicol sits in, not the
-way it got there. It occupies a side branch off the CH1 route rather than a
-separate entrance, which is why a line drawn through the porter pockets misses
-it by 13 A while a line seeded at the ligand passes within 1.4 A. The file is
-named for the route rather than for the channel it was expected to find.
+From the ligand each route carries on the way a substrate travels, through the
+distal pocket and out at the funnel on the trimer's three-fold axis, so every
+result is comparable end to end with the P21 rows.
 
-From the ligand the route carries on the way a substrate travels, through the
-distal pocket and out at the funnel on the trimer's three-fold axis, so the
-result is comparable end to end with the CH1 rows.
-
-Writes results/tables/side_chamber_tunnels.csv, results/tables/side_chamber_tunnel_ligands.csv
-and a trace per protomer under results/chimerax/side_<pdb>_<chain>.pdb
+Writes results/tables/own_route_tunnels.csv,
+results/tables/own_route_tunnel_ligands.csv and a trace per protomer under
+results/chimerax/own_<pdb>_<chain>.pdb
 """
 from __future__ import annotations
 
@@ -37,6 +33,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import tunnels as T
+import per_structure_tunnels as pst
 from all_channels import exit_call
 from cleft_to_ligand import free_point
 from full_tunnels import FUNNEL_R, ABOVE, ball, leg, trimer_axis
@@ -44,13 +41,14 @@ from published_pockets import PDBDIR, pocket_ligands
 from mexb_common import (CXDIR, DBP, STRUCT_DIR, TABLES, Structure, centroid,
                          coords, fmt, write_csv)
 
-WANT = {("21FP", "B"): "Chloramphenicol"}
+# every protomer P21 draws, so the two views line up row for row
 
 
 def main():
-    print("=== chloramphenicol's own route out, exit measured not assumed ===")
+    print("=== each ligand's own route out, exit measured not assumed ===")
     rows, ligrows = [], []
-    for (pid, ch), nm in sorted(WANT.items(), key=lambda x: x[1]):
+    for (pid, ch), nm in sorted(pst.panel_protomers().items(),
+                                key=lambda x: x[1]):
         t0 = time.time()
         path = os.path.join(STRUCT_DIR, f"{pid}.pdb")
         if not os.path.exists(path):
@@ -74,7 +72,9 @@ def main():
         pl = [(rn, h) for (c, rn, h) in pocket_ligands(s) if c == ch]
         if not pl:
             print(f"  {nm}: no pocket ligand"); continue
-        rn, heavy = pl[0]
+        ca0 = s.ca(ch)
+        rn, heavy = min(pl, key=lambda x: float(np.linalg.norm(
+            coords(x[1]).mean(0) - centroid(ca0, DBP))))
         seed, _ = free_point(clear_fn, coords(heavy).mean(0))
         if seed is None:
             print(f"  {nm}: no free voxel at the ligand"); continue
@@ -119,7 +119,7 @@ def main():
         arc = np.concatenate([[0.0], np.cumsum(
             np.linalg.norm(np.diff(pts, axis=0), axis=1))])
         total = float(arc[-1])
-        out = os.path.join(CXDIR, f"side_{pid}_{ch}.pdb")
+        out = os.path.join(CXDIR, f"own_{pid}_{ch}.pdb")
         T.write_trace(out, pts, rad)
         rows.append([pid, ch, nm, fmt(total), fmt(min(ra, rm, rb)),
                      fmt(float(rad.min())), name, fmt(100 * fpc), fmt(100 * fpn),
@@ -145,16 +145,16 @@ def main():
             print(f"    {r2} now sits {off.min():.2f} A from this line, "
                   f"{100*arc[j].mean()/total:.0f}% along")
 
-    write_csv(os.path.join(TABLES, "side_chamber_tunnels.csv"),
+    write_csv(os.path.join(TABLES, "own_route_tunnels.csv"),
               ["pdb", "chain", "ligand", "length_A", "leg_bottleneck_A",
                "trace_min_radius_A", "entrance", "mouth_PC_pct", "mouth_PN_pct",
                "mouth_TM_pct", "mouth_dock_pct", "trace_file"], rows)
-    write_csv(os.path.join(TABLES, "side_chamber_tunnel_ligands.csv"),
+    write_csv(os.path.join(TABLES, "own_route_tunnel_ligands.csv"),
               ["pdb", "chain", "ligand", "resname", "heavy_atoms",
                "along_tunnel_A", "along_min_A", "along_max_A", "mean_offset_A",
                "closest_offset_A", "radius_there_A", "tunnel_length_A"],
               ligrows)
-    print(f"\nwrote results/tables/side_chamber_tunnels.csv ({len(rows)})")
+    print(f"\nwrote results/tables/own_route_tunnels.csv ({len(rows)})")
 
 
 if __name__ == "__main__":
