@@ -7,6 +7,12 @@ grid: twelve columns with one gutter, so every panel edge lands on a column
 line and the vertical gutters stay straight down the poster. The current
 arrangement changes column widths between rows, which is what makes it read
 as crowded even where there is room.
+
+Methodology keeps both workflow rows at their present height. Compressing it
+to one band would return about five percent of the poster, but at the cost of
+shrinking the icons and stretching the band, so the space is found instead by
+merging the two four-across ligand strips into one matrix under a single
+header, and by trimming the introduction band rather than the method.
 """
 from __future__ import annotations
 
@@ -24,21 +30,21 @@ from poster_figures import APOLAR, INK2, OUT, POLAR, TEAL, tint
 # (label, col, span, row_y, row_h, note)
 BLOCKS = [
     ("Title, authors, logos", 0, 12, 0.945, 0.055, ""),
-    ("Introduction", 0, 7, 0.845, 0.098, "fix the overlapping line"),
-    ("Pump schematic\n+ three states", 7, 5, 0.845, 0.098, ""),
-    ("Methodology  (one band, not two)", 0, 12, 0.762, 0.080,
-     "compress to a single row; gains ~5% height"),
-    ("Consensus structure\n2.03 A", 0, 4, 0.545, 0.212, ""),
-    ("Conformations\nAccess / Binding / Extrusion", 4, 4, 0.545, 0.212, ""),
-    ("Binding pocket surfaces\nproximal / distal", 8, 4, 0.545, 0.212, ""),
-    ("Maps\nampicillin + DDM density", 0, 4, 0.318, 0.222, ""),
+    ("Introduction", 0, 7, 0.845, 0.095, "fix the overlapping line"),
+    ("Pump schematic\n+ three states", 7, 5, 0.845, 0.095, ""),
+    ("Methodology  (both workflow rows kept at size)", 0, 12, 0.727, 0.115,
+     "unchanged - the icons stay legible"),
+    ("Consensus structure\n2.03 A", 0, 4, 0.527, 0.195, ""),
+    ("Conformations\nAccess / Binding / Extrusion", 4, 4, 0.527, 0.195, ""),
+    ("Binding pocket surfaces\nproximal / distal", 8, 4, 0.527, 0.195, ""),
+    ("Maps\nampicillin + DDM density", 0, 4, 0.317, 0.205, ""),
     ("Ligand comparison matrix\n\npolarity  (row 1)\ncontacts  (row 2)\n\n"
-     "one header: Ampicillin | DDM | DDM | DDM", 4, 8, 0.318, 0.222,
+     "one header: Ampicillin | DDM | DDM | DDM", 4, 8, 0.317, 0.205,
      "merges your two 4-across strips"),
     ("Shared residue contacts\n+ depth along the porter domain", 0, 8,
-     0.108, 0.205, "the untitled ??? panel, split and named"),
-    ("Conclusions", 8, 4, 0.108, 0.205, ""),
-    ("References", 0, 12, 0.062, 0.040, ""),
+     0.117, 0.195, "the untitled ??? panel, split and named"),
+    ("Conclusions", 8, 4, 0.117, 0.195, ""),
+    ("References", 0, 12, 0.070, 0.040, ""),
 ]
 
 
