@@ -1,13 +1,13 @@
 pdb,chain,structure,pocket,probe_A,volume_A3,volume_nm3,ligand_fills_pct
-Amp_MexB_20260826,E,Ampicillin,proximal,1.40,4595.83,4.60,0.19
-Amp_MexB_20260826,E,Ampicillin,distal,1.40,2003.83,2.00,9.65
-Amp_MexB_20260826,E,Ampicillin,proximal,1.80,2777.54,2.78,0.29
-Amp_MexB_20260826,E,Ampicillin,distal,1.80,1251.29,1.25,11.22
-Amp_MexB_20260826,E,Ampicillin,proximal,2.20,1525.39,1.53,0.44
-Amp_MexB_20260826,E,Ampicillin,distal,2.20,695.30,0.70,12.08
-MexB_DDM_3_20260730,E,DDM x3,proximal,1.40,4675.54,4.68,8.84
-MexB_DDM_3_20260730,E,DDM x3,distal,1.40,2082.89,2.08,21.31
-MexB_DDM_3_20260730,E,DDM x3,proximal,1.80,2823.34,2.82,10.53
-MexB_DDM_3_20260730,E,DDM x3,distal,1.80,1314.58,1.31,25.14
-MexB_DDM_3_20260730,E,DDM x3,proximal,2.20,1570.54,1.57,11.20
-MexB_DDM_3_20260730,E,DDM x3,distal,2.20,759.46,0.76,28.75
+Amp_MexB_20260826,E,Ampicillin,proximal,1.40,2120.90,2.12,0.41
+Amp_MexB_20260826,E,Ampicillin,distal,1.40,941.11,0.94,20.31
+Amp_MexB_20260826,E,Ampicillin,proximal,1.80,1222.34,1.22,0.64
+Amp_MexB_20260826,E,Ampicillin,distal,1.80,552.31,0.55,25.11
+Amp_MexB_20260826,E,Ampicillin,proximal,2.20,630.07,0.63,1.03
+Amp_MexB_20260826,E,Ampicillin,distal,2.20,285.34,0.29,28.92
+MexB_DDM_3_20260730,E,DDM x3,proximal,1.40,2214.43,2.21,16.87
+MexB_DDM_3_20260730,E,DDM x3,distal,1.40,1021.46,1.02,39.14
+MexB_DDM_3_20260730,E,DDM x3,proximal,1.80,1286.50,1.29,20.74
+MexB_DDM_3_20260730,E,DDM x3,distal,1.80,623.16,0.62,47.45
+MexB_DDM_3_20260730,E,DDM x3,proximal,2.20,681.48,0.68,22.95
+MexB_DDM_3_20260730,E,DDM x3,distal,2.20,351.86,0.35,54.45

@@ -2326,16 +2326,19 @@ CAP23 = (
     'ligands are stripped before the grid is built, so it is the volume of the empty site. Three probe radii are drawn\n'
     'nested because a pocket volume is a function of the probe, not a constant: both pockets lose about two thirds of\n'
     'their volume between the 1.4 and 2.2 A probes, which says these are networks of crevices rather than clean\n'
-    'chambers. The robust figure is the ratio, the proximal pocket holding 2.1 to 2.3 times the distal at every probe\n'
-    'in both structures. The two structures give near-identical pockets - proximal 4596 against 4676 A^3 and distal\n'
-    '2004 against 2083 at the water probe, within 2 percent - so what separates them is not size but occupancy:\n'
-    'ampicillin leaves the proximal pocket essentially empty at 0.2 percent and fills a tenth of the distal, while the\n'
-    'three DDM fill 8.8 and 21.3 percent. Even that leaves the distal pocket seven tenths empty with three detergents\n'
-    'in it. Two cautions. The buried space around the porter domain is one connected system rather than two separate\n'
-    'cavities, so the split between proximal and distal is imposed - each voxel is assigned to whichever pocket\'s\n'
-    'lining residues are nearer - and a different rule would move room between the two rows, though not the total. And\n'
-    'the neighbourhood is cut 12 A from the lining residues, which is generous and is part of why the proximal figure\n'
-    'is the larger. Numbers in porter_pocket_volumes.csv.')
+    'chambers. The robust figure is the ratio, the proximal pocket holding 1.9 to 2.3 times the distal at every probe\n'
+    'in both structures. The two structures give near-identical pockets - proximal 2121 against 2214 A^3 and distal\n'
+    '941 against 1021 at the water probe, within 5 percent - so what separates them is not size but occupancy:\n'
+    'ampicillin leaves the proximal pocket essentially empty at 0.4 percent and fills a fifth of the distal, while the\n'
+    'three DDM fill 16.9 and 39.1 percent. Even that leaves the distal pocket three fifths empty with three detergents\n'
+    'in it. Space counts as pocket only within 8 A of a lining residue. That cutoff was first set at a generous 12 A,\n'
+    'which roughly doubled both pockets, and tightening it corrected something stated here earlier: the generous cut\n'
+    'was NOT why the proximal pocket reads larger. Both pockets keep 41 to 49 percent of their volume at 8 A, the same\n'
+    'fraction either side, so the proximal pocket is simply the larger of the two. The remaining caution stands: the\n'
+    'buried space around the porter domain is one connected system rather than two separate cavities, so the split\n'
+    'between proximal and distal is imposed - each voxel is assigned to whichever pocket\'s lining residues are nearer\n'
+    '- and a different rule would move room between the two rows, though not the total. Numbers in\n'
+    'porter_pocket_volumes.csv.')
 
 
 def panel_ligand_in_tunnel():

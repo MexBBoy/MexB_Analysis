@@ -43,6 +43,7 @@ from mexb_common import (DBP, PBP, STRUCT_DIR, TABLES, Structure, coords,
                          centroid, fmt, vdw, write_csv)
 
 PROBES = (1.4, 1.8, 2.2)        # water, then two larger spheres
+REACH = 8.0                     # how far from the lining residues counts as pocket
 OURS = {("Amp_MexB_20260826", "E"): "Ampicillin",
         ("MexB_DDM_3_20260730", "E"): "DDM x3"}
 
@@ -104,7 +105,7 @@ def main():
                 ids = set(np.unique(lab[sl][buried[sl]]))
                 for q in ids - {0}:
                     keep |= lab == q
-            pocket = keep & (nearest <= 12.0)
+            pocket = keep & (nearest <= REACH)
             for k in ("proximal", "distal"):
                 m = pocket & (owner if k == "proximal" else ~owner)
                 vol = float(m.sum()) * vox
