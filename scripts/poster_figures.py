@@ -2306,12 +2306,8 @@ CAP21 = (
     'own way out refuted that, the widest opening from it being 86 percent PC1/PC2 and 0 percent PN1/PN2, the same\n'
     'periplasmic cleft as every other row. The PN-rich lining describes where it sits, not how it arrived: it occupies\n'
     'a side branch off the CH1 route, which a line drawn through the porter pockets misses by 13 A while a line seeded\n'
-    'at the ligand passes within 1.4 A of it. Every structure therefore appears twice: the line between the two fixed\n'
-    'ends, and beneath it the line seeded at its own ligand, drawn on the same ends so the pair stays comparable. All\n'
-    'seven of those measured mouths are CH1, 82 to 89 percent PC1/PC2, the exception being DDM at 50 percent with 38\n'
-    'percent PN1/PN2 - so no ligand here enters by a channel other than the periplasmic cleft, chloramphenicol\n'
-    'included, and on its own line it sits filled 1.4 A off at 19 percent along. Where the two lines differ in length\n'
-    'the seeded one is usually shorter, being free of the detour through both porter pockets. The last stretch opens into solvent\n'
+    'at the ligand passes within 1.4 A of it. The companion panel traces that route for every structure, and puts\n'
+    'chloramphenicol on a line at 1.4 A. The last stretch opens into solvent\n'
     'at the funnel, where the radius runs away from the channel it came from, so the drawn width is capped at 5 A;\n'
     'the narrowest point quoted per row is measured on the uncapped trace. Numbers in full_tunnels.csv,\n'
     'full_tunnel_ligands.csv and own_route_tunnels.csv.')
@@ -2572,8 +2568,31 @@ def panel_ligand_strain():
     save(fig, "P20_ligand_strain")
 
 
-def panel_whole_tunnel():
-    """The whole tunnel of every structure, entrance to exit, ligands on it."""
+CAP22 = (
+    'Each row is the same protomer as the companion panel, traced the other way round: seeded at the bound substrate and\n'
+    'allowed to leave by whatever opening is widest, rather than run between two fixed ends. The entrance is therefore a\n'
+    'measurement, not an assumption - the mouth each search finds is named by the subdomains lining its last 12 A, the\n'
+    'same test P18 uses. All seven come back CH1, the periplasmic cleft, at 82 to 89 percent PC1/PC2 with no PN1/PN2 at\n'
+    'all; the exception is DDM, whose mouth is 50 percent PC1/PC2 against 38 percent PN1/PN2 and so sits on the boundary\n'
+    'between the cleft and the PN groove. That matters most for chloramphenicol, whose chamber is lined 64 percent by\n'
+    'PN1/PN2 and 5 percent by PC1/PC2: the lining suggested it entered by the CH3 groove, and tracing its own way out\n'
+    'refuted that. No substrate here enters by a channel other than the cleft. From the ligand each route carries on the\n'
+    'way a substrate travels, through the distal pocket and out at the funnel, so the lengths stay comparable with the\n'
+    'companion panel; where they differ the seeded route is usually the shorter, not being obliged to detour through\n'
+    'both porter pockets. Every ligand now sits on its own line, 0.3 to 2.2 A off it, including the two the fixed-end\n'
+    'route reaches worst: chloramphenicol at 1.4 A against 13.2, and the third DDM of our protomer at 0.4 A against the\n'
+    '11 A that keeps it undrawn in P19. Rows are ordered by length, the bar is the stretch each ligand occupies and the\n'
+    'marker its mean position, sized by heavy-atom count and coloured by pocket. Radii are measured to van der Waals\n'
+    'surfaces with the ligands stripped out, and the drawn width is capped at 5 A where the funnel opens into solvent.\n'
+    'Numbers in own_route_tunnels.csv and own_route_tunnel_ligands.csv.')
+
+
+def panel_whole_tunnel(kind="fixed"):
+    """The whole tunnel of every structure, one view per panel.
+
+    kind "fixed"  - the route between the two fixed anatomical ends
+    kind "seeded" - the route seeded at each structure's own ligand
+    """
     tun = R("full_tunnels.csv")
     lig = R("full_tunnel_ligands.csv")
     # the same protomers traced again, seeded at the ligand instead of run
@@ -2608,11 +2627,13 @@ def panel_whole_tunnel():
         if not os.path.exists(f):
             continue
         aside = r["trace_file"].startswith("own_")
+        if aside != (kind == "seeded"):
+            continue
         P, rad = trace_of(f)
         arc = np.concatenate([[0.0], np.cumsum(
             np.linalg.norm(np.diff(P, axis=0), axis=1))])
         L = float(r["length_A"])
-        rows.append((r["ligand"] + ("\nseeded at the ligand" if aside else ""),
+        rows.append((r["ligand"],
                      k, 100.0 * arc / arc[-1],
                      np.minimum(rad, RCAP), L,
                      float(r["trace_min_radius_A"]),
@@ -2621,27 +2642,40 @@ def panel_whole_tunnel():
     if not rows:
         return
     # each structure's two views adjacent, so the pair can be compared
-    rows.sort(key=lambda t: (t[0].split("\n")[0], "seeded" in t[0]))
+    rows.sort(key=lambda t: t[4])
     n = len(rows)
 
-    H = 9.2 + 0.66 * n
+    H = 7.6 + 0.66 * n
     fig = plt.figure(figsize=(11.6, H))
-    title(fig, "One tunnel, end to end",
-          "The whole path through each protomer \u2014 in at the periplasmic "
-          "cleft, out at the funnel \u2014 with every bound ligand on it.")
-    callout(fig, 0.055, 1.0 - 2.10 / H,
+    if kind == "seeded":
+        title(fig, "Seeded at the ligand",
+              "The same protomers traced outward from each bound substrate, "
+              "with the entrance measured rather than assumed.")
+    else:
+        title(fig, "One tunnel, end to end",
+              "The whole path through each protomer \u2014 in at the "
+              "periplasmic cleft, out at the funnel \u2014 with every bound "
+              "ligand on it.")
+    callout(fig, 0.055, 1.0 - 1.60 / H,
             f"{min(t[4] for t in rows):.0f}\u2013"
             f"{max(t[4] for t in rows):.0f} \u00c5",
             "of tunnel from the cleft mouth to the\nfunnel, in every "
             "structure measured", TEAL, size=34)
     on = [float(x["along_tunnel_A"]) / float(x["tunnel_length_A"]) * 100.0
           for t in rows for x in t[7]]
-    callout(fig, 0.545, 1.0 - 2.10 / H,
-            f"{min(on):.0f}\u2013{max(on):.0f}%",
-            "of the way along it is where every\nsubstrate sits, all nine of them",
-            APOLAR, size=34)
+    if kind == "seeded":
+        offs = [float(x["closest_offset_A"]) for t in rows for x in t[7]]
+        callout(fig, 0.545, 1.0 - 1.60 / H,
+                f"{min(offs):.1f}\u2013{max(offs):.1f} \u00c5",
+                "is how far each substrate sits from\nthe line its own site opens "
+                "along", APOLAR, size=34)
+    else:
+        callout(fig, 0.545, 1.0 - 1.60 / H,
+                f"{min(on):.0f}\u2013{max(on):.0f}%",
+                "of the way along it is where every\nsubstrate sits, all nine "
+                "of them", APOLAR, size=34)
 
-    y0, htop = 3.45 / H, 5.10 / H
+    y0, htop = 3.45 / H, 4.45 / H
     ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
     ax.set_xlim(-1.5, 101.5); ax.set_ylim(-1.25, n - 0.15)
     ax.set_yticks([]); ax.grid(axis="y", visible=False)
@@ -2721,12 +2755,13 @@ def panel_whole_tunnel():
                                  "both": "spans both"}[q])
                for q in ("DBP", "PBP", "both")]
     fig.legend(handles=handles, loc="upper center", ncol=3,
-               bbox_to_anchor=(0.58, 1.0 - 4.40 / H), fontsize=13.5,
+               bbox_to_anchor=(0.58, 1.0 - 3.75 / H), fontsize=13.5,
                handletextpad=0.35, columnspacing=1.8)
 
-    fig.text(0.045, 2.25 / H, CAP21, fontsize=13, color=INK2, va="top",
-             linespacing=1.5)
-    save(fig, "P21_whole_tunnel")
+    fig.text(0.045, 2.25 / H, CAP22 if kind == "seeded" else CAP21,
+             fontsize=13, color=INK2, va="top", linespacing=1.5)
+    save(fig, "P22_seeded_tunnel" if kind == "seeded"
+         else "P21_whole_tunnel")
 
 def main():
     print("=== poster panels ===")
@@ -2750,7 +2785,8 @@ def main():
     panel_state_channels()
     panel_ligand_in_tunnel()
     panel_ligand_strain()
-    panel_whole_tunnel()
+    panel_whole_tunnel("fixed")
+    panel_whole_tunnel("seeded")
     print(f"\n  A0 portrait: each panel is ~250 mm wide as rendered; "
           f"SVG scales losslessly.")
 
