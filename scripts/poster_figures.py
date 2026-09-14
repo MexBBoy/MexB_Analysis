@@ -2785,9 +2785,10 @@ def panel_whole_tunnel(kind="fixed"):
                 (1.0, n - 0.35), xycoords=("axes fraction", "data"),
                 xytext=(9, 2), textcoords="offset points", ha="left",
                 va="bottom", fontsize=12, color=INK2, annotation_clip=False)
-    for xq, lab in ((0, "periplasmic\ncleft"), (100, "funnel\nto TolC")):
-        ax.annotate(lab, (xq, -0.52), ha="center", va="top", fontsize=11.5,
-                    color=INK2, annotation_clip=False)
+    if kind != "seeded":       # P21 names its ends; P22 leaves the axis clean
+        for xq, lab in ((0, "periplasmic\ncleft"), (100, "funnel\nto TolC")):
+            ax.annotate(lab, (xq, -0.52), ha="center", va="top",
+                        fontsize=11.5, color=INK2, annotation_clip=False)
     ax.plot([50, 50], [-1.02 - KY * 4, -1.02 + KY * 4], color="black",
             linewidth=2.4, solid_capstyle="butt")
     ax.annotate("8 \u00c5 across", (50, -1.02), textcoords="offset points",
