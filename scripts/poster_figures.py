@@ -2301,9 +2301,14 @@ CAP21 = (
     'Whether a ligand counts as on the tunnel is judged by its nearest atom rather than its mean, since an elongated\n'
     'detergent has a large mean offset however squarely it lies on the line. The radius drawn is what the empty\n'
     'channel offers, traced with the ligands stripped out, so it is the room the site provides rather than what is\n'
-    'left beside the molecule. The last stretch opens into solvent at the funnel, where the radius runs away from the\n'
-    'channel it came from, so the drawn width is capped at 5 A; the narrowest point quoted per row is measured on the\n'
-    'uncapped trace. Numbers in full_tunnels.csv and full_tunnel_ligands.csv.')
+    'left beside the molecule. Chloramphenicol is drawn hollow because it is not on this line: its site is lined 64\n'
+    'percent by PN1/PN2 and only 5 percent by PC1/PC2, so it sits at the CH3 groove entrance rather than on the CH1\n'
+    'periplasmic-cleft route every row traces, and no reasonable route through the porter pockets passes within 13 A of\n'
+    'it. Threading the proximal pocket as well as the distal was tried and did not bring it closer, which is what\n'
+    'identified the site as a different entrance rather than a missed waypoint. The last stretch opens into solvent\n'
+    'at the funnel, where the radius runs away from the channel it came from, so the drawn width is capped at 5 A;\n'
+    'the narrowest point quoted per row is measured on the uncapped trace. Numbers in full_tunnels.csv and\n'
+    'full_tunnel_ligands.csv.')
 
 
 def panel_ligand_in_tunnel():
@@ -2613,12 +2618,11 @@ def panel_whole_tunnel():
             "of tunnel from the cleft mouth to the\nfunnel, in every "
             "structure measured", TEAL, size=34)
     on = [float(x["along_tunnel_A"]) / float(x["tunnel_length_A"]) * 100.0
-          for t in rows for x in t[7]
-          if float(x["closest_offset_A"]) <= ON_ROUTE]
+          for t in rows for x in t[7]]
     callout(fig, 0.545, 1.0 - 1.15 / H,
             f"{min(on):.0f}\u2013{max(on):.0f}%",
-            "of the way along it is where every\nsubstrate sits \u2014 all in "
-            "the same third", APOLAR, size=34)
+            "of the way along it is where every\nsubstrate sits, all nine of them",
+            APOLAR, size=34)
 
     y0, htop = 3.45 / H, 3.30 / H
     ax = fig.add_axes([0.215, y0, 0.665, 1.0 - y0 - htop])
@@ -2641,9 +2645,20 @@ def panel_whole_tunnel():
                     linewidth=1.6, zorder=3)
         st = site.get(k, "")
         for r in sorted(mine, key=lambda r: float(r["along_tunnel_A"])):
-            if float(r["closest_offset_A"]) > ON_ROUTE:
-                continue
             tl = float(r["tunnel_length_A"])
+            off = float(r["closest_offset_A"])
+            if off > ON_ROUTE:
+                # not on this line at all: drawn hollow, with how far off and
+                # why, rather than dropped so the row looks ligand-free
+                x = 100.0 * float(r["along_tunnel_A"]) / tl
+                ax.scatter([x], [y], s=70 + 2.2 * int(r["heavy_atoms"]),
+                           zorder=5, facecolor="white", edgecolor=col,
+                           linewidth=2.4)
+                ax.annotate(f"{off:.0f} \u00c5 off this line \u2014 CH3 groove",
+                            (x, y), xytext=(16, 0),
+                            textcoords="offset points", ha="left",
+                            va="center", fontsize=10.5, color=col)
+                continue
             x = 100.0 * float(r["along_tunnel_A"]) / tl
             ax.plot([100.0 * float(r["along_min_A"]) / tl,
                      100.0 * float(r["along_max_A"]) / tl], [y, y], color=col,

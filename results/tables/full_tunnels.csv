@@ -1,8 +1,8 @@
 pdb,chain,ligand,length_A,leg_bottleneck_A,trace_min_radius_A,waypoint,route_notes,trace_file
-Amp_MexB_20260826,E,Ampicillin,153.90,1.93,2.20,distal pocket,clean,whole_Amp_MexB_20260826_E.pdb
-21FO,B,CYMAL-7,140.05,2.21,2.32,distal pocket,clean,whole_21FO_B.pdb
-21FP,B,Chloramphenicol,158.64,2.42,2.65,distal pocket,clean,whole_21FP_B.pdb
-2V50,B,DDM,145.50,2.12,2.33,distal pocket,clean,whole_2V50_B.pdb
-MexB_DDM_3_20260730,E,DDM x3,155.72,2.17,2.34,distal pocket,clean,whole_MexB_DDM_3_20260730_E.pdb
-3W9J,B,EPI,150.64,1.77,2.10,distal pocket,clean,whole_3W9J_B.pdb
-6IIA,B,LMNG,166.13,2.46,2.62,distal pocket,clean,whole_6IIA_B.pdb
+Amp_MexB_20260826,E,Ampicillin,155.69,1.93,2.21,proximal then distal,clean,whole_Amp_MexB_20260826_E.pdb
+21FO,B,CYMAL-7,149.34,2.21,2.36,proximal then distal,clean,whole_21FO_B.pdb
+21FP,B,Chloramphenicol,166.33,2.42,2.64,proximal then distal,clean,whole_21FP_B.pdb
+2V50,B,DDM,170.21,2.12,2.32,proximal then distal,clean,whole_2V50_B.pdb
+MexB_DDM_3_20260730,E,DDM x3,157.32,2.17,2.34,proximal then distal,clean,whole_MexB_DDM_3_20260730_E.pdb
+3W9J,B,EPI,153.52,1.77,2.10,proximal then distal,clean,whole_3W9J_B.pdb
+6IIA,B,LMNG,168.34,2.46,2.60,proximal then distal,clean,whole_6IIA_B.pdb
