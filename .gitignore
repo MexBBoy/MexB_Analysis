@@ -6,3 +6,9 @@ __pycache__/
 /*.html
 /*.zip
 Rplots.pdf
+
+# MtrE binder design: raw PDB download (re-fetched by prepare_mtre_targets.py)
+mtre_binder_design/targets/*.cif
+# design outputs
+mtre_binder_design/designs/
+mtre_binder_design/scaffolds/

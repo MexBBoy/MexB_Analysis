@@ -1,0 +1,34 @@
+{
+  "_comment": [
+    "BindCraft target settings - APPROACH A: extracellular lumen plug (KlebC-like).",
+    "",
+    "Site: the beta-barrel lumen of MtrE, entered from OUTSIDE the cell. The lumen",
+    "is an open funnel of pore radius 7.4-9.3 A (14.8-18.6 A diameter) running from",
+    "the extracellular mouth at z=+66 down to z=+34 - roughly 32 A of depth with NO",
+    "constriction anywhere along it. The periplasmic Asp ring (D422/D425 auth) is at",
+    "z=-46 and is NOT part of this site and NOT reachable from outside.",
+    "",
+    "Mouth diameter (~15 A across the Q111 ring) admits a SINGLE alpha-helix with",
+    "side chains, not a helical hairpin. This matches the colicin E1 / TolC cryo-EM",
+    "structure (6WXI), where colicin binds as a single-pass folded helix.",
+    "",
+    "Hotspots span the full insertion depth so BindCraft is forced to build a binder",
+    "that reaches down the barrel rather than capping the rim:",
+    "  A123 Tyr  z=+57  shallow, lumen mouth",
+    "  A312 Thr  z=+48  mid-barrel",
+    "  A311 Leu  z=+46  mid-barrel hydrophobic anchor",
+    "  A132 Tyr  z=+41  deep aromatic anchor",
+    "Numbering is 4MT0 auth (precursor). Mature = auth - 20.",
+    "",
+    "VERIFY before running: key names against your installed BindCraft",
+    "settings_target/*.json - this file follows the v1.5.0 schema."
+  ],
+
+  "design_path": "./designs/mtre_lumen_plug/",
+  "binder_name": "MtrE_plug",
+  "starting_pdb": "./targets/target_lumen.pdb",
+  "chains": "A,B,C",
+  "target_hotspot_residues": "A123,A312,A311,A132",
+  "lengths": [60, 110],
+  "number_of_final_designs": 100
+}

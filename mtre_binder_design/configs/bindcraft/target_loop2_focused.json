@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "BindCraft target settings - APPROACH B support: small-site Loop 2 binder.",
+    "",
+    "This is the minibinder control arm that runs alongside the RFpeptides",
+    "macrocycle campaign (configs/rfpeptides/). Same site, two chemistries - if the",
+    "macrocycles fail you still learn whether the site is engageable at all, and if",
+    "both work the minibinder gives you an affinity reagent for the peptide assay.",
+    "",
+    "Site: Loop 2 of chain A plus the rim of chain B only, so the binder is driven",
+    "into the shallow groove around the exposed F326 rather than being allowed to",
+    "sprawl over the whole three-fold crown.",
+    "",
+    "Hotspots: F326 (SASA 149, the anchor), L322 (114), K327 (126).",
+    "Shorter length range than the other campaigns - this is a small, shallow,",
+    "partly polar site and long binders will simply drape across it.",
+    "",
+    "VERIFY key names against your installed BindCraft settings_target/*.json."
+  ],
+
+  "design_path": "./designs/mtre_loop2/",
+  "binder_name": "MtrE_loop2",
+  "starting_pdb": "./targets/target_loop2.pdb",
+  "chains": "A,B",
+  "target_hotspot_residues": "A326,A322,A327",
+  "lengths": [45, 80],
+  "number_of_final_designs": 100
+}

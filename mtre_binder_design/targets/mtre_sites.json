@@ -1,0 +1,600 @@
+{
+  "source": "PDB 4MT0 biological assembly 1 (MtrE open state, 3.29 A)",
+  "numbering": "4MT0 auth (precursor). mature = auth - 20",
+  "checks": {
+    "asp_ring_z": -48.64207458496094,
+    "barrel_z": 53.06599807739258,
+    "loop2_seq": "SVELGGLFKSGTG"
+  },
+  "membrane_z": [
+    35.0,
+    60.0
+  ],
+  "extracellular_z": 58.0,
+  "lumen_z_floor": 34.0,
+  "asp_ring_auth": [
+    422,
+    425
+  ],
+  "asp_ring_note": "PERIPLASMIC. Not reachable from outside. Do not target.",
+  "loop1_auth": [
+    113,
+    118
+  ],
+  "loop2_auth": [
+    319,
+    331
+  ],
+  "loop2_seq": "SVELGGLFKSGTG",
+  "crown_residues_auth": [
+    110,
+    111,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    317,
+    318,
+    319,
+    320,
+    321,
+    322,
+    323,
+    324,
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    331,
+    332,
+    333
+  ],
+  "lumen_wall_auth": [
+    105,
+    107,
+    108,
+    109,
+    110,
+    111,
+    118,
+    120,
+    121,
+    122,
+    123,
+    124,
+    129,
+    130,
+    131,
+    132,
+    133,
+    310,
+    311,
+    312,
+    313,
+    314,
+    319,
+    320,
+    334,
+    336,
+    338,
+    340
+  ],
+  "pore_profile": [
+    {
+      "z": -60.0,
+      "pore_radius": 5.37,
+      "lining": [
+        209,
+        418
+      ]
+    },
+    {
+      "z": -58.0,
+      "pore_radius": 5.37,
+      "lining": [
+        209
+      ]
+    },
+    {
+      "z": -56.0,
+      "pore_radius": 6.19,
+      "lining": [
+        209
+      ]
+    },
+    {
+      "z": -54.0,
+      "pore_radius": 5.26,
+      "lining": [
+        421,
+        422
+      ]
+    },
+    {
+      "z": -52.0,
+      "pore_radius": 5.22,
+      "lining": [
+        421
+      ]
+    },
+    {
+      "z": -50.0,
+      "pore_radius": 5.22,
+      "lining": [
+        212,
+        421
+      ]
+    },
+    {
+      "z": -48.0,
+      "pore_radius": 4.97,
+      "lining": [
+        425
+      ]
+    },
+    {
+      "z": -46.0,
+      "pore_radius": 4.29,
+      "lining": [
+        425
+      ]
+    },
+    {
+      "z": -44.0,
+      "pore_radius": 4.29,
+      "lining": [
+        425,
+        428,
+        429
+      ]
+    },
+    {
+      "z": -42.0,
+      "pore_radius": 5.74,
+      "lining": [
+        428
+      ]
+    },
+    {
+      "z": -40.0,
+      "pore_radius": 5.74,
+      "lining": [
+        428,
+        429
+      ]
+    },
+    {
+      "z": -38.0,
+      "pore_radius": 6.84,
+      "lining": [
+        428,
+        432
+      ]
+    },
+    {
+      "z": -36.0,
+      "pore_radius": 6.84,
+      "lining": [
+        432
+      ]
+    },
+    {
+      "z": -34.0,
+      "pore_radius": 8.27,
+      "lining": [
+        432
+      ]
+    },
+    {
+      "z": -32.0,
+      "pore_radius": 8.55,
+      "lining": [
+        227,
+        436
+      ]
+    },
+    {
+      "z": -30.0,
+      "pore_radius": 8.55,
+      "lining": [
+        227,
+        436
+      ]
+    },
+    {
+      "z": -28.0,
+      "pore_radius": 8.86,
+      "lining": [
+        230,
+        439
+      ]
+    },
+    {
+      "z": -26.0,
+      "pore_radius": 8.86,
+      "lining": [
+        230,
+        439
+      ]
+    },
+    {
+      "z": -24.0,
+      "pore_radius": 10.19,
+      "lining": [
+        178,
+        230,
+        439
+      ]
+    },
+    {
+      "z": -22.0,
+      "pore_radius": 10.25,
+      "lining": [
+        442,
+        443
+      ]
+    },
+    {
+      "z": -20.0,
+      "pore_radius": 10.25,
+      "lining": [
+        233,
+        443
+      ]
+    },
+    {
+      "z": -18.0,
+      "pore_radius": 10.49,
+      "lining": [
+        175,
+        233,
+        446
+      ]
+    },
+    {
+      "z": -16.0,
+      "pore_radius": 10.67,
+      "lining": [
+        175,
+        446
+      ]
+    },
+    {
+      "z": -14.0,
+      "pore_radius": 11.84,
+      "lining": [
+        171,
+        237
+      ]
+    },
+    {
+      "z": -12.0,
+      "pore_radius": 11.66,
+      "lining": [
+        171
+      ]
+    },
+    {
+      "z": -10.0,
+      "pore_radius": 11.66,
+      "lining": [
+        171,
+        376
+      ]
+    },
+    {
+      "z": -8.0,
+      "pore_radius": 12.58,
+      "lining": [
+        168,
+        376
+      ]
+    },
+    {
+      "z": -6.0,
+      "pore_radius": 12.58,
+      "lining": [
+        168,
+        377
+      ]
+    },
+    {
+      "z": -4.0,
+      "pore_radius": 13.27,
+      "lining": [
+        164,
+        373,
+        453
+      ]
+    },
+    {
+      "z": -2.0,
+      "pore_radius": 13.27,
+      "lining": [
+        164,
+        373
+      ]
+    },
+    {
+      "z": 0.0,
+      "pore_radius": 12.49,
+      "lining": [
+        76,
+        164
+      ]
+    },
+    {
+      "z": 2.0,
+      "pore_radius": 12.49,
+      "lining": [
+        76,
+        369
+      ]
+    },
+    {
+      "z": 4.0,
+      "pore_radius": 13.82,
+      "lining": [
+        76,
+        161
+      ]
+    },
+    {
+      "z": 6.0,
+      "pore_radius": 12.09,
+      "lining": [
+        79,
+        157
+      ]
+    },
+    {
+      "z": 8.0,
+      "pore_radius": 11.41,
+      "lining": [
+        79,
+        157
+      ]
+    },
+    {
+      "z": 10.0,
+      "pore_radius": 10.53,
+      "lining": [
+        83,
+        157
+      ]
+    },
+    {
+      "z": 12.0,
+      "pore_radius": 10.53,
+      "lining": [
+        83
+      ]
+    },
+    {
+      "z": 14.0,
+      "pore_radius": 8.7,
+      "lining": [
+        87
+      ]
+    },
+    {
+      "z": 16.0,
+      "pore_radius": 8.7,
+      "lining": [
+        87
+      ]
+    },
+    {
+      "z": 18.0,
+      "pore_radius": 8.7,
+      "lining": [
+        87,
+        359
+      ]
+    },
+    {
+      "z": 20.0,
+      "pore_radius": 8.7,
+      "lining": [
+        90,
+        359
+      ]
+    },
+    {
+      "z": 22.0,
+      "pore_radius": 9.32,
+      "lining": [
+        90,
+        359
+      ]
+    },
+    {
+      "z": 24.0,
+      "pore_radius": 12.89,
+      "lining": [
+        90,
+        297
+      ]
+    },
+    {
+      "z": 26.0,
+      "pore_radius": 10.97,
+      "lining": [
+        93,
+        94
+      ]
+    },
+    {
+      "z": 28.0,
+      "pore_radius": 10.97,
+      "lining": [
+        94
+      ]
+    },
+    {
+      "z": 30.0,
+      "pore_radius": 11.37,
+      "lining": [
+        94,
+        97,
+        139
+      ]
+    },
+    {
+      "z": 32.0,
+      "pore_radius": 10.74,
+      "lining": [
+        139
+      ]
+    },
+    {
+      "z": 34.0,
+      "pore_radius": 10.74,
+      "lining": [
+        133,
+        139
+      ]
+    },
+    {
+      "z": 36.0,
+      "pore_radius": 9.38,
+      "lining": [
+        133,
+        310
+      ]
+    },
+    {
+      "z": 38.0,
+      "pore_radius": 9.19,
+      "lining": [
+        310
+      ]
+    },
+    {
+      "z": 40.0,
+      "pore_radius": 9.13,
+      "lining": [
+        310
+      ]
+    },
+    {
+      "z": 42.0,
+      "pore_radius": 7.42,
+      "lining": [
+        130,
+        131
+      ]
+    },
+    {
+      "z": 44.0,
+      "pore_radius": 7.42,
+      "lining": [
+        130,
+        131
+      ]
+    },
+    {
+      "z": 46.0,
+      "pore_radius": 8.94,
+      "lining": [
+        130,
+        312,
+        338
+      ]
+    },
+    {
+      "z": 48.0,
+      "pore_radius": 8.94,
+      "lining": [
+        312
+      ]
+    },
+    {
+      "z": 50.0,
+      "pore_radius": 8.98,
+      "lining": [
+        312,
+        336
+      ]
+    },
+    {
+      "z": 52.0,
+      "pore_radius": 9.63,
+      "lining": [
+        107,
+        336
+      ]
+    },
+    {
+      "z": 54.0,
+      "pore_radius": 8.96,
+      "lining": [
+        107,
+        109
+      ]
+    },
+    {
+      "z": 56.0,
+      "pore_radius": 8.96,
+      "lining": [
+        109
+      ]
+    },
+    {
+      "z": 58.0,
+      "pore_radius": 7.44,
+      "lining": [
+        111,
+        122
+      ]
+    },
+    {
+      "z": 60.0,
+      "pore_radius": 7.44,
+      "lining": [
+        111,
+        122
+      ]
+    },
+    {
+      "z": 62.0,
+      "pore_radius": 9.29,
+      "lining": [
+        120
+      ]
+    },
+    {
+      "z": 64.0,
+      "pore_radius": 9.29,
+      "lining": [
+        120,
+        320
+      ]
+    },
+    {
+      "z": 66.0,
+      "pore_radius": 11.12,
+      "lining": [
+        118,
+        320
+      ]
+    },
+    {
+      "z": 68.0,
+      "pore_radius": 12.18,
+      "lining": [
+        118
+      ]
+    }
+  ],
+  "min_extracellular_pore_radius": 7.44
+}

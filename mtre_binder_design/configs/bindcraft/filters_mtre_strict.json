@@ -1,0 +1,53 @@
+{
+  "_comment": [
+    "BindCraft filters, tightened for MtrE. Start from the default_filters.json",
+    "shipped with your BindCraft install and apply these overrides - do not assume",
+    "this file is complete, diff it against the shipped one first.",
+    "",
+    "Rationale for each tightening relative to BindCraft defaults:",
+    "  i_pTM 0.50 -> 0.65   the single most predictive metric; cheap to tighten",
+    "  i_pAE  0.35 -> 0.28  ditto",
+    "  ShapeComplementarity 0.55 -> 0.62   a plug in an open barrel can score well",
+    "        on pAE while barely touching the wall; sc_ catches that",
+    "  Surface_Hydrophobicity 0.35 -> 0.30  these binders go on a bacterial cell",
+    "        surface in the presence of LOS; sticky designs are a liability and",
+    "        hydrophobic designs are exactly what a membrane-protein target",
+    "        over-produces",
+    "  n_InterfaceUnsatHbonds 3 -> 2   buried unsatisfied polars are the usual",
+    "        reason a confident-looking design has no measurable affinity",
+    "  n_InterfaceResidues 7 -> 12   forces real buried surface, not a kiss",
+    "",
+    "These will cut your accepted-design yield substantially. That is the point:",
+    "you are trading compute for a lower experimental false-positive rate, and",
+    "compute is much cheaper than 96 wells of protein expression."
+  ],
+
+  "i_pTM":                       { "threshold": 0.65,  "higher": true  },
+  "i_pAE":                       { "threshold": 0.28,  "higher": false },
+  "i_pLDDT":                     { "threshold": 0.80,  "higher": true  },
+  "pLDDT":                       { "threshold": 0.82,  "higher": true  },
+  "Binder_pLDDT":                { "threshold": 0.85,  "higher": true  },
+  "Binder_pAE":                  { "threshold": 0.30,  "higher": false },
+  "Binder_RMSD":                 { "threshold": 2.5,   "higher": false },
+
+  "ShapeComplementarity":        { "threshold": 0.62,  "higher": true  },
+  "PackStat":                    { "threshold": 0.60,  "higher": true  },
+  "dG":                          { "threshold": -35.0, "higher": false },
+  "dSASA":                       { "threshold": 900,   "higher": true  },
+  "Interface_SASA_%":            { "threshold": null,  "higher": true  },
+  "Surface_Hydrophobicity":      { "threshold": 0.30,  "higher": false },
+  "Interface_Hydrophobicity":    { "threshold": null,  "higher": false },
+
+  "n_InterfaceResidues":         { "threshold": 12,    "higher": true  },
+  "n_InterfaceHbonds":           { "threshold": 3,     "higher": true  },
+  "InterfaceHbondsPercentage":   { "threshold": null,  "higher": true  },
+  "n_InterfaceUnsatHbonds":      { "threshold": 2,     "higher": false },
+  "InterfaceUnsatHbondsPercentage": { "threshold": null, "higher": false },
+
+  "Unrelaxed_Clashes":           { "threshold": 0,     "higher": false },
+  "Relaxed_Clashes":             { "threshold": 0,     "higher": false },
+
+  "Interface_Helix%":            { "threshold": null,  "higher": true  },
+  "Interface_BetaSheet%":        { "threshold": null,  "higher": true  },
+  "Interface_Loop%":             { "threshold": null,  "higher": false }
+}
