@@ -6,6 +6,8 @@ needs to cross the outer membrane.
 
 Read **[PROTOCOL_MtrE.md](PROTOCOL_MtrE.md)** first. It holds the ground-truth
 geometry, the numbering convention, and the reasoning behind every hotspot.
+**[INSTALL.md](INSTALL.md)** covers getting RFdiffusion and BindCraft onto a
+local machine, including which route to take for your GPU.
 
 ## Quick start
 
@@ -45,6 +47,13 @@ literature:
    target. The site you want is the *inter-protomer* groove, which is
    asymmetric in the binder's frame. For three-fold avidity, design a monomeric
    groove binder and trimerise it experimentally with a T4 foldon fusion.
+
+3. **RFpeptides is not a separate install.** It is built into mainline
+   RFdiffusion, and the flags are `inference.cyclic=True` plus
+   `inference.cyc_chains`, not the `inference.cyclize` an earlier draft of
+   `run_macrocycles.sh` guessed at. The peptide contig must also come *first*,
+   the reverse of ordinary binder design — `cyc_chains='a'` cyclises output
+   chain A, so putting the target first silently cyclises part of it.
 
 ## What the structure actually says
 

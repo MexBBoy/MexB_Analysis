@@ -147,6 +147,45 @@ def pore_profile(chains, z_lo=-60, z_hi=68, step=2.0) -> list[dict]:
     return out
 
 
+def spans(resnums: list[int], present: set[int], max_gap: int = 6) -> list[tuple[int, int]]:
+    """Collapse a residue selection into contiguous spans.
+
+    A selection picked per-residue (by SASA, by radius) comes out full of
+    one- and two-residue holes. Those holes are not harmless: every one is an
+    artificial chain break, which RFdiffusion has to be told about in the
+    contig string and which AF2 reads as a real terminus. Filling gaps up to
+    max_gap gives contiguous spans that are cleaner to design against and
+    simpler to write contigs for, at the cost of a few extra residues."""
+    if not resnums:
+        return []
+    out, start, prev = [], resnums[0], resnums[0]
+    for n in resnums[1:]:
+        if n - prev <= max_gap + 1:
+            prev = n
+        else:
+            out.append((start, prev))
+            start = prev = n
+    out.append((start, prev))
+    # Never invent residues the structure does not model.
+    return [(lo, hi) for lo, hi in out if any(i in present for i in range(lo, hi + 1))]
+
+
+def expand(resnums: list[int], present: set[int], max_gap: int = 6) -> list[int]:
+    keep = []
+    for lo, hi in spans(resnums, present, max_gap):
+        keep.extend(i for i in range(lo, hi + 1) if i in present)
+    return sorted(keep)
+
+
+def contig(chain_ids: list[str], resnums: list[int], present: set[int]) -> str:
+    """RFdiffusion contig fragment for a trimmed target, e.g. 'A105-133/0 A310-340/0'."""
+    parts = []
+    for ch in chain_ids:
+        for lo, hi in spans(resnums, present):
+            parts.append(f"{ch}{lo}-{hi}/0")
+    return " ".join(parts)
+
+
 def sasa_by_residue(model) -> dict:
     ShrakeRupley().compute(model, level="R")
     return {(r.get_parent().id, r.id[1]): float(r.sasa)
@@ -219,14 +258,20 @@ def main() -> None:
     crown_res = crown(chains, sasa)
 
     all_ids = [c.id for c in chains]
-    write(model, out / "mtre_trimer_framed.pdb", all_ids,
-          {r.id[1] for r in chains[0]})
-    write(model, out / "target_crown.pdb", all_ids, crown_res)
-    write(model, out / "target_lumen.pdb", all_ids, sorted(set(lumen) | set(crown_res)))
-    # Loop 2 site: one inter-protomer wedge, Loop 2 of A plus the rim of A-2.
-    loop2_site = set(range(LOOP2[0] - 4, LOOP2[1] + 5))
-    write(model, out / "target_loop2.pdb", ["A", "B"],
-          loop2_site | {i for i in crown_res if i in loop2_site})
+    present = {r.id[1] for r in chains[0]}
+
+    # Collapse each per-residue selection into contiguous spans before writing,
+    # so the targets carry no artificial chain breaks (see spans()).
+    crown_span = expand(crown_res, present)
+    lumen_span = expand(sorted(set(lumen) | set(crown_res)), present)
+    loop2_span = expand(sorted(i for i in range(LOOP2[0] - 4, LOOP2[1] + 5)
+                               if i in present), present)
+
+    write(model, out / "mtre_trimer_framed.pdb", all_ids, present)
+    write(model, out / "target_crown.pdb", all_ids, crown_span)
+    write(model, out / "target_lumen.pdb", all_ids, lumen_span)
+    # Loop 2 site: one inter-protomer wedge, Loop 2 of A plus the rim of B.
+    write(model, out / "target_loop2.pdb", ["A", "B"], loop2_span)
 
     extracellular_mouth = [p for p in profile if p["z"] >= EXTRACELLULAR_Z]
     sites = {
@@ -243,6 +288,14 @@ def main() -> None:
         "loop2_seq": checks["loop2_seq"],
         "crown_residues_auth": crown_res,
         "lumen_wall_auth": lumen,
+        "contigs": {
+            "crown": contig(["A", "B", "C"], crown_res, present),
+            "lumen": contig(["A", "B", "C"],
+                            sorted(set(lumen) | set(crown_res)), present),
+            "loop2": contig(["A", "B"],
+                            sorted(i for i in range(LOOP2[0] - 4, LOOP2[1] + 5)
+                                   if i in present), present),
+        },
         "pore_profile": profile,
         "min_extracellular_pore_radius": min(p["pore_radius"] for p in extracellular_mouth),
     }
