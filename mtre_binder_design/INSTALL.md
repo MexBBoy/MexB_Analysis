@@ -5,6 +5,11 @@ RosettaCommons/RFdiffusion `86507b6`, martinpacesa/BindCraft `7713aa0`.
 
 Budget about 2 hours, most of it downloads.
 
+> **No GPU yet?** `notebooks/mtre_kaggle.ipynb` runs the whole pipeline on
+> Kaggle's free tier (30 GPU hours a week, 16 GB card, 12-hour sessions). It is
+> enough to validate the setup and produce first designs, not to finish a
+> campaign. Start there if you are still arranging compute.
+
 ---
 
 ## 0. Before you start

@@ -8,6 +8,8 @@ Read **[PROTOCOL_MtrE.md](PROTOCOL_MtrE.md)** first. It holds the ground-truth
 geometry, the numbering convention, and the reasoning behind every hotspot.
 **[INSTALL.md](INSTALL.md)** covers getting RFdiffusion and BindCraft onto a
 local machine, including which route to take for your GPU.
+**[notebooks/mtre_kaggle.ipynb](notebooks/mtre_kaggle.ipynb)** runs the same
+pipeline on Kaggle's free GPU if you have no machine yet.
 
 ## Quick start
 
