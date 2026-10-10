@@ -332,11 +332,18 @@ const doc = new Document({
 
       h1('What we need'),
       p('Ready now, in the repository: the target preparation script with its self-checks, three trimmed target '
-        + 'structures (42, 90 and 147 residues), BindCraft target and filter configs for all three campaigns, '
-        + 'RFdiffusion and RFpeptides run scripts, the geometry filter, and a protocol document recording the '
-        + 'measured ground truth.'),
-      p('Needed: GPU time. BindCraft and RFdiffusion both require CUDA and cannot run on CPU. The authors recommend '
-        + '32 GB of GPU memory for large targets; our trimmed targets sit comfortably below that. Spartan would do, as would a short cloud-GPU rental for a first pass.'),
+        + 'structures (42, 93 and 180 residues), BindCraft target and filter configs for all three campaigns, '
+        + 'RFdiffusion and macrocycle run scripts, the geometry filter, a local installation guide, and a protocol '
+        + 'document recording the measured ground truth.'),
+      p('Needed: GPU time. Both tools require CUDA and have no CPU path. The authors recommend 32 GB of GPU memory '
+        + 'for large targets; because our targets are trimmed to 42–180 residues, a 16 GB card is enough, which '
+        + 'widens the options considerably.'),
+      p('A free tier is enough to prove the pipeline end to end — Kaggle Notebooks give 30 GPU hours a week on a '
+        + '16 GB P100, in 12-hour sessions, which covers the smoke test, the macrocycle arm and a slow accumulation '
+        + 'of crown designs. It is not enough for a full campaign: BindCraft needs several hundred trajectories per '
+        + 'target. For that we need either a group GPU workstation or an HPC allocation. Worth noting that both '
+        + 'tools are CUDA-only, so an NVIDIA-based facility is required; AMD-based GPU partitions would need a '
+        + 'porting effort well beyond this project.'),
 
       h1('Corrections and caveats'),
       p('Two elements of the first draft of this plan were wrong, and both were caught by measuring the structure '

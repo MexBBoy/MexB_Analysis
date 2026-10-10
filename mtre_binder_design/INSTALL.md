@@ -262,4 +262,15 @@ The contig strings for all three targets are in
 
 Neither tool can be installed in a Claude Code cloud session: those containers
 have no GPU, and the network policy blocks both GitHub and the weights host.
-Install on your own machine, Spartan, or a rented cloud GPU.
+Install on a lab workstation, a university HPC allocation, or a rented cloud GPU.
+
+GitHub is not an option either. GitHub Actions does offer a GPU runner (one
+Tesla T4, 16 GB), but jobs are capped at 6 hours with no extension, repository
+cache is 10 GB — less than the two weight sets together — and artifact storage
+is 500 MB on Free. It is fine for a smoke test on every push, and unusable for
+a real campaign.
+
+One hardware note if you are choosing between national facilities: **both tools
+are CUDA-only.** NCI Gadi has NVIDIA GPUs and is fine. Pawsey's Setonix GPU
+partition is AMD MI250X running ROCm, so neither pipeline will run there
+without a porting effort that is well beyond the scope of this project.
