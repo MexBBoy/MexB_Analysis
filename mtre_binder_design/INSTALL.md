@@ -52,6 +52,11 @@ bash Miniforge3-Linux-x86_64.sh
 
 Verified against PacesaLab/BindCraft2 `c0ee638` (10 Oct 2026).
 
+> **Installing BindCraft2 on its own?** `BINDCRAFT2_SETUP.md` is a clean
+> step-by-step walkthrough from opening a terminal, with verification at each
+> stage. This section is the condensed version for people also installing v1
+> and RFdiffusion.
+
 **BindCraft2 is a separate repository under a new org**
 ([PacesaLab/BindCraft2](https://github.com/PacesaLab/BindCraft2)), not a branch
 or release of `martinpacesa/BindCraft` — that repo stops at v1.5.3. BC2 is a

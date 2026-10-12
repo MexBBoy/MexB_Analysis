@@ -10,6 +10,8 @@ geometry, the numbering convention, and the reasoning behind every hotspot.
 local machine, including which route to take for your GPU.
 **[notebooks/mtre_kaggle.ipynb](notebooks/mtre_kaggle.ipynb)** runs the same
 pipeline on Kaggle's free GPU if you have no machine yet.
+**[BINDCRAFT2_SETUP.md](BINDCRAFT2_SETUP.md)** is a standalone step-by-step
+install for BindCraft2, the successor to BindCraft v1.
 
 ## Quick start
 
