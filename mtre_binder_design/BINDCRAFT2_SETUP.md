@@ -132,8 +132,31 @@ AlphaFold parameters to `~/.cache/bindcraft/alphafold`, and self-checks.
 > bash install.sh                        # installs into the active environment
 > ```
 >
-> No `uv` and no system 3.13? `python3.12 -m venv .venv` works too — any of
-> 3.12, 3.13 or 3.14 will do. On Ubuntu: `sudo apt install python3.13-venv`.
+> **No `uv`, no system 3.12+, and no root?** This is the normal case on RHEL
+> and Rocky Linux, whose system `python3` is 3.6 (8) or 3.9 (9) and which
+> provide newer interpreters only through `dnf`. Check for environment modules
+> first, since managed machines often have one:
+>
+> ```bash
+> module avail python 2>&1 | grep -i python     # then e.g. module load python/3.12
+> ```
+>
+> Otherwise fetch `uv` into your home directory — it needs no root and brings
+> its own interpreter:
+>
+> ```bash
+> curl -LsSf https://astral.sh/uv/install.sh | sh
+> export PATH="$HOME/.local/bin:$PATH"
+> uv python install 3.13
+> ```
+>
+> Then the block above. Pin `--python 3.13` explicitly rather than letting uv
+> pick: left to itself it takes the newest it can reach, which is how 3.15 gets
+> in.
+>
+> Note glibc is not the issue on Rocky 9 (2.34) or Rocky 8 (2.28) — biotite's
+> current wheels need 2.28 or newer, so both clear it. On a distro older than
+> that, pin `biotite<1.7` (needs 2.24) or `biotite<1.5` (needs 2.17) instead.
 
 Watch for one line near the start:
 
