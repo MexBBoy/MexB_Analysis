@@ -260,6 +260,48 @@ common "it stopped working" after a successful install.
 
 ---
 
+## Where to put your own structure
+
+BC2 is a local program — it reads the file off disk, there is nothing to
+upload. Get the structure onto the machine however you normally would:
+
+```bash
+# from your laptop, if the workstation is remote
+scp model.pdb you@workstation:~/mtre_campaigns/
+
+# or straight from a URL, on the machine itself
+mkdir -p ~/mtre_campaigns && cd ~/mtre_campaigns
+curl -fsSL -o mtre_trunc.pdb https://example.org/path/to/model.pdb
+```
+
+Then keep each campaign self-contained:
+
+```
+~/mtre_campaigns/
+├── mtre_trunc.pdb
+└── mtre_crown.json        "target_path": "mtre_trunc.pdb"
+```
+
+**`target_path` resolves against the JSON file's own directory**, not your
+working directory (`read_settings` joins it to `settings_path.parent`). So a
+bare filename beside the JSON works from wherever you launch, and an absolute
+path works too.
+
+**`project_folder` is different — it resolves against your working directory.**
+That asymmetry is easy to trip over: launch the same campaign from two places
+and the target is found both times, while the results land in two different
+trees. Either `cd` to the campaign folder first, or give `project_folder` an
+absolute path.
+
+Confirm the file arrived intact before running anything:
+
+```bash
+python3 scripts/inspect_target.py ~/mtre_campaigns/mtre_trunc.pdb
+```
+
+`no CA atoms found` means the transfer produced something that is not a
+structure — an HTML error page saved under a .pdb name is the usual cause.
+
 ## Running against your own target
 
 Put a `design.json` next to your structure:
