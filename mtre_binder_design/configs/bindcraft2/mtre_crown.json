@@ -1,0 +1,19 @@
+{
+  "targets": [
+    {
+      "name": "MtrE_crown",
+      "target_path": "MtrE_OPM_crown.pdb",
+      "chains": "A,B,C",
+      "hotspots": "A326,A333,C114,C119"
+    }
+  ],
+  "modality": "binder",
+  "binder_lengths": [
+    55,
+    96
+  ],
+  "forced_targeting": true,
+  "number_of_final_designs": 100,
+  "campaign_name": "mtre_crown",
+  "project_folder": "results/mtre_crown"
+}
