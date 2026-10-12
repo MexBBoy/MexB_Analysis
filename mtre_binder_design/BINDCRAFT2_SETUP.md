@@ -115,6 +115,26 @@ bash install.sh
 This takes 20–40 minutes. It builds `.venv`, installs the wheels, downloads the
 AlphaFold parameters to `~/.cache/bindcraft/alphafold`, and self-checks.
 
+> **Known failure right now — `Failed building wheel for biotite`.**
+> Python 3.15.0 was released on 9 October 2026, and the installer asks `uv` for
+> *the newest* interpreter at or above 3.12 — so on a machine where `uv` can
+> reach 3.15, `.venv` is built on it. Biotite publishes wheels for cp312,
+> cp313 and cp314 only, so pip falls back to compiling from source and fails.
+> Nothing is wrong with your machine; the ecosystem has not caught up yet.
+> Pin the environment to 3.13 and install into it:
+>
+> ```bash
+> cd ~/software/BindCraft2
+> rm -rf .venv
+> uv venv --seed --python 3.13 .venv     # ./.bindcraft-tools/uv if uv is not on PATH
+> source .venv/bin/activate
+> python --version                       # expect 3.13.x
+> bash install.sh                        # installs into the active environment
+> ```
+>
+> No `uv` and no system 3.13? `python3.12 -m venv .venv` works too — any of
+> 3.12, 3.13 or 3.14 will do. On Ubuntu: `sudo apt install python3.13-venv`.
+
 Watch for one line near the start:
 
 ```
@@ -324,6 +344,8 @@ the card — but on a login node with no visible GPU it cannot, and assumes CUDA
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
+| `Failed building wheel for biotite` | `.venv` built on Python 3.15, which has no biotite wheel yet | rebuild `.venv` on 3.13, see step 7 |
+| Any `Failed building wheel for <pkg>` during install | same cause — a too-new interpreter forcing a source build | same fix; check `python --version` inside `.venv` first |
 | `bindcraft: command not found` | environment not active | `source .venv/bin/activate` |
 | `[CpuDevice(id=0)]` | wheels do not match the driver | re-run `bash install.sh` naming the accelerator |
 | Campaign runs but is very slow | JAX silently took the CPU | same device check; it warns only once |
