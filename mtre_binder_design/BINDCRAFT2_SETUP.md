@@ -6,6 +6,12 @@ From opening a terminal to a first design run. Verified against
 
 Allow about 45 minutes, nearly all of it the 5.3 GB weights download.
 
+> **Steps 5–11 below are written for a confirmed machine:** NVIDIA RTX 4500 Ada
+> Generation, 24 GB (24570 MiB), with no conda or virtual environment active.
+> That card is Ada Lovelace, compute capability **8.9** — above the 7.5 cutoff —
+> so the installer takes the CUDA 13 wheels and **needs no argument**.
+> A different card? See [If your machine differs](#if-your-machine-differs).
+
 ---
 
 ## Before you start
@@ -67,7 +73,15 @@ stacked environments — some setups auto-activate `base` on login.
 *(If you deliberately want BindCraft2 inside an environment you already use,
 activate that one instead and skip to step 6. It must be Python 3.12+.)*
 
-## Step 5 — Choose a permanent location
+## Step 5 — Check disk, then choose a permanent location
+
+```bash
+df -h ~
+```
+
+You need **~20 GB** in the "Avail" column. The 5.3 GB parameter archive and its
+unpacked contents sit side by side during the transfer, and the CUDA wheels are
+several GB more.
 
 **The install is editable, which means the clone IS the installation.** Moving,
 renaming or deleting the folder afterwards breaks the `bindcraft` command. Do
@@ -90,30 +104,28 @@ BindCraft v1 and stops at v1.5.3.
 
 ## Step 7 — Run the installer
 
-For most machines, no argument — it reads the accelerator off the driver:
+No argument. Your RTX 4500 Ada is compute capability 8.9, so the installer
+reads the driver, sees a card at or above 7.5, and takes the CUDA 13 wheels on
+its own:
 
 ```bash
 bash install.sh
 ```
 
-**Pass an argument instead if any of these apply:**
+This takes 20–40 minutes. It builds `.venv`, installs the wheels, downloads the
+AlphaFold parameters to `~/.cache/bindcraft/alphafold`, and self-checks.
 
-| Your situation | Command |
-| --- | --- |
-| V100, P100, or any card older than a T4 | `bash install.sh cuda12` |
-| AMD card | `bash install.sh rocm` |
-| Cluster login node, compute nodes have older cards | `bash install.sh cuda12` |
-| You want to skip the 5.3 GB download for now | `bash install.sh --no-weights` |
+Watch for one line near the start:
 
-Why: CUDA 13 dropped every GPU below compute capability 7.5, so a V100 or P100
-needs the CUDA 12 wheels however new its driver is. The installer detects this
-from the card — but on a login node with no visible GPU it cannot, and assumes
-CUDA 13. **Match the choice to the compute nodes, not the login node.**
+```
+bindcraft: installing for cuda13
+```
 
-This takes 20–40 minutes. It builds a `.venv`, installs the wheels, downloads
-the AlphaFold parameters to `~/.cache/bindcraft/alphafold`, and self-checks.
+If it says `cuda12` instead, the driver is reporting something older than
+expected — let it finish, then tell me what `nvidia-smi` shows in the top-right.
+It will still work; it just means the driver is behind the card.
 
-A successful run ends with something like:
+A successful run ends with:
 
 ```
 bindcraft: jax runs here on gpu, 1 device(s)
@@ -147,7 +159,7 @@ stop.** The install works but a campaign would run on the CPU and take days
 instead of hours. Re-run step 7 naming your accelerator explicitly.
 
 ```bash
-python -m bindcraft.selfcheck cuda13     # or cuda12 / rocm, whichever you installed
+python -m bindcraft.selfcheck cuda13
 ```
 Names every module and checkpoint it needs and reports anything missing. A pip
 install can resolve a wheel and unpack nothing while reporting success; this is
@@ -160,9 +172,14 @@ A short bounded run, to confirm the whole thing works before committing hours:
 ```bash
 bindcraft design examples/pdl1.json \
   --set number_of_final_designs=1 \
-  --set max_trajectories=3 \
+  --set max_trajectories=4 \
   --set 'project_folder=results/smoke_test'
 ```
+
+`max_trajectories` must be **greater than the number of workers** — workers
+cannot share a trajectory. The shipped PD-L1 target is 115 residues and the
+default binder range runs to 180, so a 24 GB card packs one worker here; 4 is
+comfortably clear. Keep the rule in mind if you ever lower it.
 
 This designs against the shipped human PD-L1 target and stops after three
 attempts whether or not anything passes. It should take a few minutes and write
@@ -262,6 +279,44 @@ bindcraft design mtre_mouth.json --modality cyclic_peptide
 
 See `examples/pdl1_cyclic_peptide.json` and `examples/pdl1_detarget_pd1.json`
 for the full shape of each.
+
+### What our targets cost on a 24 GB card
+
+Applying BC2's own budget — `2.0 × (3.4 GB + 38 kB × N²)` per worker for a
+padded complex of N residues, with 4 GB of the card left as headroom, so about
+20 GB to divide up:
+
+| Campaign | Target | Binder | N (padded) | Per worker | Workers |
+| --- | --- | --- | --- | --- | --- |
+| loop2 | 42 | 45–80 | ~138 | ~8.2 GB | 2 |
+| crown | 93 | 55–100 | ~221 | ~10.5 GB | 1 |
+| lumen | 180 | 60–110 | ~308 | ~14.0 GB | 1 |
+
+All three fit. Nothing needs configuring — a campaign packs workers to the card
+on its own; these are just what to expect. Two caveats:
+
+- **System RAM also caps it**, at 4 GB per worker, because every worker holds
+  its own copy of the parameters. Two workers wants 8 GB of RAM free.
+- These are calculated from the documented formula, not measured on your card.
+  If a campaign runs out of memory, `export BINDCRAFT_WORKERS_PER_GPU=1` first.
+
+---
+
+## If your machine differs
+
+The steps above are written for compute capability 7.5 or newer. Otherwise:
+
+| Your situation | Command |
+| --- | --- |
+| V100, P100, or any card older than a T4 | `bash install.sh cuda12` |
+| AMD card | `bash install.sh rocm` |
+| Cluster login node, compute nodes have older cards | `bash install.sh cuda12` |
+| Skip the 5.3 GB download for now | `bash install.sh --no-weights` |
+
+CUDA 13 dropped every GPU below compute capability 7.5, so a V100 or P100 needs
+the CUDA 12 wheels however new its driver is. The installer detects this from
+the card — but on a login node with no visible GPU it cannot, and assumes CUDA
+13. **Match the choice to the compute nodes, not the login node.**
 
 ---
 
