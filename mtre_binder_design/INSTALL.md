@@ -48,10 +48,109 @@ bash Miniforge3-Linux-x86_64.sh
 
 ---
 
-## 1. BindCraft
+## 1a. BindCraft2 — the successor, and probably what you want
 
-The primary generator. Install this one first — it is the better behaved of the
-two and it is where most of our design runs will happen.
+Verified against PacesaLab/BindCraft2 `c0ee638` (10 Oct 2026).
+
+**BindCraft2 is a separate repository under a new org**
+([PacesaLab/BindCraft2](https://github.com/PacesaLab/BindCraft2)), not a branch
+or release of `martinpacesa/BindCraft` — that repo stops at v1.5.3. BC2 is a
+rewrite with a different CLI, a different input schema, and a far better
+installer. Read §1b before deciding; our configs currently target v1.
+
+```bash
+git clone https://github.com/PacesaLab/BindCraft2.git ~/software/BindCraft2
+cd ~/software/BindCraft2
+bash install.sh
+source .venv/bin/activate
+```
+
+That is the whole install. No conda, no `--cuda` guess: `install.sh` reads the
+accelerator off the driver, builds a `.venv` with whichever of `uv`, `venv` or
+conda the machine has (fetching `uv` if there is no usable Python at all),
+installs the matching wheels, downloads the AlphaFold parameters, and then
+verifies the result.
+
+**Two things that will catch you out:**
+
+- **The install is editable, so the clone *is* the installation.** Moving,
+  renaming or deleting the directory breaks the `bindcraft` command. Do not
+  clone it into scratch space that gets purged.
+- **`source .venv/bin/activate` once per terminal.**
+
+Allow ~20 GB free: the 5.3 GB parameter archive and its unpacked contents sit
+side by side during the transfer, and the accelerator wheels are several GB
+more. ProteinMPNN weights ship inside the package — nothing to fetch.
+
+### Accelerator selection
+
+Usually automatic. Override by passing an argument:
+
+| Argument | When |
+| --- | --- |
+| *(none)* | read from the driver |
+| `cuda13` | compute capability 7.5+ (T4, A100, L40S, 4090, H100) |
+| `cuda12` | **Volta, Pascal, Maxwell** — V100, P100, and anything below 7.5 |
+| `rocm` | AMD, against a local ROCm 7 install |
+| `--no-weights` | skip the AF2 download; `bindcraft fetch-weights` later |
+
+CUDA 13 dropped every GPU below compute capability 7.5, so a V100 or P100 takes
+the CUDA 12 wheels however new its driver is — the installer detects this, but
+name it yourself if you install on a login node whose card differs from the
+compute nodes. Match the choice to the **compute** nodes.
+
+Note `rocm` is offered. That does not rescue RFdiffusion, which remains
+CUDA-only, but it means an AMD facility is not automatically out for BC2.
+
+**Verify:**
+
+```bash
+python -c "import jax; print(jax.devices()); assert jax.default_backend() == 'gpu'"
+python -m bindcraft.selfcheck cuda13     # name your accelerator
+bindcraft --help
+```
+
+`[CpuDevice(id=0)]` means a campaign would run on the CPU. The installer flags
+this itself when the machine has a GPU that JAX did not take.
+
+### Running it
+
+The CLI and input format are both different from v1:
+
+```bash
+bindcraft design my_design.json
+```
+
+```json
+{
+  "targets": [{"name": "MtrE_crown",
+               "target_path": "targets/target_crown.pdb",
+               "chains": "A,B,C",
+               "hotspots": "A326,A333,C114,C119"}],
+  "modality": "binder",
+  "binder_lengths": [55, 100],
+  "number_of_final_designs": 100,
+  "project_folder": "results/mtre_crown"
+}
+```
+
+Compare that with `configs/bindcraft/target_crown_loops.json` — same target,
+same hotspots, different schema. There is no `--filters` / `--advanced` pair;
+named presets supply those, overridden per-key with `--set`.
+
+### GPU memory
+
+Per worker, for a padded complex of N residues: 7.1 GB at 64, 8.0 at 128, 11.8
+at 256, 18.0 at 384, 26.7 at 512. A campaign packs up to seven workers per card
+automatically. Our targets are 42–180 residues, so one worker fits a 16 GB card
+comfortably; cap packing with `BINDCRAFT_WORKERS_PER_GPU=1` if you hit limits.
+
+---
+
+## 1b. BindCraft v1 — what our configs currently target
+
+The primary generator for this project as it stands. Install this one if you
+want to run the campaigns exactly as specified in `PROTOCOL_MtrE.md`.
 
 ```bash
 git clone https://github.com/martinpacesa/BindCraft ~/software/BindCraft
@@ -253,6 +352,11 @@ The contig strings for all three targets are in
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
+| **BC2:** `bindcraft: this environment has no ...` | running under the wrong interpreter | `source .venv/bin/activate` |
+| **BC2:** `module not installed: <name>` | wheel resolved but unpacked nothing | `bash install.sh` again in the same environment |
+| **BC2:** works on login node, fails on compute nodes | installer read the login node's driver | `bash install.sh cuda12` |
+| **BC2:** `checkpoints missing or unfinished` | interrupted download | delete `~/.cache/bindcraft/alphafold`, `bindcraft fetch-weights` |
+| **BC2:** out of GPU memory | too many packed workers | `BINDCRAFT_WORKERS_PER_GPU=1` |
 | `jax.devices()` shows only CpuDevice | wrong `--cuda` at install | re-run `install_bindcraft.sh` with the version `nvidia-smi` reports |
 | `no kernel image is available` | GPU newer than the pinned CUDA | route 2b, Docker |
 | `nvrtc: invalid value for --gpu-architecture` | same | route 2b, Docker |
